@@ -1,0 +1,1 @@
+C:\Users\reddu\.virtualenvs\airstock-acKWWLLQ\Scripts\python.exe D:\PythonProjects\airstock\Realty\Naver\get_1_rand_data_daily.py

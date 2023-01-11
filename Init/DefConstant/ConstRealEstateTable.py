@@ -1,0 +1,4 @@
+#initialization of constants
+NaverMobileMasterTable = 'kt_realty_naver_mobile_master'
+NaverMobileMasterSwitchTable = 'kt_realty_naver_mobile_master_swtich'
+NaverMobileMasterErrorLogTable = 'kt_realty_naver_mobile_master_error_log'
