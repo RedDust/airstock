@@ -32,7 +32,7 @@ try:
     #qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s  AND reg_date < %s"
     #어제 데이터 부터 전체 처리
     qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s "
-    cursorRealEstate.execute(qrySelectNaverMobileMaster, (nBaseStartDate, nBaseEndDate))
+    cursorRealEstate.execute(qrySelectNaverMobileMaster, nBaseStartDate)
     rstMasterDatas = cursorRealEstate.fetchall()
 
     print(qrySelectNaverMobileMaster, nBaseStartDate, nBaseEndDate)
