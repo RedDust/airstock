@@ -17,7 +17,7 @@ def SwitchResultUpdate(SwitchData):
 
 
         if SwitchData=='00' or SwitchData=='10' or SwitchData=='20':
-            print(GetLogDef.lineno(), "[", str(datetime.datetime.now()), "]",SwitchData)
+            print(GetLogDef.lineno(), "[", str(datetime.datetime.now()), "]", SwitchData)
 
         else:
             Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
@@ -29,11 +29,11 @@ def SwitchResultUpdate(SwitchData):
         if SwitchData=='10':
             sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " SET " \
                                                                                               "result = %s" \
-                                                                                              ",process_start_date= %s " \
+                                                                                              ",process_start_date=NOW() " \
                                                                                               ",last_date=NOW() " \
                                                                                               " WHERE  type='00'"
 
-            print("[", str(datetime.datetime.now()), "]", sqlUpdateSwitch, SwitchData, dtNowDateTime.strftime("%Y-%d-%m %H:%M:%S"))
+            print("[", str(datetime.datetime.now()), "]", sqlUpdateSwitch, SwitchData)
 
         else:
             sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " SET " \

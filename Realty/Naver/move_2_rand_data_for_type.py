@@ -1,4 +1,5 @@
 # This is a sample Python script.
+# 매일 23시 실행
 import os
 import sys
 import json
@@ -12,33 +13,31 @@ sys.path.append("D:/PythonProjects/airstock")
 
 from Init.Functions.Logs import GetLogDef
 from Lib.RDB import pyMysqlConnector
-from bs4 import BeautifulSoup
-from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
-from Init.DefConstant import ConstRealEstateTable
-from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
 
 from Init.DefConstant import ConstRealEstateTable
-from Init.DefConstant import ConstSectorInfo
 from datetime import datetime as DateTime, timedelta as TimeDelta
-from Lib.RDB import LibNaverMobileMasterSwitchTable
 
 try:
 
     date_1 = DateTime.today()
-    end_date = date_1 - TimeDelta(days=2)
-    nBaseAtclCfmYmd = str(end_date.strftime('2023-01-01 00:00:00'))
+    end_date = date_1 - TimeDelta(days=1)
+    nBaseStartDate = str(end_date.strftime('%Y-%m-%d 00:00:00'))
+    nBaseEndDate = str(date_1.strftime('%Y-%m-%d 00:00:00'))
 
-
+    print( nBaseStartDate, nBaseEndDate)
     # DB 연결
     ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
 
     cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date >= %s "
-    cursorRealEstate.execute(qrySelectNaverMobileMaster, nBaseAtclCfmYmd)
+    #qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s  AND reg_date < %s"
+    #어제 데이터 부터 전체 처리
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s "
+    cursorRealEstate.execute(qrySelectNaverMobileMaster, (nBaseStartDate, nBaseEndDate))
     rstMasterDatas = cursorRealEstate.fetchall()
 
-    # print(results)
+    print(qrySelectNaverMobileMaster, nBaseStartDate, nBaseEndDate)
 
+    nLoop = 0
     for MasterDataList in rstMasterDatas:
 
         strTypeCode = MasterDataList.get('rletTpCd')

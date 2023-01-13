@@ -1,0 +1,1 @@
+C:\Users\reddu\.virtualenvs\airstock-acKWWLLQ\Scripts\python.exe D:\PythonProjects\airstock\Realty\Naver\move_2_rand_data_for_type.py
