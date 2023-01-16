@@ -10,6 +10,26 @@ from collections import OrderedDict
 from datetime import datetime as DateTime, timedelta as TimeDelta
 
 
+from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+
+profile = webdriver.FirefoxProfile()
+profile.set_preference('browser.download.folderList', 2)
+profile.set_preference('browser.download.manager.showWhenStarting', False)
+profile.set_preference('browser.helperApps.neverAsk.saveToDisk', ('application/vnd.ms-excel'))
+profile.set_preference('general.warnOnAboutConfig', False)
+profile.update_preferences()
+gecko_path = "D:/PythonProjects/geckodriver_win64/geckodriver.exe"
+path = "C:/Users/reddu/AppData/Local/Mozilla Firefox/firefox.exe"
+binary = FirefoxBinary(path)
+driver = webdriver.Firefox(firefox_profile=profile,executable_path=gecko_path)
+
+
+driver.get('https://www.google.com')
+
+quit("rhwocns")
+
+
 
 strDailyDefine = "22.12.21."
 
