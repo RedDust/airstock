@@ -18,7 +18,7 @@ from Init.DefConstant import ConstRealEstateTable
 from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
-
+from Lib.SeleniumModule.Windows import Firefox
 
 
 
@@ -30,20 +30,24 @@ from Lib.RDB import LibNaverMobileMasterSwitchTable
 try:
 
 
-
     switchAtclNo='0000000'
     switchAtclCfmYmd=''
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference('browser.download.folderList', 2)
-    profile.set_preference('browser.download.manager.showWhenStarting', False)
-    profile.set_preference('browser.helperApps.neverAsk.saveToDisk', ('application/vnd.ms-excel'))
-    profile.set_preference('general.warnOnAboutConfig', False)
-    profile.update_preferences()
 
-    gecko_path = "D:/PythonProjects/geckodriver_win64/geckodriver.exe"
-    path = "C:/Users/reddu/AppData/Local/Mozilla Firefox/firefox.exe"
-    binary = FirefoxBinary(path)
-    driver = webdriver.Firefox(firefox_profile=profile, executable_path=gecko_path)
+    # profile = webdriver.FirefoxProfile()
+    # profile.set_preference('browser.download.folderList', 2)
+    # profile.set_preference('browser.download.manager.showWhenStarting', False)
+    # profile.set_preference('browser.helperApps.neverAsk.saveToDisk', ('application/vnd.ms-excel'))
+    # profile.set_preference('general.warnOnAboutConfig', False)
+    # profile.update_preferences()
+    #
+    # gecko_path = "D:/PythonProjects/geckodriver_win64/geckodriver.exe"
+    # path = "C:/Users/reddu/AppData/Local/Mozilla Firefox/firefox.exe"
+    # binary = FirefoxBinary(path)
+    # driver = webdriver.Firefox(firefox_profile=profile, executable_path=gecko_path)
+
+    #파이어폭스 셀리니움 드라이버
+    driver = Firefox.defFireBoxDrive()
+
 
     # DB 연결
     ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
