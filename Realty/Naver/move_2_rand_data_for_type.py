@@ -16,32 +16,50 @@ from Lib.RDB import pyMysqlConnector
 
 from Init.DefConstant import ConstRealEstateTable
 from datetime import datetime as DateTime, timedelta as TimeDelta
+from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
+
 
 try:
 
     date_1 = DateTime.today()
-    end_date = date_1 - TimeDelta(days=1)
+    end_date = date_1 - TimeDelta(days=2)
     nBaseStartDate = str(end_date.strftime('%Y-%m-%d 00:00:00'))
     nBaseEndDate = str(date_1.strftime('%Y-%m-%d 00:00:00'))
+
+    nMasterSeq=0
 
     print( nBaseStartDate, nBaseEndDate)
     # DB 연결
     ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
 
     cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-    #qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s  AND reg_date < %s"
+
+    # 정상처리
+    # qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date >= %s  AND reg_date < %s"
+    # cursorRealEstate.execute(qrySelectNaverMobileMaster, (nBaseStartDate, nBaseEndDate))
+
+    qrySelectSeoulSwitch = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " WHERE type='10'  "
+    cursorRealEstate.execute(qrySelectSeoulSwitch)
+    SwitchDataList = cursorRealEstate.fetchone()
+    nMasterSeq = str(SwitchDataList.get('masterCortarNo'))
+
+
+
+
+
     #어제 데이터 부터 전체 처리
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  reg_date > %s "
-    cursorRealEstate.execute(qrySelectNaverMobileMaster, nBaseStartDate)
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  seq >= %s "
+    cursorRealEstate.execute(qrySelectNaverMobileMaster, nMasterSeq )
     rstMasterDatas = cursorRealEstate.fetchall()
 
-    print(qrySelectNaverMobileMaster, nBaseStartDate, nBaseEndDate)
+    LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "10")
+
 
     nLoop = 0
     for MasterDataList in rstMasterDatas:
 
-        strTypeCode = MasterDataList.get('rletTpCd')
-        nMasterSeq  = MasterDataList.get('seq')
+        strTypeCode = str(MasterDataList.get('rletTpCd'))
+        nMasterSeq  = str(MasterDataList.get('seq'))
         strNewPartTable = ConstRealEstateTable.NaverMobileMasterTable + "_" + strTypeCode
 
         try:
@@ -55,6 +73,8 @@ try:
             #Insert
             qryInsertTypeTable = "INSERT INTO "+strNewPartTable+" SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + " WHERE seq = %s"
             cursorRealEstate.execute(qryInsertTypeTable, nMasterSeq)
+
+            nMasterSeq = cursorRealEstate.lastrowid
             ResRealEstateConnection.commit()
 
         except Exception as e:
@@ -70,11 +90,11 @@ except Exception as e:
     print(e)
     print(type(e))
 
-    # print(sqlInsertNaverMobileMaster)
-    # LibNaverMobileMasterSwitchTable.SwitchResultUpdate("20")
+    LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "20")
 else:
     print("========================================================")
-    # LibNaverMobileMasterSwitchTable.SwitchResultUpdate("00")
+
+    LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "00")
 finally:
     print("Finally END")
 
