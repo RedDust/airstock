@@ -1,5 +1,4 @@
 # This is a sample Python script.
-import os
 import sys
 import json
 import time
@@ -13,10 +12,6 @@ sys.path.append("D:/PythonProjects/airstock")
 from Init.Functions.Logs import GetLogDef
 from Lib.RDB import pyMysqlConnector
 from bs4 import BeautifulSoup
-from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
-from Init.DefConstant import ConstRealEstateTable
-from selenium import webdriver    # 라이브러리에서 사용하는 모듈만 호출
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 
 from Lib.SeleniumModule.Windows import Firefox
 
@@ -25,7 +20,7 @@ from Lib.SeleniumModule.Windows import Firefox
 from Init.DefConstant import ConstRealEstateTable
 from Init.DefConstant import ConstSectorInfo
 from datetime import datetime as DateTime, timedelta as TimeDelta
-from Lib.RDB import LibNaverMobileMasterSwitchTable
+from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 
 try:
 
