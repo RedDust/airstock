@@ -92,7 +92,7 @@ try:
         strUniqueKey = ''
 
         for list in jsonRowDatas:
-            print("[ " + str(nStartNumber) + " - " + str(nEndNumber) + " ][ " + str(nLoop) + " ] ")
+            # print("[ " + str(nStartNumber) + " - " + str(nEndNumber) + " ][ " + str(nLoop) + " ] ")
             nLoop += 1
 
             dictSeoulRealtyTradeDataMaster = {}
