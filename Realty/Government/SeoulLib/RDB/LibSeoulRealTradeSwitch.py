@@ -4,7 +4,7 @@ import time
 import datetime
 
 from Lib.RDB import pyMysqlConnector
-from Init.DefConstant import ConstRealEstateTable
+from Realty.Government.Const import ConstRealEstateTable_GOV
 from Init.Functions.Logs import GetLogDef
 
 def SwitchSeoulUpdate(dictSeoulSwitch):
@@ -27,7 +27,7 @@ def SwitchSeoulUpdate(dictSeoulSwitch):
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
         if SwitchData=='10':
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealTradeMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",process_start_date=NOW() " \
                                                                                               ",last_date=NOW() " \
@@ -37,7 +37,7 @@ def SwitchSeoulUpdate(dictSeoulSwitch):
 
             nProcessedCount = str(dictSeoulSwitch['processed_count'])
 
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealTradeMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",process_start_date=NOW() " \
                                                                                              ",processed_count='"+nProcessedCount+"' " \
@@ -45,7 +45,7 @@ def SwitchSeoulUpdate(dictSeoulSwitch):
                                                                                               " WHERE  seq='"+nSequence+"' "
 
         else:
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealTradeMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",last_date=NOW() " \
                                                                                               " WHERE  seq='"+nSequence+"' "
@@ -92,7 +92,7 @@ def SwitchSeoulRentUpdate(dictSeoulSwitch):
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
         if SwitchData=='10':
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealRentMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",process_start_date=NOW() " \
                                                                                               ",last_date=NOW() " \
@@ -102,7 +102,7 @@ def SwitchSeoulRentUpdate(dictSeoulSwitch):
 
             nProcessedCount = str(dictSeoulSwitch['processed_count'])
 
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealRentMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",process_start_date=NOW() " \
                                                                                              ",processed_count='"+nProcessedCount+"' " \
@@ -110,7 +110,7 @@ def SwitchSeoulRentUpdate(dictSeoulSwitch):
                                                                                               " WHERE  seq='"+nSequence+"' "
 
         else:
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.SeoulRealRentMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",last_date=NOW() " \
                                                                                               " WHERE  seq='"+nSequence+"' "
