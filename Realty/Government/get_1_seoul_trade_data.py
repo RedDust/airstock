@@ -1,6 +1,7 @@
 # 최초 데이터 수집 프로그램
 # 이 프로그램을 기반으로 Daily 를 만들었다.
 # 2023-01-30 커밋
+# https://data.seoul.go.kr/dataList/OA-21275/S/1/datasetView.do
 
 import sys
 sys.path.append("D:/PythonProjects/airstock")
@@ -15,7 +16,8 @@ from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
 
-from Init.DefConstant import ConstRealEstateTable
+from Realty.Government.Const import ConstRealEstateTable_GOV
+
 from SeoulLib.RDB import LibSeoulRealTradeSwitch
 
 from Init.Functions.Logs import GetLogDef
@@ -83,12 +85,12 @@ try:
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
-        qrySelectSeoulSwitch = "SELECT * FROM "+ConstRealEstateTable.SeoulRealTradeMasterSwitchTable+" WHERE ACC_YEAR = %s AND state <> '30' LIMIT 1 "
+        qrySelectSeoulSwitch = "SELECT * FROM "+ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable+" WHERE ACC_YEAR = %s AND state <> '30' LIMIT 1 "
         cursorRealEstate.execute(qrySelectSeoulSwitch, nProcessYear)
 
         nResultCount = cursorRealEstate.rowcount
         if nResultCount < 1:
-            qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable.SeoulRealTradeMasterSwitchTable + " SET " \
+            qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
                                 "ACC_YEAR='"+str(nProcessYear)+"', " \
                                 "START_NUMBER='"+str(nStartNumber)+"', " \
                                 "END_NUMBER='" + str(nEndNumber) + "', "\
@@ -160,7 +162,7 @@ try:
             print("strUniqueKey > ", strUniqueKey)
 
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-            qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.SeoulRealTradeDataTable + "  WHERE  unique_key=%s"
+            qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + "  WHERE  unique_key=%s"
 
             cursorRealEstate.execute(qrySelectSeoulTradeMaster, strUniqueKey)
             row_result = cursorRealEstate.rowcount
@@ -172,7 +174,7 @@ try:
                 strState = "00"
 
             if row_result > 0:
-                sqlSeoulRealTrade = " UPDATE " + ConstRealEstateTable.SeoulRealTradeDataTable + " SET " \
+                sqlSeoulRealTrade = " UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET " \
                                     " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['CNTL_YMD'] + "'" \
                                   + " , state='" + strState + "' " \
                                   + " , modify_date=NOW() " \
@@ -181,7 +183,7 @@ try:
 
             else:
 
-                sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable.SeoulRealTradeDataTable + " SET unique_key='"+strUniqueKey+"' ," \
+                sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET unique_key='"+strUniqueKey+"' ," \
                                     " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "', " \
                                     " SGG_CD='" + dictSeoulRealtyTradeDataMaster['SGG_CD'] + "', " \
                                     " SGG_NM='" + dictSeoulRealtyTradeDataMaster['SGG_NM'] + "', " \
