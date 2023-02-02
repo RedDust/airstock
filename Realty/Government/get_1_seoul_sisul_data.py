@@ -1,7 +1,7 @@
 # 서울시 건설공사 추진 현황
 # 서울시(투출, 자치구 포함)에서 발주 한 시설공사 공정관리 및 일반공사 정보로 공정율, 사업비, 공사기간, 사업규모, 계약현황 등이 제공됩니다.
 # 2023-01-30 커밋
-#https://data.seoul.go.kr/dataList/OA-21276/S/1/datasetView.do
+#https://data.seoul.go.kr/dataList/OA-2540/S/1/datasetView.do
 
 
 import sys
