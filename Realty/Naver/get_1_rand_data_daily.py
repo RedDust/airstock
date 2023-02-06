@@ -244,7 +244,7 @@ try:
             ResRealEstateConnection.commit()
 
             #크롤링 딜레이 추가
-            nRandomSec = random.randint(2, 5)
+            nRandomSec = random.randint(3, 5)
             print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
             time.sleep(nRandomSec)
 
