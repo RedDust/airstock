@@ -202,16 +202,17 @@ try:
 
                     rstSelectDatas = cursorRealEstate.fetchone()
 
+                    strCancelState = rstSelectDatas.get('state')
                     strCNTLYMD = rstSelectDatas.get('CNTL_YMD')
 
-                    if(len(strCNTLYMD) > 2 ):
+                    if(strCancelState != '10' and strState == '10' ):
                         sqlSeoulRealTrade = " UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET " \
                                             " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['CNTL_YMD'] + "'" \
                                           + " , state='" + strState + "' " \
                                           + " , modify_date=NOW() " \
                                           + " WHERE unique_key='"+strUniqueKey+"' "
                         nUpdateCount = nUpdateCount + 1
-                        print("sqlSeoulRealTrade > " , sqlSeoulRealTrade)
+                        print("sqlSeoulRealTradeUpdate > ", sqlSeoulRealTrade)
                         cursorRealEstate.execute(sqlSeoulRealTrade)
 
                     else:
