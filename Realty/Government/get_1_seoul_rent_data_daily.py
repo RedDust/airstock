@@ -38,7 +38,7 @@ try:
     stToday = DateTime.today()
 
 
-    for nLoop in range(0, 60):
+    for nLoop in range(0, 61):
         nbaseDate = stToday - TimeDelta(days=nLoop)
         dtProcessDay = int(nbaseDate.strftime("%Y%m%d"))
 
@@ -208,7 +208,7 @@ try:
                 if row_result > 0:
                     continue
 
-                print(dictSeoulRealtyTradeDataMaster['CNTRCT_PRD'] ,type( dictSeoulRealtyTradeDataMaster['CNTRCT_PRD']))
+                # print(dictSeoulRealtyTradeDataMaster['CNTRCT_PRD'] ,type( dictSeoulRealtyTradeDataMaster['CNTRCT_PRD']))
 
                 arrCNTRCT_PRD = []
                 # 계약기간이 명시 되어 있지 않으면 예외처리
@@ -218,7 +218,7 @@ try:
                     arrCNTRCT_PRD = dictSeoulRealtyTradeDataMaster['CNTRCT_PRD'].split("~")
 
 
-                print(arrCNTRCT_PRD ,type( arrCNTRCT_PRD))
+                # print(arrCNTRCT_PRD ,type( arrCNTRCT_PRD))
 
                 if len(dictSeoulRealtyTradeDataMaster['RENT_GTN']) < 1:
                     dictSeoulRealtyTradeDataMaster['RENT_GTN'] = '0'

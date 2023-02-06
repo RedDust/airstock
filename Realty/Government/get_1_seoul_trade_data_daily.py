@@ -33,19 +33,12 @@ try:
     #60일 이전이 같은 해 이면 해당 연 데이터만 취합하고
     #1월 2월 의 경우로 지난 해를 포함 하면 지난해 데이터도 취합한다.
     #거래 신고 30일 + 취소 신고 +30일
-    date_1 = DateTime.today()
-    end_date = date_1 - TimeDelta(days=60)
-    nBaseStartYear = str(end_date.strftime('%Y'))
-    nBaseEndYear = str(date_1.strftime('%Y'))
-    nYearLoop = 1
-
-    arrProcessYear = [nBaseEndYear]
-    if nBaseStartYear != nBaseEndYear:
-        arrProcessYear.append(str(nBaseStartYear))
+    stToday = DateTime.today()
 
 
-
-    for nProcessYear in arrProcessYear:
+    for nLoop in range(0, 61):
+        nbaseDate = stToday - TimeDelta(days=nLoop)
+        dtProcessDay = int(nbaseDate.strftime("%Y%m%d"))
 
         # 한번에 처리할 건수
         nProcessedCount = 1000
@@ -61,9 +54,11 @@ try:
         # 최종번호
         nEndNumber = nProcessedCount
 
-        strProcessYear = str(nProcessYear)
+        strProcessDay = str(dtProcessDay)
+        strProcessYear = strProcessDay[0:4]
 
-        print(GetLogDef.lineno(), "nProcessYear >", nProcessYear)
+
+        print( GetLogDef.lineno(), "dtProcessDay >", dtProcessDay , "strProcessYear > ", strProcessYear )
 
         while True:
 
@@ -74,8 +69,14 @@ try:
             print(GetLogDef.lineno(), "nStartNumber >", nStartNumber)
             print(GetLogDef.lineno(), "nEndNumber >", nEndNumber)
 
+            # # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
+            # url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/tbLnOpendataRtmsV/"+str(nStartNumber)+"/"+str(nEndNumber)+"/"+strProcessYear
+
             # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
-            url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/tbLnOpendataRtmsV/"+str(nStartNumber)+"/"+str(nEndNumber)+"/"+strProcessYear
+            url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/tbLnOpendataRtmsV/"+str(nStartNumber)+"/"+str(nEndNumber) \
+                  + "/%20/%20/%20/%20/%20/%20/%20/%20/%20/" + strProcessDay + "/%20/"
+
+
             print("url > ", url)
 
 
@@ -87,7 +88,10 @@ try:
             json_object = json.loads(json_str)
             bMore = json_object.get('tbLnOpendataRtmsV')
 
-            nTotalCount = bMore.get('list_total_count')
+            if bMore is None:
+                Exception(GetLogDef.lineno(), 'bMore => ', bMore)  # 예외를 발생시킴
+                break
+
             jsonResultDatas = bMore.get('RESULT')
             jsonResultDatasResult = jsonResultDatas
 
@@ -99,9 +103,8 @@ try:
                 break
                 #GetOut while True:
 
-
+            nTotalCount = bMore.get('list_total_count')
             jsonRowDatas = bMore.get('row')
-
 
             # DB 연결
             ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
@@ -199,7 +202,7 @@ try:
 
                     strCNTLYMD = rstSelectDatas.get('CNTL_YMD')
 
-                    if(len(strCNTLYMD) < 2 ):
+                    if(len(strCNTLYMD) > 2 ):
                         sqlSeoulRealTrade = " UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET " \
                                             " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['CNTL_YMD'] + "'" \
                                           + " , state='" + strState + "' " \
