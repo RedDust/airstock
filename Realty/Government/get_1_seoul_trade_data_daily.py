@@ -35,6 +35,9 @@ try:
     #거래 신고 30일 + 취소 신고 +30일
     stToday = DateTime.today()
 
+    nInsertedCount = 0
+    nUpdateCount = 0
+
 
     for nLoop in range(0, 61):
         nbaseDate = stToday - TimeDelta(days=nLoop)
@@ -150,8 +153,7 @@ try:
 
             # 3. 건별 처리
             print("Processing", "====================================================")
-            nInsertedCount = 0
-            nUpdateCount = 0
+
             nLoop = 0
             strUniqueKey = ''
 
@@ -259,7 +261,6 @@ try:
             print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
             #for list in jsonRowDatas:
-            print('Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
             print("dictSeoulRealtyTradeDataMaster", "====================================================")
             nStartNumber = nEndNumber + 1
             nEndNumber = nEndNumber + nProcessedCount
@@ -285,6 +286,7 @@ except Exception as e:
     print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
 else:
+    print('Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
     print("========================= SUCCESS END")
 finally:
     print("Finally END")
