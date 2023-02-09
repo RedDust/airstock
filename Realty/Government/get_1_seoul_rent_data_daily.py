@@ -19,7 +19,7 @@ from Realty.Government.Const import ConstRealEstateTable_GOV
 from Lib.RDB import pyMysqlConnector
 
 
-from SeoulLib.RDB import SwitchSeoulRentUpdate
+from SeoulLib.RDB import LibSeoulRealTradeSwitch
 
 from Init.Functions.Logs import GetLogDef
 
@@ -154,7 +154,7 @@ try:
             dictSeoulSwitch['seq'] = nSequence
             dictSeoulSwitch['state'] = 10
             print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = SwitchSeoulRentUpdate.SwitchSeoulRentUpdate(dictSeoulSwitch)
+            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
             print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
             if bSwitchUpdateResult != True:
                 Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
@@ -273,7 +273,7 @@ try:
             dictSeoulSwitch['processed_count'] = nInsertedCount
 
             print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = SwitchSeoulRentUpdate.SwitchSeoulRentUpdate(dictSeoulSwitch)
+            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
             print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
             #for list in jsonRowDatas:
@@ -300,7 +300,7 @@ except Exception as e:
     dictSeoulSwitch['seq'] = nSequence
     dictSeoulSwitch['state'] = 20
     print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-    bSwitchUpdateResult = SwitchSeoulRentUpdate.SwitchSeoulRentUpdate(dictSeoulSwitch)
+    bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
     print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
 else:
