@@ -121,28 +121,28 @@ try:
             cursorRealEstate.execute(qrySelectSeoulSwitch, strProcessYear)
 
             nResultCount = cursorRealEstate.rowcount
-            # if nResultCount < 1:
-            #     qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
-            #                         "ACC_YEAR='"+strProcessYear+"', " \
-            #                         "START_NUMBER='"+str(nStartNumber)+"', " \
-            #                         "END_NUMBER='" + str(nEndNumber) + "', "\
-            #                         "RESULT_CODE='"+str(strResultCode)+"', " \
-            #                         "RESULT_MESSAGE='"+str(strResultMessage)+"', " \
-            #                         "list_total_count='"+str(nTotalCount)+"' ," \
-            #                         "state='00' "
-            #     cursorRealEstate.execute(qrySwitchInsert)
-            #     nSequence = cursorRealEstate.lastrowid
-            #     print(GetLogDef.lineno(), "qrySwitchInert >", qrySwitchInsert)
-            #
-            # else:
-            #     SwitchDataList = cursorRealEstate.fetchone()
-            #     nSequence = SwitchDataList.get('seq')
-            #     strStateCode = SwitchDataList.get('state')
-            #     START_NUMBER = SwitchDataList.get('START_NUMBER')
-            #     END_NUMBER = SwitchDataList.get('END_NUMBER')
-            #     nLoopTotalCount = SwitchDataList.get('total_processed_count')
-            #
-            # ResRealEstateConnection.commit()
+            if nResultCount < 1:
+                qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
+                                    "ACC_YEAR='"+strProcessYear+"', " \
+                                    "START_NUMBER='"+str(nStartNumber)+"', " \
+                                    "END_NUMBER='" + str(nEndNumber) + "', "\
+                                    "RESULT_CODE='"+str(strResultCode)+"', " \
+                                    "RESULT_MESSAGE='"+str(strResultMessage)+"', " \
+                                    "list_total_count='"+str(nTotalCount)+"' ," \
+                                    "state='00' "
+                cursorRealEstate.execute(qrySwitchInsert)
+                nSequence = cursorRealEstate.lastrowid
+                print(GetLogDef.lineno(), "qrySwitchInert >", qrySwitchInsert)
+
+            else:
+                SwitchDataList = cursorRealEstate.fetchone()
+                nSequence = SwitchDataList.get('seq')
+                strStateCode = SwitchDataList.get('state')
+                START_NUMBER = SwitchDataList.get('START_NUMBER')
+                END_NUMBER = SwitchDataList.get('END_NUMBER')
+                nLoopTotalCount = SwitchDataList.get('total_processed_count')
+
+            ResRealEstateConnection.commit()
 
 
             # print(nTotalCount)

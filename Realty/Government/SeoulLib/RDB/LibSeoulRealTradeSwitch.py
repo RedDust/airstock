@@ -92,7 +92,7 @@ def SwitchSeoulRentUpdate(dictSeoulSwitch):
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
         if SwitchData=='10':
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
+            sqlUpdateSwitch = "INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
                                                                                               "state = %s" \
                                                                                               ",process_start_date=NOW() " \
                                                                                               ",last_date=NOW() " \
