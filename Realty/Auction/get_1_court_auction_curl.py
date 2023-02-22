@@ -8,7 +8,7 @@ import time
 import random
 import pymysql
 import datetime
-sys.path.append("/")
+sys.path.append("D:/PythonProjects/airstock")
 
 #from Helper import basic_fnc
 
