@@ -121,3 +121,70 @@ def SwitchResultDataDistribution(seq,SwitchData):
         ResRealEstateConnection.commit()
         return True
 
+
+def SwitchResultDataAuction(type,city,target,SwitchData):
+
+    try:
+
+        SwitchData = str(SwitchData)
+        type = str(type)
+        city = str(city)
+        target = str(target)
+
+        dtNowDateTime = datetime.datetime.now()
+
+
+        if SwitchData=='00' or SwitchData=='10' or SwitchData=='20':
+            print(GetLogDef.lineno(), "[", str(datetime.datetime.now()), "]", SwitchData)
+
+        else:
+            Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
+
+        # DB 연결
+        ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+        cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
+
+        if SwitchData=='30':
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " SET " \
+                                                                                              " masterCortarNo = %s" \
+                                                                                              ", atclNo = %s" \
+                                                                                              ", page = %s" \
+                                                                                              ",result = %s" \
+                                                                                              ",process_start_date=NOW() " \
+                                                                                              ",last_date=NOW() " \
+                                                                                              " WHERE  type='20'"
+
+            print(GetLogDef.lineno(), "[", str(datetime.datetime.now()), "]", sqlUpdateSwitch, type, SwitchData)
+
+        else:
+            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " SET " \
+                                                                                              "masterCortarNo = %s" \
+                                                                                              ", atclNo = %s" \
+                                                                                              ", page = %s" \
+                                                                                              ", result = %s" \
+                                                                                              ", last_date=NOW() " \
+                                                                                              " WHERE  type='20'"
+            print(GetLogDef.lineno(), "[", str(datetime.datetime.now()), "]", sqlUpdateSwitch, type, SwitchData)
+
+
+        print(GetLogDef.lineno(__file__), "==================================================================")
+        print(type, city , target, SwitchData)
+
+
+        cursorRealEstate.execute(sqlUpdateSwitch, (type, city , target, SwitchData))
+
+    except Exception as e:
+
+        print("NaverMobileMasterSwitchTable Error Exception")
+        print(sqlUpdateSwitch)
+        print(e)
+        print(type(e))
+        print("[ERROR]========================================================")
+
+        ResRealEstateConnection.rollback()
+        return False
+
+    else:
+        ResRealEstateConnection.commit()
+        return True
+

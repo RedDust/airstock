@@ -1,0 +1,424 @@
+import requests
+
+
+# This is a sample Python script.
+import sys
+import json
+import time
+import random
+import pymysql
+import datetime
+sys.path.append("/")
+
+#from Helper import basic_fnc
+
+from Init.Functions.Logs import GetLogDef
+from Lib.RDB import pyMysqlConnector
+from bs4 import BeautifulSoup
+
+from Const import ConstRealEstateTable_AUC
+from datetime import datetime as DateTime, timedelta as TimeDelta
+from Lib.SeleniumModule.Windows import Chrome
+from selenium.webdriver.support.select import Select
+from Realty.Auction.Const import AuctionCourtInfo
+from Init.DefConstant import ConstRealEstateTable
+from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
+
+try:
+    print(GetLogDef.lineno(__file__), "============================================================")
+
+    #https://curlconverter.com/ <- 프로그램 컨버터
+
+    # 물건상세 검색
+    # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMulDetailList.laf"
+
+    # 매각예정물건
+    #strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveMgakPlanMulSrch.laf"
+
+
+    # 매각결과
+    #strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
+
+
+    # DB 연결
+    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+
+    # 스위치 데이터 조회 (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterSwitchTable + "  WHERE  type='20'"
+    cursorRealEstate.execute(qrySelectNaverMobileMaster)
+    results = cursorRealEstate.fetchone()
+    strResult = results.get('result')
+
+    # DB Close
+    ResRealEstateConnection.close()
+
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
+
+    # 스위치 상태가 00 이 아니면 오류 처리
+    if strResult != '00':
+        quit(strResult, "중복 실행 또는 오류 입니다.")
+
+    # 스위치 데이터 조회 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '30')
+
+    # 기초 헤더 정리
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://www.courtauction.go.kr',
+        'Referer': 'https://www.courtauction.go.kr/RetrieveMainInfo.laf',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+        'sec-ch-ua': '"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+    }
+
+    # 초기 값
+    paging = 40
+
+    #
+    for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
+
+        print(KuIndex)
+        print(AuctionCallInfo)
+        print(GetLogDef.lineno(__file__), "==================================================================")
+        # print(AuctionCourtInfo.dictAuctionTypes['1'].get('url'))
+        # print(AuctionCourtInfo.dictAuctionTypes['1'].get('type'))
+
+        strCourtAuctionUrl = AuctionCourtInfo.dictAuctionTypes[KuIndex].get('url')
+        strAuctionType = AuctionCourtInfo.dictAuctionTypes[KuIndex].get('type')
+
+        # print(strCourtAuctionUrl)
+        for arrCityPlace in AuctionCourtInfo.arrCityPlace:
+
+            print(GetLogDef.lineno(__file__), "==================================================================")
+            # print(arrCityPlace)
+
+            targetRow = 1
+
+
+            while True:
+
+                cookies = {
+                    'WMONID': 'MMCPCPmrU9T',
+                    'daepyoSiguCd': '',
+                    'mvmPlaceSiguCd': '',
+                    'rd1Cd': '',
+                    'rd2Cd': '',
+                    'realVowel': '35207_45207',
+                    'roadPlaceSidoCd': '',
+                    'roadPlaceSiguCd': '',
+                    'vowelSel': '35207_45207',
+                    'page': 'default20',
+                    'realJiwonNm': '%BC%AD%BF%EF%B3%B2%BA%CE%C1%F6%B9%E6%B9%FD%BF%F8',
+                    'daepyoSidoCd': arrCityPlace,
+                    'mvmPlaceSidoCd': '',
+                    'JSESSIONID': 'GaL7Ehe4mYWbEDHCagGn6L60inn16EKTWsNnMnXVnjQRRAlVbAGe1zK51jnl3BZW.amV1c19kb21haW4vYWlzMg==',
+                }
+
+
+                data = 'page=default'+str(paging)+'&' \
+                       'srnID=PNO102000&jiwonNm=&bubwLocGubun=2&jibhgwanOffMgakPlcGubun=&mvmPlaceSidoCd=&mvmPlaceSiguCd=&roadPlaceSidoCd=&' \
+                       'roadPlaceSiguCd=&daepyoSidoCd='+arrCityPlace+'&daepyoSiguCd=&daepyoDongCd=&rd1Cd=&rd2Cd=&rd3Rd4Cd=&roadCode=&' \
+                       'notifyLoc=1&notifyRealRoad=1&notifyNewLoc=1&mvRealGbncd=1&jiwonNm1=%C0%FC%C3%BC&jiwonNm2=%BC%AD%BF%EF%C1%DF%BE%D3%C1%F6%B9%E6%B9%FD%BF%F8&' \
+                       'mDaepyoSidoCd='+arrCityPlace+'&mvDaepyoSidoCd=&mDaepyoSiguCd=&mvDaepyoSiguCd=&realVowel=00000_55203&vowelSel=00000_55203&mDaepyoDongCd=&mvmPlaceDongCd=&' \
+                       '_NAVI_CMD=&_NAVI_SRNID=&_SRCH_SRNID=PNO102000&_CUR_CMD=RetrieveMainInfo.laf&_CUR_SRNID=PNO102000&_NEXT_CMD=&_NEXT_SRNID=PNO102002&' \
+                       '_PRE_SRNID=PNO102001&_LOGOUT_CHK=&_FORM_YN=Y&PNIPassMsg=%C1%A4%C3%A5%BF%A1+%C0%C7%C7%D8+%C2%F7%B4%DC%B5%C8+%C7%D8%BF%DCIP+%BB%E7%BF%EB%C0%DA%C0%D4%B4%CF%B4%D9.&' \
+                       'pageSpec=default'+str(paging)+'&pageSpec=default'+str(paging)+'&' \
+                       'targetRow='+str(targetRow)+'&lafjOrderBy='
+
+                LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '10')
+
+                response = requests.post(
+                    strCourtAuctionUrl,
+                    cookies=cookies,
+                    headers=headers,
+                    data=data,
+                )
+
+                html = response.text  # page_source 얻기
+                soup = BeautifulSoup(html, "html.parser")  # get html
+                rstMainElements = soup.select_one('#contents > div.table_contents > form:nth-child(1) > table > tbody')
+
+                nLoopTrElements = 0
+                rstTrElements = rstMainElements.select('tr')
+                print(GetLogDef.lineno(__file__), "-------------------------------------------------------------------------------")
+                strErrorMessage = rstMainElements.select_one('tr').select_one('td').text
+
+                if strErrorMessage == '검색결과가 없습니다.':
+                    print(GetLogDef.lineno(__file__), "---------------------------------------------["+str(targetRow)+"]수집완료")
+                    break
+
+                for rstTrElement in rstTrElements:
+                    print(GetLogDef.lineno(__file__), "[type:"+str(strAuctionType)+"][place:"+str(arrCityPlace)+"][page:"+str(targetRow)+"][count:"+str(nLoopTrElements)+"]+++++++++")
+                    nLoopTrElements = nLoopTrElements + 1
+
+                    nLoopTdElements = 0
+                    rstTdElements = rstTrElement.select('td')
+
+
+                    # DB 연결
+                    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+                    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
+
+
+                    # 법원경매 0번째 컬럼 (CHECKBOX - 법정,고유코드,) START
+                    strCheckBoxValues = (rstTdElements[0].select_one('input[type=checkbox]').get('value'))
+                    arrCheckBoxValues = strCheckBoxValues.split(',')
+                    if arrCheckBoxValues != 3:
+                        Exception(GetLogDef.lineno(__file__), 'arrCheckBoxValues => ', arrCheckBoxValues)  # 예외를 발생시킴
+
+                    # print(arrCheckBoxValues)
+                    strCourtName = arrCheckBoxValues[0]
+                    strAuctionUniqueNumber = arrCheckBoxValues[1]
+                    strAuctionSeq = arrCheckBoxValues[2]
+                    # 법원경매 0번째 컬럼 (CHECKBOX) END
+
+                    # 법원경매 1번째 컬럼 (사건번호) START
+                    rstIssueNumber = rstTdElements[1]
+                    # print(GetLogDef.lineno(__file__), "-------------------------------------------------------------------------------")
+                    # print(rstIssueNumber)
+                    rstIssueNumber.find('input').decompose()
+                    strIssueNumber = rstIssueNumber.text
+                    nLoopTempIssueNumber = 0
+                    arrTempIssueNumber = []
+                    arrIssueNumbers = strIssueNumber.split("\n")
+                    for arrIssueNumber in arrIssueNumbers:
+                        strTempIssueNumber = repr(arrIssueNumber)
+
+                        strTempIssueNumber = strTempIssueNumber.replace("\\t", "")
+                        strTempIssueNumber = strTempIssueNumber.replace("\'", "")
+                        strTempIssueNumber = strTempIssueNumber.replace(" ", "")
+                        strTempIssueNumber = strTempIssueNumber.replace("\\r", "")
+                        # print(strTempIssueNumber)
+                        if len(strTempIssueNumber) > 0:
+                            arrTempIssueNumber.append(strTempIssueNumber)
+                            strTempIssueNumber = nLoopTempIssueNumber + 1
+
+                    # 법원 정보가 존재 하지 않으면 오류 처리
+                    if arrTempIssueNumber[0] not in AuctionCourtInfo.arrCourtName:
+                        Exception(GetLogDef.lineno(__file__), 'arrTempIssueNumber[0] => ', arrTempIssueNumber[0])  # 예외를 발생시킴
+
+                    # 사건 번호 정보가 없으면 오류
+                    if len(arrTempIssueNumber) < 2:
+                        Exception(GetLogDef.lineno(__file__), 'len(arrTempIssueNumber) => ', len(arrTempIssueNumber))  # 예외를 발생시킴
+
+                    # #중복 물건 또는 병합물건 존재함
+                    # if len(arrTempIssueNumber) > 2:
+                    #     print("어레이가 2개 이상", len(arrTempIssueNumber))
+
+                    jsonIssueNumber = json.dumps(arrTempIssueNumber, ensure_ascii=False)
+                    # print(jsonIssueNumber)
+                    # jsonIssueNumber
+                    # 법원경매 1번째 컬럼 (사건번호) END
+
+                    # 법원경매 2번째 컬럼 (용도번호) START
+                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    rstUsage = rstTdElements[2]
+                    arrUsages = str(rstUsage).split("<br/>")
+                    nLoopTempUsageInfo = 0
+                    arrTempUsageInfo = []
+                    for arrUsage in arrUsages:
+                        strTempUsage = repr(arrUsage)
+                        strTempUsage = strTempUsage.replace('<td>', '')
+                        strTempUsage = strTempUsage.replace("\'", "")
+                        strTempUsage = strTempUsage.replace("\\n", "")
+                        strTempUsage = strTempUsage.replace("\\t", "")
+                        strTempUsage = strTempUsage.replace("\\r", "")
+                        strTempUsage = strTempUsage.replace(" ", "")
+                        strTempUsage = strTempUsage.replace('</td>', '')
+                        if len(strTempUsage) > 0:
+                            arrTempUsageInfo.append(strTempUsage)
+                            nLoopTempUsageInfo = nLoopTempUsageInfo + 1
+
+                    # 사건 번호 정보가 없으면 오류
+                    if len(arrTempUsageInfo) < 2:
+                        Exception(GetLogDef.lineno(__file__), 'len(arrTempIssueNumber) => ', len(arrTempUsageInfo))  # 예외를 발생시킴
+
+                    # #중복 물건 또는 병합물건 존재함
+                    # if len(arrTempUsageInfo) > 2:
+                    #     print("어레이가 2개 이상", len(arrTempUsageInfo))
+
+                    jsonUsageInfo = json.dumps(arrTempUsageInfo, ensure_ascii=False)
+                    # print(jsonUsageInfo)
+
+                    # ["'1'", "'대지'", "'임야'", "'전답'"]
+                    # 법원경매 2번째 컬럼 (용도번호) END
+
+                    # 법원경매 3번째 컬럼 (소재지 및 내역) START
+                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    rstAddressAndContents = rstTdElements[3]
+                    # print(rstAddressAndContents)
+                    nLoopTempAddressInfo = 0
+                    arrTempAddressInfo = []
+                    arrayAtags = rstAddressAndContents.select('a')
+                    for arrayAtag in arrayAtags:
+                        # print(GetLogDef.lineno(__file__),"-------------------------------------------------------------------------------")
+                        strTempAddress = repr(arrayAtag.text)
+                        strTempAddress = strTempAddress.replace("\'", "")
+                        strTempAddress = strTempAddress.replace("'", "")
+                        strTempAddress = strTempAddress.replace(" ", "")
+                        strTempAddress = strTempAddress.replace("\\n", "")
+                        strTempAddress = strTempAddress.replace("\\t", "")
+                        strTempAddress = strTempAddress.replace("\\r", "")
+                        if len(strTempAddress) < 1:
+                            continue
+
+                        arrTempAddressInfo.append(strTempAddress)
+                        nLoopTempAddressInfo = nLoopTempAddressInfo + 1
+
+                    jSonAddressInfo = json.dumps(arrTempAddressInfo, ensure_ascii=False)
+
+                    # print(arrTempAddressInfo)
+                    # ['서울특별시 관악구 신림동  103-260 ', '서울특별시 관악구  복은6길 20-4 ']
+                    # 법원경매 3번째 컬럼 (소재지 및 내역) END
+
+
+                    # 법원경매 4번째 컬럼 (비고) START
+                    rstEtcContents = rstTdElements[4]
+                    strTempContents = repr(rstEtcContents.text).replace("\\t", "")
+                    strTempContents = strTempContents.replace("\'", "")
+                    strTempContents = strTempContents.replace("'", "")
+                    strTempContents = strTempContents.replace(" ", "")
+                    strTempContents = strTempContents.replace("\\r", "")
+                    # print(strTempContents)
+                    # 법원경매 4번째 컬럼 (비고) END
+
+
+                    # 법원경매 5번째 컬럼 (감정평가액 / 최처매각가격) START
+                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    rstAuctionCosts = rstTdElements[5]
+                    rstDivs = rstAuctionCosts.select('div')
+                    nLoopTempAddressInfo = 0
+                    arrActionCustInfo = []
+                    for rstDiv in rstDivs:
+                        # print(GetLogDef.lineno(__file__),"################################################################")
+                        strTempAuctionCosts = repr(rstDiv.text)
+                        strTempAuctionCosts = strTempAuctionCosts.split('\\n')
+
+                        for strAuctionCost in strTempAuctionCosts:
+                            strTempAuctionCost = strAuctionCost.replace("\'", "")
+                            strTempAuctionCost = strTempAuctionCost.replace("\\n", "")
+                            strTempAuctionCost = strTempAuctionCost.replace("\\t", "")
+                            strTempAuctionCost = strTempAuctionCost.replace("\\r", "")
+                            strTempAuctionCost = strTempAuctionCost.replace("(", "")
+                            strTempAuctionCost = strTempAuctionCost.replace(")", "")
+                            strTempAuctionCost = strTempAuctionCost.replace("%", "")
+                            strTempAuctionCost = strTempAuctionCost.replace(" ", "")
+                            strTempAuctionCost = strTempAuctionCost.replace(",", "")
+                            if len(strTempAuctionCost) > 0:
+                                arrActionCustInfo.append(strTempAuctionCost)
+
+                    # print(arrActionCustInfo)
+                    nAppraisalPrice = arrActionCustInfo[0]
+                    nLowerPrice = arrActionCustInfo[1]
+                    nRatio = str(0)
+
+                    if len(arrActionCustInfo) > 2:
+                        nRatio = arrActionCustInfo[2]
+
+
+                    # print(arrActionCustInfo)
+                    # ['277000000', '113459000', '40']
+                    # 법원경매 5번째 컬럼 (감정평가액 / 최처매각가격) END
+
+
+                    # 법원경매 6번째 컬럼 (담당계 / 매각기일) START
+                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    rstShowJpDeptInfoTitleInfos = rstTdElements[6]
+                    rstShowJpDeptInfoTitles = repr(rstShowJpDeptInfoTitleInfos.text)
+                    rstShowJpDeptInfoTitlesArrays = rstShowJpDeptInfoTitles.split('\\n')
+
+                    arrShowJpDeptInfoTitle = []
+                    for rstShowJpDeptInfoTitlesArray in rstShowJpDeptInfoTitlesArrays:
+                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\'", "")
+                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\\t", "")
+                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\\r", "")
+                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace(" ", "")
+                        rstShowJpDeptInfoTitleText = rstShowJpDeptInfoTitlesArray.replace(" ", "")
+
+                        if len(rstShowJpDeptInfoTitleText) > 0:
+                            # print(rstShowJpDeptInfoTitleText)
+                            arrShowJpDeptInfoTitle.append(rstShowJpDeptInfoTitleText)
+
+                    # aTextInfo = rstShowJpDeptInfoTitleInfos.select_one('a').get('onclick')
+                    # print(aTextInfo)
+
+                    # print(arrShowJpDeptInfoTitle) #for rstTrElement in rstTrElements: END
+
+                    strAuctionPlace = arrShowJpDeptInfoTitle[0]
+                    strAuctionDate = arrShowJpDeptInfoTitle[1].replace(".", "-") + " 00:00:00"
+                    strBiddingInfo = arrShowJpDeptInfoTitle[2]
+                    # ['경매21계', '2023.02.21', '유찰3회']
+                    # 법원경매 6번째 컬럼 (감정평가액 / 최처매각가격) END
+
+                    sqlCourtAuctionSelect = "SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionDataTable +" WHERE auction_code = %s AND auction_seq = %s LIMIT 1 "
+                    cursorRealEstate.execute(sqlCourtAuctionSelect, (strAuctionUniqueNumber, strAuctionSeq))
+
+                    nResultCount = cursorRealEstate.rowcount
+                    if nResultCount > 0:
+                        continue
+
+                    sqlCourtAuctionInsert = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET " \
+                                            " auction_code= '" + strAuctionUniqueNumber + "', " \
+                                            " auction_seq= '" + strAuctionSeq + "', " \
+                                            " court_name= '" + strCourtName + "', " \
+                                            " issue_number= '" + jsonIssueNumber + "', " \
+                                            " build_type= '" + jsonUsageInfo + "', " \
+                                            " address_data= '" + jSonAddressInfo + "', " \
+                                            " simple_info= '" + strTempContents + "', " \
+                                            " appraisal_price= '" + nAppraisalPrice + "', " \
+                                            " lower_price= '" + nLowerPrice + "', " \
+                                            " ratio= '" + nRatio + "', " \
+                                            " auction_place= '" + strAuctionPlace + "', " \
+                                            " auction_day= '" + strAuctionDate + "', " \
+                                            " auction_type= '" + strAuctionType + "', " \
+                                            " bidding_info= '" + strBiddingInfo + "' "
+
+
+                    print("sqlCourtAuctionInsert > ", sqlCourtAuctionInsert)
+                    cursorRealEstate.execute(sqlCourtAuctionInsert)
+
+                    ResRealEstateConnection.commit()
+
+                # 테스트 딜레이 추가
+                nRandomSec = random.randint(1, 2)
+                # print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
+                time.sleep(nRandomSec)
+
+                targetRow = targetRow + paging #END While
+
+            print("[" + arrCityPlace + "]END FOR for arrCityPlace in AuctionCourtInfo.arrCityPlace ")
+        print("["+KuIndex+"]for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():")
+
+    # print("for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():=====")
+
+        # END While
+    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '00')
+
+
+except Exception as e:
+
+    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '00')
+    print("Error Exception")
+    print(e)
+    print(type(e))
+
+else:
+    print(GetLogDef.lineno(__file__), "============================================================")
+
+finally:
+    print("Finally END")
+
+
