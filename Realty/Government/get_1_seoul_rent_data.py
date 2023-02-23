@@ -84,8 +84,6 @@ try:
 
             # print(json_str)
 
-
-
             # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
             json_object = json.loads(json_str)
             bMore = json_object.get('tbLnOpendataRentV')

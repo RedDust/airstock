@@ -40,6 +40,31 @@ try:
     nInsertedCount = 0
     nUpdateCount = 0
 
+    #서울 부동산 실거래가 데이터 - 임대차
+    strProcessType = '034110'
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
+
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    strResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    if strResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+    if strResult == '10':
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
+
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    dictSwitchData['data_1'] = KuIndex
+    dictSwitchData['data_2'] = arrCityPlace
+    dictSwitchData['data_3'] = targetRow
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+
+
 
     for nLoop in range(0, 61):
         nbaseDate = stToday - TimeDelta(days=nLoop)
@@ -160,6 +185,16 @@ try:
                 Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
 
 
+            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = dtProcessDay
+            dictSwitchData['data_2'] = strProcessDay
+            dictSwitchData['data_3'] = nStartNumber
+            dictSwitchData['data_4'] = nEndNumber
+            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+
             # 3. 건별 처리
             print("Processing", "====================================================")
             nLoop = 0
@@ -266,6 +301,8 @@ try:
 
                 ResRealEstateConnection.commit()
 
+
+
             # Switch 성공 업데이트
             dictSeoulSwitch = {}
             dictSeoulSwitch['seq'] = nSequence
@@ -289,6 +326,17 @@ try:
     # For nProcessYear:
     print(GetLogDef.lineno(), "End nProcessYears")
 
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '00'
+    dictSwitchData['data_1'] = dtProcessDay
+    dictSwitchData['data_2'] = strProcessDay
+    dictSwitchData['data_3'] = nStartNumber
+    dictSwitchData['data_4'] = nEndNumber
+    dictSwitchData['data_5'] = nSequence
+    dictSwitchData['data_6'] = nInsertedCount
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
 
 except Exception as e:
     print("Error Exception")
@@ -302,6 +350,31 @@ except Exception as e:
     print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
     bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
     print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
+
+    # Switch 오류 업데이트
+    dictSeoulSwitch = {}
+    dictSeoulSwitch['seq'] = nSequence
+    dictSeoulSwitch['state'] = 20
+    print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
+    bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
+    print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+    if dtProcessDay is not None:
+        dictSwitchData['data_1'] = dtProcessDay
+
+    if strProcessDay is not None:
+        dictSwitchData['data_2'] = strProcessDay
+
+    if nStartNumber is not None:
+        dictSwitchData['data_3'] = nStartNumber
+
+    if nEndNumber is not None:
+        dictSwitchData['data_3'] = nEndNumber
+
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 else:
     print('Inserted => ', nInsertedCount)
