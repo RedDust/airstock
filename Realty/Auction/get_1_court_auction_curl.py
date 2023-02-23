@@ -39,7 +39,7 @@ try:
     # 매각결과
     #strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-    strProcessType = '20'
+    strProcessType = '020000'
     KuIndex = '00'
     arrCityPlace = '00'
     targetRow = '00'

@@ -196,10 +196,7 @@ def SwitchResultDataAuction(type,city,target,SwitchData):
 def SwitchResultSelectV2(strType):
 
     try:
-
-
-        print(GetLogDef.lineno(__file__), strType, type(strType))
-
+        print(GetLogDef.lineno(__file__), strType, type(strType), "==========================================")
         # DB 연결
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
@@ -210,6 +207,7 @@ def SwitchResultSelectV2(strType):
 
         # 스위치 데이터 조회 (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
         qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.RealSwitchTable + "  WHERE switch_type=%s"
+
         cursorRealEstate.execute(qrySelectNaverMobileMaster, strType)
         results = cursorRealEstate.fetchone()
         strResult = results.get('result')
