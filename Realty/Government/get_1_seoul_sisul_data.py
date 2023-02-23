@@ -44,6 +44,31 @@ nEndNumber = nProcessedCount
 
 try:
 
+
+    #서울 부동산 실거래가 데이터 - 임대차
+    strProcessType = '034190'
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
+
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    strResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    if strResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+    if strResult == '10':
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    dictSwitchData['data_1'] = KuIndex
+    dictSwitchData['data_2'] = arrCityPlace
+    dictSwitchData['data_3'] = targetRow
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+
+
     while True:
 
         print(GetLogDef.lineno(), "nStartNumber >", nStartNumber)
@@ -90,6 +115,15 @@ try:
         nUpdateCount = 0
         nLoop = 0
         strUniqueKey = ''
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '10'
+        dictSwitchData['data_1'] = url
+        dictSwitchData['data_2'] = strResultCode
+        dictSwitchData['data_3'] = nStartNumber
+        dictSwitchData['data_4'] = nEndNumber
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
         for list in jsonRowDatas:
             # print("[ " + str(nStartNumber) + " - " + str(nEndNumber) + " ][ " + str(nLoop) + " ] ")
@@ -166,14 +200,40 @@ try:
         nEndNumber = nEndNumber + nProcessedCount
         ResRealEstateConnection.close()
 
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '00'
+        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['PJT_CD']
+        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'")
+        dictSwitchData['data_3'] = nStartNumber
+        dictSwitchData['data_4'] = nEndNumber
+        dictSwitchData['data_5'] = dictSeoulRealtyTradeDataMaster['ORG_1'].replace('\'', "\\'")
+        dictSwitchData['data_6'] = nInsertedCount
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+
 except Exception as e:
 
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+    if dictSeoulRealtyTradeDataMaster['PJT_CD'] is not None:
+        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['PJT_CD']
+
+    if dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'") is not None:
+        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'")
+
+    if nStartNumber is not None:
+        dictSwitchData['data_3'] = nStartNumber
+
+    if nEndNumber is not None:
+        dictSwitchData['data_3'] = nEndNumber
+
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     print("Error Exception")
     print(e)
     print(type(e))
-
-
 else:
     print("========================= SUCCESS END")
 
