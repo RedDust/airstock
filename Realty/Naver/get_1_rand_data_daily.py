@@ -20,8 +20,6 @@ from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.SeleniumModule.Windows import Chrome
 try:
 
-
-
     switchAtclNo='0000000'
     switchAtclCfmYmd=''
 
@@ -47,22 +45,43 @@ try:
     nDBSwitchIndex = (results.get('masterCortarIndex'))
     print(results.get('masterCortarName'))
     nDBSwitchPage = results.get('page')
-
     strDBSwitchResult = results.get('result')
+    ResRealEstateConnection.close()
+
+
+    #서울 부동산 실거래가 데이터 - 임대차
+    strProcessType = '010000'
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    results = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    nDBSwitchPage = results.get('page')
+    strDBSwitchResult = results.get('result')
+
+    if strDBSwitchResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strDBSwitchResult)  # 예외를 발생시킴
+
+    if strDBSwitchResult == '10':
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strDBSwitchResult)  # 예외를 발생시킴
+
+    #첫실행시 초기화
+    if strDBSwitchResult == "00":
+        nDBSwitchPage = 0
+        nDBSwitchIndex = 1
 
     date_1 = DateTime.today()
     end_date = date_1 - TimeDelta(days=1)
     nBaseAtclCfmYmd = int(end_date.strftime('%Y%m%d'))
     dtBaseDate = nBaseAtclCfmYmd
 
-    ResRealEstateConnection.close()
-
-    LibNaverMobileMasterSwitchTable.SwitchResultUpdate("10")
-
-    #첫실행시 초기화
-    if strDBSwitchResult == "00":
-        nDBSwitchPage = 0
-        nDBSwitchIndex = 1
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    dictSwitchData['data_1'] = KuIndex
+    dictSwitchData['data_2'] = arrCityPlace
+    dictSwitchData['data_3'] = targetRow
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
     # 동별 정보 수집
     for KuIndex, KuInfo in ConstSectorInfo.dictCortarList.items():
@@ -227,27 +246,22 @@ try:
             ResRealEstateConnection.commit()
             print('[ %i ] Inserted' %nInsertedCount)
 
-            #처리후 스위치 테이블에 위치 저장
-            sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.NaverMobileMasterSwitchTable + " SET " \
-                              "masterCortarNo = '"+str(cortarNo)+"'" \
-                              ",masterCortarName='"+str(cortarName)+"' " \
-                              ",masterCortarIndex=" + str(KuIndex) + " " \
-                              ",page= " + str(page) + " " \
-                              ",atclNo='" + str(switchAtclNo) + "' " \
-                              ",atclCfmYmd='" + str(dtBaseDate) + "' " \
-                              ",last_date=NOW() " \
-                              " WHERE  type='00'"
+            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = cortarNo
+            dictSwitchData['data_2'] = cortarName
+            dictSwitchData['data_3'] = KuIndex
+            dictSwitchData['data_4'] = page
+            dictSwitchData['data_5'] = switchAtclNo
+            dictSwitchData['data_6'] = dtBaseDate
+            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-            print("[", str(datetime.datetime.now()), "]", sqlUpdateSwitch)
-
-            cursorRealEstate.execute(sqlUpdateSwitch)
-            ResRealEstateConnection.commit()
 
             #크롤링 딜레이 추가
             nRandomSec = random.randint(3, 5)
             print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
             time.sleep(nRandomSec)
-
 
             # if len(jsonArray) < 20:
             #     break
@@ -268,18 +282,31 @@ try:
         nDBSwitchPage = 0
         print("KuInfo END", "====================================================")
 
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '00'
+    dictSwitchData['data_6'] = nInsertedCount
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+
+
 
 except Exception as e:
+
+
+
+
+
     print("Error Exception")
     print(e)
     print(type(e))
 
     print(sqlInsertNaverMobileMaster)
-    LibNaverMobileMasterSwitchTable.SwitchResultUpdate("20")
+
 
 else:
     print("========================================================")
-    LibNaverMobileMasterSwitchTable.SwitchResultUpdate("00")
+
 finally:
     driver.quit()    # 크롬 브라우저 닫기
     print("Finally END")

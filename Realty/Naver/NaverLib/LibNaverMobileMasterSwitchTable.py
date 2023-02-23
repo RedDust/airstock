@@ -210,11 +210,11 @@ def SwitchResultSelectV2(strType):
 
         cursorRealEstate.execute(qrySelectNaverMobileMaster, strType)
         results = cursorRealEstate.fetchone()
-        strResult = results.get('result')
 
-        print(GetLogDef.lineno(__file__), strResult, type(strResult))
 
-        return strResult
+        print(GetLogDef.lineno(__file__), results, type(results))
+
+        return results
 
     except Exception as e:
 

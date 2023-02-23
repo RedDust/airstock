@@ -45,7 +45,8 @@ try:
     targetRow = '00'
 
     # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
-    strResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    strResult = rstResult.get('result')
     if strResult is False:
         quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
 
