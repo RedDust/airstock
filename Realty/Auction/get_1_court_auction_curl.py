@@ -39,31 +39,28 @@ try:
     # 매각결과
     #strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-
-    # DB 연결
-    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
-
-    # 스위치 데이터 조회 (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
-    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterSwitchTable + "  WHERE  type='20'"
-    cursorRealEstate.execute(qrySelectNaverMobileMaster)
-    results = cursorRealEstate.fetchone()
-    strResult = results.get('result')
-
-    # DB Close
-    ResRealEstateConnection.close()
-
+    strProcessType = '20'
     KuIndex = '00'
     arrCityPlace = '00'
     targetRow = '00'
 
-    # 스위치 상태가 00 이 아니면 오류 처리
-    if strResult != '00':
-        quit(strResult, "중복 실행 또는 오류 입니다.")
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    strResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    if strResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
 
-    # 스위치 데이터 조회 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '30')
+    if strResult == '10':
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
 
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    dictSwitchData['data_1'] = KuIndex
+    dictSwitchData['data_2'] = arrCityPlace
+    dictSwitchData['data_3'] = targetRow
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+
+    print(GetLogDef.lineno(__file__), "==================================================================")
     # 기초 헤더 정리
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -86,6 +83,8 @@ try:
 
     # 초기 값
     paging = 40
+
+    # quit(GetLogDef.lineno(__file__))  # 예외를 발생시킴
 
     #
     for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
@@ -138,7 +137,14 @@ try:
                        'pageSpec=default'+str(paging)+'&pageSpec=default'+str(paging)+'&' \
                        'targetRow='+str(targetRow)+'&lafjOrderBy='
 
-                LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '10')
+
+                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                dictSwitchData = dict()
+                dictSwitchData['result'] = '10'
+                dictSwitchData['data_1'] = KuIndex
+                dictSwitchData['data_2'] = arrCityPlace
+                dictSwitchData['data_3'] = targetRow
+                LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
                 response = requests.post(
                     strCourtAuctionUrl,
@@ -405,15 +411,38 @@ try:
     # print("for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():=====")
 
         # END While
-    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '00')
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '00'
+    dictSwitchData['data_1'] = KuIndex
+    dictSwitchData['data_2'] = arrCityPlace
+    dictSwitchData['data_3'] = targetRow
+    dictSwitchData['data_4'] = strAuctionUniqueNumber
+    dictSwitchData['data_5'] = strAuctionSeq
+    dictSwitchData['data_6'] = jsonIssueNumber
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
 except Exception as e:
 
-    LibNaverMobileMasterSwitchTable.SwitchResultDataAuction(KuIndex, arrCityPlace, targetRow, '00')
-    print("Error Exception")
-    print(e)
-    print(type(e))
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+
+    if KuIndex is not None:
+        dictSwitchData['data_1'] = KuIndex
+
+    if arrCityPlace is not None:
+        dictSwitchData['data_2'] = arrCityPlace
+
+    if targetRow is not None:
+        dictSwitchData['data_3'] = targetRow
+
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+    print(GetLogDef.lineno(__file__), "Error Exception")
+    print(GetLogDef.lineno(__file__), e, type(e))
 
 else:
     print(GetLogDef.lineno(__file__), "============================================================")

@@ -8,3 +8,7 @@ NaverMobileMasterErrorLogTable = 'kt_realty_naver_mobile_master_error_log'
 
 SeoulRealTradeDataTable = 'kt_realty_seoul_real_trade_master'
 SeoulRealTradeMasterSwitchTable = 'kt_realty_seoul_real_trade_master_swtich'
+
+
+RealSwitchTable = 'kt_realty_swtich'
+
