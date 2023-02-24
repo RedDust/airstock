@@ -44,6 +44,24 @@ try:
     nMasterSeq = str(SwitchDataList.get('masterCortarNo'))
 
 
+    #서울 부동산 실거래가 데이터 - 임대차
+    strProcessType = '011000'
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
+
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    strResult = rstResult.get('result')
+
+    if strResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+    if strResult == '10':
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
+
+    nMasterSeq = str(rstResult.get('data_1'))
 
 
 
@@ -54,6 +72,11 @@ try:
 
     LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "10")
 
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
     nLoop = 0
     for MasterDataList in rstMasterDatas:
@@ -68,7 +91,6 @@ try:
             results = cursorRealEstate.rowcount
             if results < 1:
                 strNewPartTable = ConstRealEstateTable.NaverMobileMasterTable + "_ETC"
-
 
             #Insert
             qryInsertTypeTable = "INSERT INTO "+strNewPartTable+" SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + " WHERE seq = %s"
@@ -85,16 +107,29 @@ try:
 
     ResRealEstateConnection.close()
 
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '00'
+    dictSwitchData['data_1'] = nMasterSeq
+    dictSwitchData['data_2'] = strTypeCode
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
 except Exception as e:
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+    if strProcessType is not None:
+        dictSwitchData['data_1'] = nMasterSeq
+
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
     print("Error Exception")
     print(e)
     print(type(e))
 
-    LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "20")
 else:
     print("========================================================")
-
-    LibNaverMobileMasterSwitchTable.SwitchResultDataDistribution(nMasterSeq, "00")
 finally:
     print("Finally END")
 
