@@ -56,8 +56,10 @@ try:
     targetRow = '00'
     # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
     results = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
-    nDBSwitchPage = results.get('page')
+    nDBSwitchPage = int(results.get('data_3'))
     strDBSwitchResult = results.get('result')
+
+    print(GetLogDef.lineno(__file__), nDBSwitchPage,type(nDBSwitchPage))
 
     if strDBSwitchResult is False:
         quit(GetLogDef.lineno(__file__), 'strResult => ', strDBSwitchResult)  # 예외를 발생시킴
@@ -71,7 +73,7 @@ try:
         nDBSwitchIndex = 1
 
     date_1 = DateTime.today()
-    end_date = date_1 - TimeDelta(days=1)
+    end_date = date_1 - TimeDelta(days=2)
     nBaseAtclCfmYmd = int(end_date.strftime('%Y%m%d'))
     dtBaseDate = nBaseAtclCfmYmd
 
@@ -126,6 +128,7 @@ try:
 
             #DB 연결
             nLoop = 0
+            print(GetLogDef.lineno(__file__), page ,type(page))
             page = page + 1
 
             # if page > 1:
@@ -293,9 +296,11 @@ try:
 
 except Exception as e:
 
-
-
-
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '20'
+    dictSwitchData['data_6'] = nInsertedCount
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     print("Error Exception")
     print(e)
