@@ -22,6 +22,7 @@ try:
 
     switchAtclNo='0000000'
     switchAtclCfmYmd=''
+    nInsertedCount = 0
 
     # options = webdriver.ChromeOptions()
     # options.add_argument("headless")    # 웹 브라우저를 띄우지 않는 headless chrome 옵션 적용
