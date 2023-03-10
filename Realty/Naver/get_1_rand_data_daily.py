@@ -74,7 +74,7 @@ try:
         nDBSwitchIndex = 1
 
     date_1 = DateTime.today()
-    end_date = date_1 - TimeDelta(days=2)
+    end_date = date_1 - TimeDelta(days=1)
     nBaseAtclCfmYmd = int(end_date.strftime('%Y%m%d'))
     dtBaseDate = nBaseAtclCfmYmd
 
