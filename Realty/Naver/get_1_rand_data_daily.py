@@ -33,31 +33,16 @@ try:
     #크롬 셀리니움 드라이버
     driver = Chrome.defChromeDrive()
 
-
-    # DB 연결
-    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
-
-    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterSwitchTable + "  WHERE  type='00'"
-
-    cursorRealEstate.execute(qrySelectNaverMobileMaster)
-
-    results = cursorRealEstate.fetchone()
-    nDBSwitchIndex = (results.get('masterCortarIndex'))
-    print(results.get('masterCortarName'))
-    nDBSwitchPage = results.get('page')
-    strDBSwitchResult = results.get('result')
-    ResRealEstateConnection.close()
-
-
     #서울 부동산 실거래가 데이터 - 임대차
     strProcessType = '010000'
-    KuIndex = '00'
+    KuIndex = 0
     arrCityPlace = '00'
     targetRow = '00'
     # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
     results = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
-    nDBSwitchPage = int(results.get('data_3'))
+
+    nDBKuIndex = int(results.get('data_3'))
+    nDBSwitchPage = int(results.get('data_4'))
     strDBSwitchResult = results.get('result')
 
     print(GetLogDef.lineno(__file__), nDBSwitchPage,type(nDBSwitchPage))
@@ -71,7 +56,7 @@ try:
     #첫실행시 초기화
     if strDBSwitchResult == "00":
         nDBSwitchPage = 0
-        nDBSwitchIndex = 1
+        nDBKuIndex = 1
 
     date_1 = DateTime.today()
     end_date = date_1 - TimeDelta(days=1)
@@ -81,16 +66,13 @@ try:
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '10'
-    dictSwitchData['data_1'] = KuIndex
-    dictSwitchData['data_2'] = arrCityPlace
-    dictSwitchData['data_3'] = targetRow
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
     # 동별 정보 수집
     for KuIndex, KuInfo in ConstSectorInfo.dictCortarList.items():
 
         #처리된 구는 패스
-        if KuIndex < nDBSwitchIndex:
+        if KuIndex < nDBKuIndex:
             # nDBSwitchPage = 0
             continue
 
