@@ -106,6 +106,8 @@ try:
             break
 
 
+
+
         # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
         url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/CardSubwayStatsNew/1/"+str(nProcessedCount)+"/" +str(nBaseDate)
 
@@ -168,6 +170,15 @@ try:
             ALIGHT_PASGR_NUM = str(jsonRowData.get('ALIGHT_PASGR_NUM'))
             WORK_DT = jsonRowData.get('WORK_DT')
 
+            dtBaseYear = int(USE_DT[0:4])
+            dtBaseMonth = int(USE_DT[4:6])
+            dtBaseDay = int(USE_DT[6:8])
+
+            rstUseDate = datetime.date(dtBaseYear, dtBaseMonth, dtBaseDay)
+            # rstUseDate = datetime.date(2023, 3, 26)
+
+            nWeekDay = rstUseDate.weekday()
+
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
             qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulSubwayDataTable + "  WHERE  USE_DT=%s AND LINE_NUM=%s AND SUB_STA_NM=%s"
             cursorRealEstate.execute(qrySelectSeoulTradeMaster, (USE_DT, LINE_NUM, SUB_STA_NM))
@@ -180,13 +191,14 @@ try:
 
             sqlSeoulSubway = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulSubwayDataTable + " SET " \
                                 " USE_DT=%s" \
+                                " ,SET day_of_week =%s " \
                                 " ,LINE_NUM=%s" \
                                 " , SUB_STA_NM=%s" \
                                 " , RIDE_PASGR_NUM=%s" \
                                 " , ALIGHT_PASGR_NUM=%s" \
                                 " , WORK_DT=%s" \
 
-            insertDict = (USE_DT, LINE_NUM, SUB_STA_NM, RIDE_PASGR_NUM, ALIGHT_PASGR_NUM, WORK_DT)
+            insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, RIDE_PASGR_NUM, ALIGHT_PASGR_NUM, WORK_DT)
             cursorRealEstate.execute(sqlSeoulSubway, insertDict)
             ResRealEstateConnection.commit()
 
