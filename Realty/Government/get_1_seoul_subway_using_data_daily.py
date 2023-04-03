@@ -71,7 +71,7 @@ try:
     dtToday = DateTime.today()
     # nBaseProcessDate = 50004
 
-    nBaseProcessDate = 1
+    nBaseProcessDate = 3
 
     nEmptyCount = 0
 
@@ -98,12 +98,12 @@ try:
 
         print(GetLogDef.lineno(), "nBaseStartDate > ", nBaseDate)
         nCount = nCount + 1
-        if nCount > 10:
+        if nCount > 5:
             break
 
-
-        if dtUSE_DT > nBaseDate:
-            break
+        #
+        # if dtUSE_DT > nBaseDate:
+        #     break
 
 
 
@@ -149,9 +149,6 @@ try:
 
         jsonRowDatas = bMore.get('row')
 
-
-
-
         print("Processing", "====================================================")
         nInsertedCount = 0
         nUpdateCount = 0
@@ -162,7 +159,7 @@ try:
         for jsonRowData in jsonRowDatas:
             print("[",jsonRowData ,"][ " + str(nLoop) + " ] ")
             nLoop += 1
-
+            print(GetLogDef.lineno(__file__), "====================================================")
             USE_DT = jsonRowData.get('USE_DT')
             LINE_NUM = jsonRowData.get('LINE_NUM')
             SUB_STA_NM = jsonRowData.get('SUB_STA_NM')
@@ -176,12 +173,17 @@ try:
 
             rstUseDate = datetime.date(dtBaseYear, dtBaseMonth, dtBaseDay)
             # rstUseDate = datetime.date(2023, 3, 26)
-
+            print(GetLogDef.lineno(__file__), "====================================================")
             nWeekDay = rstUseDate.weekday()
 
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
             qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulSubwayDataTable + "  WHERE  USE_DT=%s AND LINE_NUM=%s AND SUB_STA_NM=%s"
+
+            print(GetLogDef.lineno(__file__), qrySelectSeoulTradeMaster)
+            print(GetLogDef.lineno(__file__), USE_DT, LINE_NUM, SUB_STA_NM)
             cursorRealEstate.execute(qrySelectSeoulTradeMaster, (USE_DT, LINE_NUM, SUB_STA_NM))
+
+            print(GetLogDef.lineno(__file__), "====================================================")
             row_result = cursorRealEstate.rowcount
             # 등록되어 있는 물건이면 패스
 
@@ -191,14 +193,17 @@ try:
 
             sqlSeoulSubway = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulSubwayDataTable + " SET " \
                                 " USE_DT=%s" \
-                                " ,SET day_of_week =%s " \
-                                " ,LINE_NUM=%s" \
+                                " , day_of_week =%s " \
+                                " , LINE_NUM=%s" \
                                 " , SUB_STA_NM=%s" \
                                 " , RIDE_PASGR_NUM=%s" \
                                 " , ALIGHT_PASGR_NUM=%s" \
                                 " , WORK_DT=%s" \
 
             insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, RIDE_PASGR_NUM, ALIGHT_PASGR_NUM, WORK_DT)
+
+            print(GetLogDef.lineno(__file__), "====================================================")
+
             cursorRealEstate.execute(sqlSeoulSubway, insertDict)
             ResRealEstateConnection.commit()
 
@@ -213,8 +218,8 @@ try:
         dictSwitchData['data_4'] = WORK_DT
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-        ResRealEstateConnection.close()
-        #while True END
+    ResRealEstateConnection.close()
+    #while True END
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
