@@ -68,6 +68,9 @@ try:
     dictSwitchData['result'] = '10'
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
+    # 크롬 셀리니움 드라이버
+    driver = Chrome.defChromeDrive()
+
     # 동별 정보 수집
     for KuIndex, KuInfo in ConstSectorInfo.dictCortarList.items():
 
@@ -106,6 +109,7 @@ try:
         print(GetLogDef.lineno(), "====================================================")
 
 
+        errorCount = 0
         # 구 > 페이지별 정보 수집
         while True:    # 무한 루프
 
@@ -128,8 +132,7 @@ try:
 
             #1. 호출
 
-            # 크롬 셀리니움 드라이버
-            driver = Chrome.defChromeDrive()
+
 
             strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
             html = driver.page_source  # page_source 얻기
@@ -149,6 +152,16 @@ try:
             # print(GetLogDef.lineno(), ajaxJsonText)
             # print(GetLogDef.lineno(), type(bMore))
             # print(GetLogDef.lineno(), len(bMore))
+
+
+            bIsJson = GetLogDef.is_json(ajaxJsonText)
+            if bIsJson == False:
+                if errorCount > 10:
+                    break
+
+                errorCount = errorCount + 1
+                continue
+
 
             jsonData = json.loads(ajaxJsonText)
 
@@ -252,7 +265,12 @@ try:
 
 
             #크롤링 딜레이 추가
-            nRandomSec = random.randint(4, 8)
+            nRandomSec = random.randint(4, 6)
+
+            print(GetLogDef.lineno(), "cortarName => " + cortarName + " ")
+            print(GetLogDef.lineno(), "page => " + str(page) + " ")
+            print(GetLogDef.lineno(), "dtBaseDate=> " + str(dtBaseDate) + " ")
+
             print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
             time.sleep(nRandomSec)
 
@@ -262,7 +280,7 @@ try:
 
             ResRealEstateConnection.close()
 
-            driver.quit()  # 크롬 브라우저 닫기
+
 
             print("while True END", "====================================================")
 
@@ -306,7 +324,7 @@ else:
     print("========================================================")
 
 finally:
-
+    driver.quit()  # 크롬 브라우저 닫기
     print("Finally END")
 
 
