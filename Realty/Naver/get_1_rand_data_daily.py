@@ -22,7 +22,7 @@ try:
 
     switchAtclNo='0000000'
     switchAtclCfmYmd=''
-    nInsertedCount = 0
+    nTotalInsertedCount = 0
 
     # options = webdriver.ChromeOptions()
     # options.add_argument("headless")    # 웹 브라우저를 띄우지 않는 headless chrome 옵션 적용
@@ -247,6 +247,7 @@ try:
 
                 cursorRealEstate.execute(sqlInsertNaverMobileMaster)
                 nInsertedCount = nInsertedCount + 1
+                nTotalInsertedCount = nTotalInsertedCount + 1
                 print(sqlInsertNaverMobileMaster)
 
             ResRealEstateConnection.commit()
@@ -299,7 +300,7 @@ try:
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '00'
-    dictSwitchData['data_6'] = nInsertedCount
+    dictSwitchData['data_6'] = nTotalInsertedCount
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
