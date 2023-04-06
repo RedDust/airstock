@@ -31,7 +31,7 @@ try:
     # driver = webdriver.Chrome("D:/PythonProjects/chromedriver_win32/chromedriver.exe")
 
     #크롬 셀리니움 드라이버
-    driver = Chrome.defChromeDrive()
+    # driver = Chrome.defChromeDrive()
 
     #서울 부동산 실거래가 데이터 - 임대차
     strProcessType = '010000'
@@ -127,6 +127,10 @@ try:
             RealtyCallUrl = strCallUrl.replace('{%page}', str(page))
 
             #1. 호출
+
+            # 크롬 셀리니움 드라이버
+            driver = Chrome.defChromeDrive()
+
             strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
             html = driver.page_source  # page_source 얻기
             soup = BeautifulSoup(html, "html.parser")  # get html
@@ -147,6 +151,9 @@ try:
             # print(GetLogDef.lineno(), len(bMore))
 
             jsonData = json.loads(ajaxJsonText)
+
+            print(GetLogDef.lineno(), "jsonData > ", jsonData, type(jsonData))
+
             bMore = jsonData.get('more')
             jsonArray = (jsonData.get('body'))
 
@@ -245,7 +252,7 @@ try:
 
 
             #크롤링 딜레이 추가
-            nRandomSec = random.randint(3, 5)
+            nRandomSec = random.randint(4, 8)
             print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
             time.sleep(nRandomSec)
 
@@ -254,6 +261,9 @@ try:
 
 
             ResRealEstateConnection.close()
+
+            driver.quit()  # 크롬 브라우저 닫기
+
             print("while True END", "====================================================")
 
             # 기존에 처리 했던 날짜 이면 브레이크
@@ -296,7 +306,7 @@ else:
     print("========================================================")
 
 finally:
-    driver.quit()    # 크롬 브라우저 닫기
+
     print("Finally END")
 
 
