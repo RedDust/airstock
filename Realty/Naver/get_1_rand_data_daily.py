@@ -230,7 +230,9 @@ try:
                         switchAtclNo = dictNaverMobileMaster[dictNaverMobileMasterKeys]
 
 
-
+                    if dictNaverMobileMasterKeys == 'spc1'  or dictNaverMobileMasterKeys == 'spc2':
+                        if dictNaverMobileMaster[dictNaverMobileMasterKeys] == '-':
+                            dictNaverMobileMaster[dictNaverMobileMasterKeys] = str(0)
 
                     # remove special characters For Mysql
                     if dictNaverMobileMasterKeys == 'atclFetrDesc':
@@ -271,6 +273,8 @@ try:
             print(GetLogDef.lineno(), "cortarName => " + cortarName + " ")
             print(GetLogDef.lineno(), "page => " + str(page) + " ")
             print(GetLogDef.lineno(), "dtBaseDate=> " + str(dtBaseDate) + " ")
+            print(GetLogDef.lineno(), "nTotalInsertedCount=> " + str(nTotalInsertedCount) + " ")
+
 
             print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
             time.sleep(nRandomSec)
@@ -300,6 +304,7 @@ try:
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '00'
+    dictSwitchData['data_5'] = errorCount
     dictSwitchData['data_6'] = nTotalInsertedCount
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
