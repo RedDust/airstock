@@ -200,7 +200,7 @@ try:
                                 " , ALIGHT_PASGR_NUM=%s" \
                                 " , WORK_DT=%s" \
 
-            insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, RIDE_PASGR_NUM, ALIGHT_PASGR_NUM, WORK_DT)
+            insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, float(RIDE_PASGR_NUM), float(ALIGHT_PASGR_NUM), WORK_DT)
 
             print(GetLogDef.lineno(__file__), "====================================================")
 
