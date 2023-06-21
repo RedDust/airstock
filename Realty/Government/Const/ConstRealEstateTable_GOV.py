@@ -14,3 +14,4 @@ SeoulRealRentMasterSwitchTable = 'kt_realty_seoul_real_rent_master_swtich'
 SeoulSisulDataTable = 'kt_realty_seoul_sisul_master'
 
 
+SeoulSubwayDataTable = 'kt_realty_seoul_subway_master'
