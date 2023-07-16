@@ -156,6 +156,8 @@ try:
 
             bIsJson = GetLogDef.is_json(ajaxJsonText)
             if bIsJson == False:
+                print(GetLogDef.lineno(), "bIsJson > ", bIsJson)
+                print(GetLogDef.lineno(), "errorCount > ", errorCount)
                 if errorCount > 10:
                     break
 
