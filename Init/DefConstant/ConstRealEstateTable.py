@@ -3,6 +3,14 @@
 RealtyDatabase = 'kt_real_estate_auction'
 
 NaverMobileMasterTable = 'kt_realty_naver_mobile_master'
+
+NaverMobileMasterStatisticsTable = 'kt_realty_naver_mobile_master_daily_statistics'
+# NaverMobileMasterStatisticsTable = 'kt_realty_naver_mobile_daily_statistics_test'
+
+
+
+
+
 NaverMobileMasterSwitchTable = 'kt_realty_naver_mobile_master_swtich'
 NaverMobileMasterErrorLogTable = 'kt_realty_naver_mobile_master_error_log'
 
