@@ -54,7 +54,7 @@ try:
     nMasterSeq = nProcessedMasterSequence
 
     #어제 데이터 부터 전체 처리
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  seq >= %s "
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  seq > %s "
     cursorRealEstate.execute(qrySelectNaverMobileMaster, nMasterBaseSeq)
     rstMasterDatas = cursorRealEstate.fetchall()
 
