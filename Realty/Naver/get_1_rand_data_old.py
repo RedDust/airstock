@@ -1,4 +1,6 @@
 # This is a sample Python script.
+# 현재는 사용하지 않는 버전 최초에 데이터 긁어 올때 만든 버전
+
 import sys
 import json
 import time
@@ -6,6 +8,8 @@ import random
 import pymysql
 import datetime
 
+
+quit("500")
 
 
 from Helper import basic_fnc
