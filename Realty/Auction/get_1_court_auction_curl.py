@@ -27,6 +27,8 @@ from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 try:
     print(GetLogDef.lineno(__file__), "============================================================")
 
+
+
     #https://curlconverter.com/ <- 프로그램 컨버터
 
     # 물건상세 검색
@@ -204,10 +206,15 @@ try:
                     for arrIssueNumber in arrIssueNumbers:
                         strTempIssueNumber = repr(arrIssueNumber)
 
-                        strTempIssueNumber = strTempIssueNumber.replace("\\t", "")
-                        strTempIssueNumber = strTempIssueNumber.replace("\'", "")
-                        strTempIssueNumber = strTempIssueNumber.replace(" ", "")
-                        strTempIssueNumber = strTempIssueNumber.replace("\\r", "")
+                        # strTempIssueNumber = strTempIssueNumber.replace("\\t", "")
+                        # strTempIssueNumber = strTempIssueNumber.replace("\'", "")
+                        # strTempIssueNumber = strTempIssueNumber.replace(" ", "")
+                        # strTempIssueNumber = strTempIssueNumber.replace("\\r", "")
+
+                        strTempIssueNumber = GetLogDef.stripSpecharsForText(strTempIssueNumber)
+
+
+
                         # print(strTempIssueNumber)
                         if len(strTempIssueNumber) > 0:
                             arrTempIssueNumber.append(strTempIssueNumber)
@@ -239,11 +246,15 @@ try:
                     for arrUsage in arrUsages:
                         strTempUsage = repr(arrUsage)
                         strTempUsage = strTempUsage.replace('<td>', '')
-                        strTempUsage = strTempUsage.replace("\'", "")
-                        strTempUsage = strTempUsage.replace("\\n", "")
-                        strTempUsage = strTempUsage.replace("\\t", "")
-                        strTempUsage = strTempUsage.replace("\\r", "")
-                        strTempUsage = strTempUsage.replace(" ", "")
+                        # strTempUsage = strTempUsage.replace("\'", "")
+                        # strTempUsage = strTempUsage.replace("\\n", "")
+                        # strTempUsage = strTempUsage.replace("\\t", "")
+                        # strTempUsage = strTempUsage.replace("\\r", "")
+                        # strTempUsage = strTempUsage.replace(" ", "")
+
+                        strTempUsage = GetLogDef.stripSpecharsForText(strTempUsage)
+
+
                         strTempUsage = strTempUsage.replace('</td>', '')
                         if len(strTempUsage) > 0:
                             arrTempUsageInfo.append(strTempUsage)
@@ -273,12 +284,7 @@ try:
                     for arrayAtag in arrayAtags:
                         # print(GetLogDef.lineno(__file__),"-------------------------------------------------------------------------------")
                         strTempAddress = repr(arrayAtag.text)
-                        strTempAddress = strTempAddress.replace("\'", "")
-                        strTempAddress = strTempAddress.replace("'", "")
-                        strTempAddress = strTempAddress.replace(" ", "")
-                        strTempAddress = strTempAddress.replace("\\n", "")
-                        strTempAddress = strTempAddress.replace("\\t", "")
-                        strTempAddress = strTempAddress.replace("\\r", "")
+                        strTempAddress = GetLogDef.stripSpecharsForText(strTempAddress)
                         if len(strTempAddress) < 1:
                             continue
 
@@ -294,11 +300,8 @@ try:
 
                     # 법원경매 4번째 컬럼 (비고) START
                     rstEtcContents = rstTdElements[4]
-                    strTempContents = repr(rstEtcContents.text).replace("\\t", "")
-                    strTempContents = strTempContents.replace("\'", "")
-                    strTempContents = strTempContents.replace("'", "")
-                    strTempContents = strTempContents.replace(" ", "")
-                    strTempContents = strTempContents.replace("\\r", "")
+                    strTempContents = repr(rstEtcContents.text)
+                    strTempContents = GetLogDef.stripSpecharsForText(strTempContents)
                     # print(strTempContents)
                     # 법원경매 4번째 컬럼 (비고) END
 
@@ -315,15 +318,17 @@ try:
                         strTempAuctionCosts = strTempAuctionCosts.split('\\n')
 
                         for strAuctionCost in strTempAuctionCosts:
-                            strTempAuctionCost = strAuctionCost.replace("\'", "")
-                            strTempAuctionCost = strTempAuctionCost.replace("\\n", "")
-                            strTempAuctionCost = strTempAuctionCost.replace("\\t", "")
-                            strTempAuctionCost = strTempAuctionCost.replace("\\r", "")
+                            strTempAuctionCost = GetLogDef.stripSpecharsForText(strAuctionCost)
+                            # strTempAuctionCost = strTempAuctionCost.replace("\\n", "")
+                            # strTempAuctionCost = strTempAuctionCost.replace("\\t", "")
+                            # strTempAuctionCost = strTempAuctionCost.replace("\\r", "")
+                            # strTempAuctionCost = strTempAuctionCost.replace(" ", "")
+                            # strTempAuctionCost = strTempAuctionCost.replace(",", "")
+
                             strTempAuctionCost = strTempAuctionCost.replace("(", "")
                             strTempAuctionCost = strTempAuctionCost.replace(")", "")
                             strTempAuctionCost = strTempAuctionCost.replace("%", "")
-                            strTempAuctionCost = strTempAuctionCost.replace(" ", "")
-                            strTempAuctionCost = strTempAuctionCost.replace(",", "")
+
                             if len(strTempAuctionCost) > 0:
                                 arrActionCustInfo.append(strTempAuctionCost)
 
@@ -349,12 +354,7 @@ try:
 
                     arrShowJpDeptInfoTitle = []
                     for rstShowJpDeptInfoTitlesArray in rstShowJpDeptInfoTitlesArrays:
-                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\'", "")
-                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\\t", "")
-                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace("\\r", "")
-                        rstShowJpDeptInfoTitlesArray = rstShowJpDeptInfoTitlesArray.replace(" ", "")
-                        rstShowJpDeptInfoTitleText = rstShowJpDeptInfoTitlesArray.replace(" ", "")
-
+                        rstShowJpDeptInfoTitleText = GetLogDef.stripSpecharsForText(rstShowJpDeptInfoTitlesArray)
                         if len(rstShowJpDeptInfoTitleText) > 0:
                             # print(rstShowJpDeptInfoTitleText)
                             arrShowJpDeptInfoTitle.append(rstShowJpDeptInfoTitleText)
