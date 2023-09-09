@@ -68,8 +68,15 @@ try:
 
     nLoop = 0
     nMasterSeq = 0
+    issue_number = '00'
+    auction_code = '00'
+
     for MasterDataList in rstMasterDatas:
         nMasterSeq = str(MasterDataList.get('seq'))
+        issue_number = str(MasterDataList.get('issue_number'))
+        auction_code = str(MasterDataList.get('auction_code'))
+
+
 
         print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
         nLoop = nLoop + 1
@@ -112,6 +119,8 @@ try:
     dictSwitchData['result'] = '00'
     dictSwitchData['data_3'] = nLoop
     dictSwitchData['data_4'] = nMasterSeq
+    dictSwitchData['data_5'] = auction_code
+    dictSwitchData['data_6'] = issue_number
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
