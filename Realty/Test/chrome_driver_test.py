@@ -21,7 +21,7 @@ from Init.DefConstant import ConstRealEstateTable
 from Init.DefConstant import ConstSectorInfo
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
-from Lib.SeleniumModule.Windows import Chrome
+from Lib.SeleniumModule.Windows import Chrome, Firefox
 
 
 try:
@@ -39,21 +39,38 @@ try:
     html = driver.page_source  # page_source 얻기
     soup = BeautifulSoup(html, "html.parser")  # get html
 
+
+
     print(html)
     print(soup)
 
+    print("Chrome SUCCESS")
+    driver.quit()  # 크롬 브라우저 닫기
+
+    print("=============================================================================================================")
+
+    driver = Firefox.defFireBoxDrive()
+    strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
+    html = driver.page_source  # page_source 얻기
+    soup = BeautifulSoup(html, "html.parser")  # get html
+
+    print(html)
+    print(soup)
+    print("Firefox SUCCESS")
+
+    driver.quit()    # 크롬 브라우저 닫기
 
 except Exception as e:
+
+    driver.quit()  # 크롬 브라우저 닫기
     print("Error Exception")
     print(e)
     print(type(e))
 else:
 
-    print("SUCCESS")
-    print("========================================================")
-
+    print("Success!!!!!!!!!!")
 finally:
-    driver.quit()    # 크롬 브라우저 닫기
+
     print("Finally END")
 
 
