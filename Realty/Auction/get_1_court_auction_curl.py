@@ -105,7 +105,7 @@ try:
         for arrCityPlace in AuctionCourtInfo.arrCityPlace:
 
             print(GetLogDef.lineno(__file__), "==================================================================")
-            # print(arrCityPlace)
+            print(arrCityPlace)
 
             targetRow = 1
 
@@ -195,11 +195,12 @@ try:
                     # 법원경매 0번째 컬럼 (CHECKBOX) END
 
                     # 법원경매 1번째 컬럼 (사건번호) START
+                    print(GetLogDef.lineno(__file__), "-------------------------------------------------------------------------------")
                     rstIssueNumber = rstTdElements[1]
-                    # print(GetLogDef.lineno(__file__), "-------------------------------------------------------------------------------")
-                    # print(rstIssueNumber)
                     rstIssueNumber.find('input').decompose()
                     strIssueNumber = rstIssueNumber.text
+                    print(rstIssueNumber,type(rstIssueNumber))
+
                     nLoopTempIssueNumber = 0
                     arrTempIssueNumber = []
                     arrIssueNumbers = strIssueNumber.split("\n")
@@ -238,7 +239,7 @@ try:
                     # 법원경매 1번째 컬럼 (사건번호) END
 
                     # 법원경매 2번째 컬럼 (용도번호) START
-                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    print(GetLogDef.lineno(__file__), "================================================================================")
                     rstUsage = rstTdElements[2]
                     arrUsages = str(rstUsage).split("<br/>")
                     nLoopTempUsageInfo = 0
@@ -275,7 +276,7 @@ try:
                     # 법원경매 2번째 컬럼 (용도번호) END
 
                     # 법원경매 3번째 컬럼 (소재지 및 내역) START
-                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    print(GetLogDef.lineno(__file__), "================================================================================")
                     rstAddressAndContents = rstTdElements[3]
                     # print(rstAddressAndContents)
                     nLoopTempAddressInfo = 0
@@ -307,13 +308,13 @@ try:
 
 
                     # 법원경매 5번째 컬럼 (감정평가액 / 최처매각가격) START
-                    # print(GetLogDef.lineno(__file__), "================================================================================")
+                    print(GetLogDef.lineno(__file__), "================================================================================")
                     rstAuctionCosts = rstTdElements[5]
                     rstDivs = rstAuctionCosts.select('div')
                     nLoopTempAddressInfo = 0
                     arrActionCustInfo = []
                     for rstDiv in rstDivs:
-                        # print(GetLogDef.lineno(__file__),"################################################################")
+                        print(GetLogDef.lineno(__file__),"################################################################")
                         strTempAuctionCosts = repr(rstDiv.text)
                         strTempAuctionCosts = strTempAuctionCosts.split('\\n')
 
@@ -336,11 +337,11 @@ try:
                     nAppraisalPrice = arrActionCustInfo[0]
                     nLowerPrice = arrActionCustInfo[1]
                     nRatio = str(0)
-
+                    print(GetLogDef.lineno(__file__), "################################################################")
                     if len(arrActionCustInfo) > 2:
                         nRatio = arrActionCustInfo[2]
 
-
+                    print(GetLogDef.lineno(__file__), "################################################################")
                     # print(arrActionCustInfo)
                     # ['277000000', '113459000', '40']
                     # 법원경매 5번째 컬럼 (감정평가액 / 최처매각가격) END
@@ -351,7 +352,7 @@ try:
                     rstShowJpDeptInfoTitleInfos = rstTdElements[6]
                     rstShowJpDeptInfoTitles = repr(rstShowJpDeptInfoTitleInfos.text)
                     rstShowJpDeptInfoTitlesArrays = rstShowJpDeptInfoTitles.split('\\n')
-
+                    print(GetLogDef.lineno(__file__), "################################################################")
                     arrShowJpDeptInfoTitle = []
                     for rstShowJpDeptInfoTitlesArray in rstShowJpDeptInfoTitlesArrays:
                         rstShowJpDeptInfoTitleText = GetLogDef.stripSpecharsForText(rstShowJpDeptInfoTitlesArray)
@@ -369,13 +370,39 @@ try:
                     strBiddingInfo = arrShowJpDeptInfoTitle[2]
                     # ['경매21계', '2023.02.21', '유찰3회']
                     # 법원경매 6번째 컬럼 (감정평가액 / 최처매각가격) END
-
+                    print(GetLogDef.lineno(__file__), "################################################################")
                     sqlCourtAuctionSelect = "SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionDataTable +" WHERE auction_code = %s AND auction_seq = %s LIMIT 1 "
                     cursorRealEstate.execute(sqlCourtAuctionSelect, (strAuctionUniqueNumber, strAuctionSeq))
-
                     nResultCount = cursorRealEstate.rowcount
                     if nResultCount > 0:
                         continue
+
+
+                    strDBState = '00'
+                    sqlCourtAuctionSelect = "SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionBackupTable +" WHERE auction_code = %s AND auction_seq = %s LIMIT 1 "
+                    cursorRealEstate.execute(sqlCourtAuctionSelect, (strAuctionUniqueNumber, strAuctionSeq))
+                    nResultCount = cursorRealEstate.rowcount
+                    if nResultCount > 0:
+                        strDBState = '10'
+
+
+                    print(GetLogDef.lineno(__file__), "strAuctionUniqueNumber => ", strAuctionUniqueNumber, type(strAuctionUniqueNumber))
+                    print(GetLogDef.lineno(__file__), "strAuctionSeq => ", strAuctionSeq, type(strAuctionSeq))
+                    print(GetLogDef.lineno(__file__), "strCourtName => ", strCourtName, type(strCourtName))
+                    print(GetLogDef.lineno(__file__), "jsonIssueNumber => ", jsonIssueNumber, type(jsonIssueNumber))
+                    print(GetLogDef.lineno(__file__), "jsonUsageInfo => ", jsonUsageInfo, type(jsonUsageInfo))
+                    print(GetLogDef.lineno(__file__), "jSonAddressInfo => ", jSonAddressInfo, type(jSonAddressInfo))
+                    print(GetLogDef.lineno(__file__), "strTempContents => ", strTempContents, type(strTempContents))
+                    print(GetLogDef.lineno(__file__), "nAppraisalPrice => ", nAppraisalPrice, type(nAppraisalPrice))
+                    print(GetLogDef.lineno(__file__), "nLowerPrice => ", nLowerPrice, type(nLowerPrice))
+                    print(GetLogDef.lineno(__file__), "nRatio => ", nRatio, type(nRatio))
+                    print(GetLogDef.lineno(__file__), "strAuctionPlace => ", strAuctionPlace, type(strAuctionPlace))
+                    print(GetLogDef.lineno(__file__), "strAuctionDate => ", strAuctionDate, type(strAuctionDate))
+                    print(GetLogDef.lineno(__file__), "strAuctionType => ", strAuctionType, type(strAuctionType))
+                    print(GetLogDef.lineno(__file__), "strDBState => ", strDBState, type(strDBState))
+                    print(GetLogDef.lineno(__file__), "strBiddingInfo => ", strBiddingInfo, type(strBiddingInfo))
+
+
 
                     sqlCourtAuctionInsert = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET " \
                                             " auction_code= '" + strAuctionUniqueNumber + "', " \
@@ -391,6 +418,7 @@ try:
                                             " auction_place= '" + strAuctionPlace + "', " \
                                             " auction_day= '" + strAuctionDate + "', " \
                                             " auction_type= '" + strAuctionType + "', " \
+                                            " state= '" + strDBState + "', " \
                                             " bidding_info= '" + strBiddingInfo + "' "
 
 
