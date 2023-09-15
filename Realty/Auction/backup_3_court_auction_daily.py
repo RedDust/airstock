@@ -31,6 +31,10 @@ try:
     arrCityPlace = '00'
     targetRow = '00'
 
+    # print( nBaseStartDate, nBaseEndDate)
+    # DB 연결
+    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
     # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
     rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
@@ -50,11 +54,7 @@ try:
     dictSwitchData['data_3'] = targetRow
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-    # print( nBaseStartDate, nBaseEndDate)
-    # DB 연결
-    ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
 
-    cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
     # # Master Table 에 있는 테이블 전체 백업하기
     # qryBackupNaverMobileMaster = "INSERT INTO "+ConstRealEstateTable_AUC.CourtAuctionBackupTable+" SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
@@ -85,6 +85,7 @@ try:
         cursorRealEstate.execute(qrySelectNaverMobileMaster, nMasterSeq)
         rstBackupDatas = cursorRealEstate.fetchone()
         print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, rstBackupDatas)
+
         if rstBackupDatas is None:
             qryInsertCourtAuctionBackup = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
             qryInsertCourtAuctionBackup += " (SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
