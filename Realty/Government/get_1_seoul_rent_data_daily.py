@@ -68,7 +68,7 @@ try:
 
 
 
-    for nLoop in range(0, 61):
+    for nLoop in range(0, 180):
         nbaseDate = stToday - TimeDelta(days=nLoop)
         dtProcessDay = int(nbaseDate.strftime("%Y%m%d"))
 
@@ -171,21 +171,9 @@ try:
 
             ResRealEstateConnection.commit()
 
-
             # print(nTotalCount)
             # print(jsonResultDatas)
             # quit("END")
-
-            #Switch 업데이트
-            dictSeoulSwitch = {}
-            dictSeoulSwitch['seq'] = nSequence
-            dictSeoulSwitch['state'] = 10
-            print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
-            print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
-            if bSwitchUpdateResult != True:
-                Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
-
 
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
             dictSwitchData = dict()
@@ -203,7 +191,7 @@ try:
             strUniqueKey = ''
 
             for list in jsonRowDatas:
-                print("[ "+str(nStartNumber)+" - "+str(nEndNumber)+" ][ "+str(nLoop)+" ] ")
+                # print("[ "+str(nStartNumber)+" - "+str(nEndNumber)+" ][ "+str(nLoop)+" ] ")
                 nLoop += 1
 
                 # DB 연결
@@ -229,9 +217,8 @@ try:
                                dictSeoulRealtyTradeDataMaster['FLR_NO'] + "_" +\
                                dictSeoulRealtyTradeDataMaster['CNTRCT_DE'] + "_" + dictSeoulRealtyTradeDataMaster['RENT_GTN']
 
-                print("strUniqueKey > ", strUniqueKey)
-
-                print(dictSeoulRealtyTradeDataMaster)
+                # print("strUniqueKey > ", strUniqueKey)
+                # print(dictSeoulRealtyTradeDataMaster)
 
 
                 cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
@@ -305,15 +292,6 @@ try:
 
 
 
-            # Switch 성공 업데이트
-            dictSeoulSwitch = {}
-            dictSeoulSwitch['seq'] = nSequence
-            dictSeoulSwitch['state'] = 30
-            dictSeoulSwitch['processed_count'] = nInsertedCount
-
-            print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
-            print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
             #for list in jsonRowDatas:
             print("dictSeoulRealtyTradeDataMaster", "====================================================")
@@ -344,14 +322,6 @@ except Exception as e:
     print("Error Exception")
     print(e)
     print(type(e))
-
-    # Switch 오류 업데이트
-    dictSeoulSwitch = {}
-    dictSeoulSwitch['seq'] = nSequence
-    dictSeoulSwitch['state'] = 20
-    print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-    bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulRentUpdate(dictSeoulSwitch)
-    print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
     # Switch 오류 업데이트
     dictSeoulSwitch = {}

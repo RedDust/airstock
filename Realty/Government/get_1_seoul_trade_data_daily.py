@@ -1,5 +1,6 @@
 # 서울 일별 실거래가 데이터 수집 프로그램
 # 2023-01-30 커밋
+# 취소 데이터 때문에 2년전 데이터 까지 조회
 # https://data.seoul.go.kr/dataList/OA-21275/S/1/datasetView.do
 
 
@@ -63,7 +64,7 @@ try:
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
 
-    for nLoop in range(0, 61):
+    for nLoop in range(0, 730):
         nbaseDate = stToday - TimeDelta(days=nLoop)
         dtProcessDay = int(nbaseDate.strftime("%Y%m%d"))
 
@@ -134,46 +135,45 @@ try:
             nTotalCount = bMore.get('list_total_count')
             jsonRowDatas = bMore.get('row')
 
-            # DB 연결
+            # # DB 연결
             ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
-            qrySelectSeoulSwitch = "SELECT * FROM "+ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable+" WHERE ACC_YEAR = %s AND state <> '30' LIMIT 1 "
-            cursorRealEstate.execute(qrySelectSeoulSwitch, strProcessYear)
-
-            nResultCount = cursorRealEstate.rowcount
-            if nResultCount < 1:
-                qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
-                                    "ACC_YEAR='"+strProcessYear+"', " \
-                                    "START_NUMBER='"+str(nStartNumber)+"', " \
-                                    "END_NUMBER='" + str(nEndNumber) + "', "\
-                                    "RESULT_CODE='"+str(strResultCode)+"', " \
-                                    "RESULT_MESSAGE='"+str(strResultMessage)+"', " \
-                                    "list_total_count='"+str(nTotalCount)+"' ," \
-                                    "state='00' "
-                cursorRealEstate.execute(qrySwitchInsert)
-                nSequence = cursorRealEstate.lastrowid
-                print(GetLogDef.lineno(), "qrySwitchInert >", qrySwitchInsert)
-
-            else:
-                SwitchDataList = cursorRealEstate.fetchone()
-                nSequence = SwitchDataList.get('seq')
-                strStateCode = SwitchDataList.get('state')
-                START_NUMBER = SwitchDataList.get('START_NUMBER')
-                END_NUMBER = SwitchDataList.get('END_NUMBER')
-                nLoopTotalCount = SwitchDataList.get('total_processed_count')
-
-            ResRealEstateConnection.commit()
-
-            #Switch 업데이트
-            dictSeoulSwitch = {}
-            dictSeoulSwitch['seq'] = nSequence
-            dictSeoulSwitch['state'] = 10
-            print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
-            print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
-            if bSwitchUpdateResult != True:
-                Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
+            # qrySelectSeoulSwitch = "SELECT * FROM "+ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable+" WHERE ACC_YEAR = %s AND state <> '30' LIMIT 1 "
+            # cursorRealEstate.execute(qrySelectSeoulSwitch, strProcessYear)
+            #
+            # nResultCount = cursorRealEstate.rowcount
+            # if nResultCount < 1:
+            #     qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealTradeMasterSwitchTable + " SET " \
+            #                         "ACC_YEAR='"+strProcessYear+"', " \
+            #                         "START_NUMBER='"+str(nStartNumber)+"', " \
+            #                         "END_NUMBER='" + str(nEndNumber) + "', "\
+            #                         "RESULT_CODE='"+str(strResultCode)+"', " \
+            #                         "RESULT_MESSAGE='"+str(strResultMessage)+"', " \
+            #                         "list_total_count='"+str(nTotalCount)+"' ," \
+            #                         "state='00' "
+            #     cursorRealEstate.execute(qrySwitchInsert)
+            #     nSequence = cursorRealEstate.lastrowid
+            #     print(GetLogDef.lineno(), "qrySwitchInert >", qrySwitchInsert)
+            #
+            # else:
+            #     SwitchDataList = cursorRealEstate.fetchone()
+            #     nSequence = SwitchDataList.get('seq')
+            #     strStateCode = SwitchDataList.get('state')
+            #     START_NUMBER = SwitchDataList.get('START_NUMBER')
+            #     END_NUMBER = SwitchDataList.get('END_NUMBER')
+            #     nLoopTotalCount = SwitchDataList.get('total_processed_count')
+            #
+            # ResRealEstateConnection.commit()
+            # #Switch 업데이트
+            # dictSeoulSwitch = {}
+            # dictSeoulSwitch['seq'] = nSequence
+            # dictSeoulSwitch['state'] = 10
+            # print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
+            # bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
+            # print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
+            # if bSwitchUpdateResult != True:
+            #     Exception(GetLogDef.lineno(), 'SwitchData Not Allow')  # 예외를 발생시킴
 
 
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -232,6 +232,8 @@ try:
                 else:
                     strState = "00"
 
+                print("row_result => ", row_result)
+
                 if row_result > 0:
 
                     rstSelectDatas = cursorRealEstate.fetchone()
@@ -285,15 +287,15 @@ try:
 
                 ResRealEstateConnection.commit()
 
-            # Switch 성공 업데이트
-            dictSeoulSwitch = {}
-            dictSeoulSwitch['seq'] = nSequence
-            dictSeoulSwitch['state'] = 30
-            dictSeoulSwitch['processed_count'] = nInsertedCount + nUpdateCount
-
-            print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
-            bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
-            print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
+            # # Switch 성공 업데이트
+            # dictSeoulSwitch = {}
+            # dictSeoulSwitch['seq'] = nSequence
+            # dictSeoulSwitch['state'] = 30
+            # dictSeoulSwitch['processed_count'] = nInsertedCount + nUpdateCount
+            #
+            # print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
+            # bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
+            # print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
 
 
@@ -315,7 +317,7 @@ try:
     dictSwitchData['data_2'] = strProcessDay
     dictSwitchData['data_3'] = nStartNumber
     dictSwitchData['data_4'] = nEndNumber
-    dictSwitchData['data_5'] = nSequence
+    dictSwitchData['data_5'] = dtProcessDay
     dictSwitchData['data_6'] = nInsertedCount
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
@@ -326,7 +328,7 @@ except Exception as e:
 
     # Switch 오류 업데이트
     dictSeoulSwitch = {}
-    dictSeoulSwitch['seq'] = nSequence
+    dictSeoulSwitch['seq'] = dtProcessDay
     dictSeoulSwitch['state'] = 20
     print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
     bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
