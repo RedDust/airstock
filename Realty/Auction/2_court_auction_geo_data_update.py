@@ -70,6 +70,7 @@ try:
         print(GetLogDef.lineno(__file__), "nSequence>", nSequence, strFieldName,len(strFieldName))
 
         if len(strFieldName) < 10:
+            #주소가 없을떄 업데이트 SKIP
             strJiBunAddress = ''
             strLongitude = '000.00000000'  # 127
             strLatitude = '000.00000000'  # 37
