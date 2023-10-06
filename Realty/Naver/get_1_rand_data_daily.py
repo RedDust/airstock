@@ -18,6 +18,8 @@ from Init.DefConstant import ConstSectorInfo
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.SeleniumModule.Windows import Chrome
+from Const import Common_Const
+
 try:
 
     switchAtclNo='0000000'
@@ -159,9 +161,12 @@ try:
                 print(GetLogDef.lineno(), "bIsJson > ", bIsJson)
                 print(GetLogDef.lineno(), "errorCount > ", errorCount)
                 if errorCount > 10:
+                    errorCount=0
                     break
 
                 errorCount = errorCount + 1
+                page = page - 1
+                time.sleep(10)
                 continue
 
 
@@ -210,7 +215,14 @@ try:
                 sqlInsertNaverMobileMaster = "INSERT INTO " + ConstRealEstateTable.NaverMobileMasterTable + " SET masterCortarNo='"+str(cortarNo)+"' ,masterCortarName='"+cortarName+"'  "
                 dictNaverMobileMaster = {}
 
+
+
                 for dictNaverMobileMasterKeys in list.keys():
+
+                    #테이블에 없는 필드는 수집 하지 않음
+                    if dictNaverMobileMasterKeys not in Common_Const.listMasterTableFields:
+                        continue
+
                     dictNaverMobileMaster[dictNaverMobileMasterKeys] = list.get(dictNaverMobileMasterKeys)
 
                     # Non-strings are converted to strings.
