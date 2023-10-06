@@ -2,7 +2,12 @@
 #
 # 2023-05-02 커밋
 #https://data.seoul.go.kr/dataList/OA-12912/S/1/datasetView.do
+# get_1_seoul_bus_data_with_multi.py 파일로 변경
+# 2023-09-30 현재 사용 하지 않음
 
+quit(500)
+
+import datetime
 import sys
 sys.path.append("D:/PythonProjects/airstock")
 
@@ -25,8 +30,8 @@ from SeoulLib.RDB import LibSeoulRealTradeSwitch
 
 from Init.Functions.Logs import GetLogDef
 
-
 from datetime import datetime as DateTime, timedelta as TimeDelta
+
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 
 # 한번에 처리할 건수
@@ -76,7 +81,9 @@ try:
     dtToday = DateTime.today()
     # nBaseProcessDate = 50004
 
-    nBaseProcessDate = 3
+    # nBaseProcessDate = 3
+
+    nBaseProcessDate = 0
 
     nEmptyCount = 0
 
@@ -84,9 +91,21 @@ try:
 
 
 
-    nFinalDate = 20141231
+    nFinalDate = 20211231
 
     #nFinalDate = 20230910
+
+    print(GetLogDef.lineno(), "dtToday >", dtToday, type(dtToday))
+
+    # nBaseDate = 20221231
+
+    dtToday = datetime.datetime(2022, 12, 31, 00, 00, 00)
+    nStartNumber = 1
+    nEndNumber = 1000
+
+    print(GetLogDef.lineno(), "dtToday >", dtToday, type(dtToday))
+
+    # quit("555555555")
 
     while True:
 
@@ -106,7 +125,18 @@ try:
         #검색기준일을 미리 1 올려 놓는다.
         nBaseProcessDate += 1
 
+
+#SeoulBusDataTable ====================================================
+# D:\PythonProjects\airstock\Init\Functions\Logs\GetLogDef.py(111) nBaseDate > 20230622 <class 'int'>
+# D:\PythonProjects\airstock\Init\Functions\Logs\GetLogDef.py(112) nStartNumber > 20001 <class 'int'>
+# D:\PythonProjects\airstock\Init\Functions\Logs\GetLogDef.py(113) nEndNumber > 21000 <class 'int'>
+# D:\PythonProjects\airstock\Realty\Government\get_1_seoul_bus_data.py(124) url >  http://openapi.seoul.go.kr:8088/644b72616d7265643132376d67576a6c/json/CardBusStatisticsServiceNew/20001/21000/20230622
+# D:\PythonProjects\airstock\Realty\Government\get_1_seoul_bus_data.py(134) json_object.get('RESULT')  >  None
+# nTotalCount >  40673
+
+
         while True:
+
 
             print(GetLogDef.lineno(), "nBaseDate >", nBaseDate, type(nBaseDate))
             print(GetLogDef.lineno(), "nStartNumber >", nStartNumber, type(nStartNumber))
@@ -165,13 +195,6 @@ try:
             # DB 연결
             ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-
-            qrySelectSeoulBusMaster = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusDataTable + " "
-
-            cursorRealEstate.execute(qrySelectSeoulBusMaster)
-            rstFieldsList = cursorRealEstate.fetchone()
-            print(GetLogDef.lineno(__file__),"rstFieldsList>",rstFieldsList)
-            # dtUSE_DT = int(SwitchDataList.get('USE_DT'))
 
             dictSeoulColumnInfoData = {}
 
@@ -304,10 +327,10 @@ try:
 
 except Exception as e:
 
-    # # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-    # dictSwitchData = dict()
-    # dictSwitchData['result'] = '30'
-    # LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     print(GetLogDef.lineno(__file__), "Error Exception")
     err_msg = traceback.format_exc()
