@@ -5,12 +5,13 @@
 
 import os
 import time
-import datetime
+import sys
 import math
 import traceback
 import urllib.request
 import json
 import pymysql
+sys.path.append("D:/PythonProjects/airstock")
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Lib.RDB import pyMysqlConnector
@@ -22,7 +23,7 @@ from Realty.Government.Const import ConstRealEstateTable_GOV
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 
 
-import get_1_seoul_bus_data_with_thread_child
+import get_1_seoul_bus_data_with_multi_child
 
 if __name__ == '__main__':
 
@@ -94,8 +95,6 @@ if __name__ == '__main__':
         qrySelectSeoulTableColumns = "show columns from kt_realty_seoul_bus_using_static_"+strInsertYear+" "
         cursorRealEstate.execute(qrySelectSeoulTableColumns)
         SelectColumnLists = cursorRealEstate.fetchall()
-
-
 
 
         for SelectColumnList in SelectColumnLists:
@@ -172,7 +171,7 @@ if __name__ == '__main__':
                 nCallStartCount = 1 + (nLoop * nProcessingPerCount)
                 nCallEndCount = ((nLoop + 1) * nProcessingPerCount)
 
-                Multiprocess = Process(target=get_1_seoul_bus_data_with_thread_child.test_thread, args=(nBaseDate, nCallStartCount, nCallEndCount,dictSeoulColumnInfoData))
+                Multiprocess = Process(target=get_1_seoul_bus_data_with_multi_child.test_thread, args=(nBaseDate, nCallStartCount, nCallEndCount,dictSeoulColumnInfoData))
                 procs.append(Multiprocess)
                 Multiprocess.start()
 
