@@ -7,6 +7,9 @@ import time
 import random
 import pymysql
 import datetime
+import traceback
+
+
 sys.path.append("D:/PythonProjects/airstock")
 
 #from Helper import basic_fnc
@@ -48,13 +51,21 @@ try:
         #실행중이면 프로세서 중단 처리
         quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
 
+    if strResult == '20':
+        #오류상태에서 프로세서 중단 처리
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
+    if strResult == '30':
+        #실행중이면 프로세서 중단 처리
+        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
 
     nProcessedMasterSequence = rstResult.get('data_1')
     nMasterBaseSeq = nProcessedMasterSequence
     nMasterSeq = nProcessedMasterSequence
 
     #어제 데이터 부터 전체 처리
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  seq > %s "
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + "  WHERE  seq > %s AND atclCfmYmd != '' "
     cursorRealEstate.execute(qrySelectNaverMobileMaster, nMasterBaseSeq)
     rstMasterDatas = cursorRealEstate.fetchall()
 
@@ -86,6 +97,13 @@ try:
 
         # print(strAtclCfmYmd,  ":", strRletTpCd, strRletTpNm, "/", strTradTpCd, strTradTpNm)
         # print(arrAtclCfmYmd[0], arrAtclCfmYmd[1], arrAtclCfmYmd[2])
+
+        print(GetLogDef.lineno(__file__), 'nMasterSeq => ', nMasterSeq)  # 예외를 발생시킴
+        print(GetLogDef.lineno(__file__), 'arrAtclCfmYmd => ', len(arrAtclCfmYmd), type(arrAtclCfmYmd), arrAtclCfmYmd)  # 예외를 발생시킴
+        print(GetLogDef.lineno(__file__), 'strRletTpNm => ', strRletTpNm)  # 예외를 발생시킴
+        print(GetLogDef.lineno(__file__), 'strTradTpNm => ', strTradTpNm)  # 예외를 발생시킴
+
+
 
         dBaseIssueDatetime = datetime.date(int("20"+arrAtclCfmYmd[0]), int(arrAtclCfmYmd[1]), int(arrAtclCfmYmd[2]))
         strBaseYYYY = str(dBaseIssueDatetime.year).zfill(4)
@@ -148,8 +166,6 @@ try:
         ResRealEstateConnection.commit()
 
 
-    ResRealEstateConnection.close()
-
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '00'
@@ -162,13 +178,16 @@ except Exception as e:
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
-    dictSwitchData['result'] = '30'
+    dictSwitchData['result'] = '20'
     if strProcessType is not None:
         dictSwitchData['data_1'] = nMasterSeq
 
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     print("Error Exception")
+    err_msg = traceback.format_exc()
+    print(err_msg)
+
     print(e)
     print(type(e))
 
