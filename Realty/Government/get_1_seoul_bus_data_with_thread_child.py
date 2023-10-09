@@ -1,3 +1,7 @@
+#안쓰는 파일
+quit(500)
+
+
 import sys
 import os
 import time
