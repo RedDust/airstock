@@ -385,6 +385,13 @@ try:
                     if nResultCount > 0:
                         strDBState = '10'
 
+                    # nAuctionCode = str(SelectColumnList.get('auction_code'))
+                    # nAuctionSeq = str(SelectColumnList.get('auction_seq'))
+                    # strCourtName = str(SelectColumnList.get('court_name'))
+                    # dtAuctionDay = str(SelectColumnList.get('auction_day'))
+
+                    strUniqueValue = strAuctionUniqueNumber + "_" + strAuctionSeq + "_" + strCourtName + strAuctionDate
+
 
                     print(GetLogDef.lineno(__file__), "strAuctionUniqueNumber => ", strAuctionUniqueNumber, type(strAuctionUniqueNumber))
                     print(GetLogDef.lineno(__file__), "strAuctionSeq => ", strAuctionSeq, type(strAuctionSeq))
@@ -405,12 +412,16 @@ try:
 
 
                     sqlCourtAuctionInsert = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET " \
-                                            " auction_code= '" + strAuctionUniqueNumber + "', " \
+                                            " unique_value= '" + strUniqueValue + "', " \
+                                            " auction_code= '" + strAuctionUniqueNumber + "', " \ 
                                             " auction_seq= '" + strAuctionSeq + "', " \
                                             " court_name= '" + strCourtName + "', " \
                                             " issue_number= '" + jsonIssueNumber + "', " \
+                                            " issue_number_text= '" + jsonIssueNumber + "', " \
                                             " build_type= '" + jsonUsageInfo + "', " \
+                                            " build_type_text= '" + jsonUsageInfo + "', " \
                                             " address_data= '" + jSonAddressInfo + "', " \
+                                            " address_data_text= '" + jSonAddressInfo + "', " \
                                             " simple_info= '" + strTempContents + "', " \
                                             " appraisal_price= '" + nAppraisalPrice + "', " \
                                             " lower_price= '" + nLowerPrice + "', " \
