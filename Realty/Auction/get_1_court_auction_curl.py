@@ -410,28 +410,26 @@ try:
                     print(GetLogDef.lineno(__file__), "strBiddingInfo => ", strBiddingInfo, type(strBiddingInfo))
 
 
-
-                    sqlCourtAuctionInsert = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET " \
-                                            " unique_value= '" + strUniqueValue + "', " \
-                                            " auction_code= '" + strAuctionUniqueNumber + "', " \ 
-                                            " auction_seq= '" + strAuctionSeq + "', " \
-                                            " court_name= '" + strCourtName + "', " \
-                                            " issue_number= '" + jsonIssueNumber + "', " \
-                                            " issue_number_text= '" + jsonIssueNumber + "', " \
-                                            " build_type= '" + jsonUsageInfo + "', " \
-                                            " build_type_text= '" + jsonUsageInfo + "', " \
-                                            " address_data= '" + jSonAddressInfo + "', " \
-                                            " address_data_text= '" + jSonAddressInfo + "', " \
-                                            " simple_info= '" + strTempContents + "', " \
-                                            " appraisal_price= '" + nAppraisalPrice + "', " \
-                                            " lower_price= '" + nLowerPrice + "', " \
-                                            " ratio= '" + nRatio + "', " \
-                                            " auction_place= '" + strAuctionPlace + "', " \
-                                            " auction_day= '" + strAuctionDate + "', " \
-                                            " auction_type= '" + strAuctionType + "', " \
-                                            " state= '" + strDBState + "', " \
-                                            " bidding_info= '" + strBiddingInfo + "' "
-
+                    sqlCourtAuctionInsert = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
+                    sqlCourtAuctionInsert += " unique_value= '" + strUniqueValue + "', "
+                    sqlCourtAuctionInsert += " auction_code= '" + strAuctionUniqueNumber + "', "
+                    sqlCourtAuctionInsert += " auction_seq= '" + strAuctionSeq + "', "
+                    sqlCourtAuctionInsert += " court_name= '" + strCourtName + "', "
+                    sqlCourtAuctionInsert += " issue_number= '" + jsonIssueNumber + "', "
+                    sqlCourtAuctionInsert += " issue_number_text= '" + jsonIssueNumber + "', "
+                    sqlCourtAuctionInsert += " build_type= '" + jsonUsageInfo + "', "
+                    sqlCourtAuctionInsert += " build_type_text= '" + jsonUsageInfo + "', "
+                    sqlCourtAuctionInsert += " address_data= '" + jSonAddressInfo + "', "
+                    sqlCourtAuctionInsert += " address_data_text= '" + jSonAddressInfo + "', "
+                    sqlCourtAuctionInsert += " simple_info= '" + strTempContents + "', "
+                    sqlCourtAuctionInsert += " appraisal_price= '" + nAppraisalPrice + "', "
+                    sqlCourtAuctionInsert += " lower_price= '" + nLowerPrice + "', "
+                    sqlCourtAuctionInsert += " ratio= '" + nRatio + "', "
+                    sqlCourtAuctionInsert += " auction_place= '" + strAuctionPlace + "', "
+                    sqlCourtAuctionInsert += " auction_day= '" + strAuctionDate + "', "
+                    sqlCourtAuctionInsert += " auction_type= '" + strAuctionType + "', "
+                    sqlCourtAuctionInsert += " state= '" + strDBState + "', "
+                    sqlCourtAuctionInsert += " bidding_info= '" + strBiddingInfo + "' "
 
                     print("sqlCourtAuctionInsert > ", sqlCourtAuctionInsert)
                     cursorRealEstate.execute(sqlCourtAuctionInsert)
