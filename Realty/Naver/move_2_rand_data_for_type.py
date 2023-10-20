@@ -82,7 +82,7 @@ try:
     for MasterDataList in rstMasterDatas:
 
         strTypeCode = str(MasterDataList.get('rletTpCd'))
-        nMasterSeq  = str(MasterDataList.get('seq'))
+        nMasterSeq = str(MasterDataList.get('seq'))
         strNewPartTable = ConstRealEstateTable.NaverMobileMasterTable + "_" + strTypeCode
 
         try:
@@ -92,11 +92,19 @@ try:
             if results < 1:
                 strNewPartTable = ConstRealEstateTable.NaverMobileMasterTable + "_ETC"
 
-            #Insert
-            qryInsertTypeTable = "INSERT INTO "+strNewPartTable+" SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + " WHERE seq = %s"
-            cursorRealEstate.execute(qryInsertTypeTable, nMasterSeq)
 
-            nMasterSeq = cursorRealEstate.lastrowid
+            qrySelectBackupTable = "SELECT * FROM " + strNewPartTable + " WHERE seq=%s"
+            cursorRealEstate.execute(qrySelectBackupTable, nMasterSeq)
+
+            nResultCount = cursorRealEstate.rowcount
+            if nResultCount < 1:
+                #Insert
+                qryInsertTypeTable = "INSERT INTO "+strNewPartTable+" SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterTable + " WHERE seq = %s"
+                cursorRealEstate.execute(qryInsertTypeTable, nMasterSeq)
+
+
+
+            # nMasterSeq = cursorRealEstate.lastrowid
             ResRealEstateConnection.commit()
 
         except Exception as e:
