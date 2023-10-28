@@ -114,7 +114,7 @@ try:
 
         strBaseYYYYMMDDWeekDay = dBaseIssueDatetime.weekday()
 
-        YYYYWEEK = str(dBaseIssueDatetime.isocalendar().year) + str(dBaseIssueDatetime.isocalendar().week)
+        YYYYWEEK = str(dBaseIssueDatetime.isocalendar().year) + str(dBaseIssueDatetime.isocalendar().week).zfill(2)
         YYYYWEEKDAY = dBaseIssueDatetime.isocalendar().weekday
 
         qrySelectStatisticsTable = " SELECT * FROM " + ConstRealEstateTable.NaverMobileMasterStatisticsTable + " WHERE YYYYMMDD = %s "
