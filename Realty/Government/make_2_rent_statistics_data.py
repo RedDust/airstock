@@ -123,7 +123,7 @@ def main():
 
             strBaseYYYYMMDDWeekDay = dBaseIssueDatetime.weekday()
 
-            YYYYWEEK = str(dBaseIssueDatetime.isocalendar().year) + str(dBaseIssueDatetime.isocalendar().week)
+            YYYYWEEK = str(dBaseIssueDatetime.isocalendar().year) + str(dBaseIssueDatetime.isocalendar().week).zfill(2)
             YYYYWEEKDAY = dBaseIssueDatetime.isocalendar().weekday
 
             qrySelectStatisticsTable = " SELECT * FROM " + ConstRealEstateTable.SeoulRealTradeMasterStatisticsTable + " WHERE YYYYMMDD = %s "
@@ -202,7 +202,7 @@ def main():
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
         print("SUCCESS", "=====================================================================")
     finally:
         print("Finally END", "=====================================================================")
