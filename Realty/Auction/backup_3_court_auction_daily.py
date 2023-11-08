@@ -30,6 +30,11 @@ try:
     KuIndex = '00'
     arrCityPlace = '00'
     targetRow = '00'
+    nLoop = 0
+    nMasterSeq = 0
+    issue_number = '00'
+    auction_code = '00'
+
 
     # print( nBaseStartDate, nBaseEndDate)
     # DB 연결
@@ -54,53 +59,63 @@ try:
     dictSwitchData['data_3'] = targetRow
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-
-
     # # Master Table 에 있는 테이블 전체 백업하기
     # qryBackupNaverMobileMaster = "INSERT INTO "+ConstRealEstateTable_AUC.CourtAuctionBackupTable+" SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
     # cursorRealEstate.execute(qryBackupNaverMobileMaster)
     # nLoop = 0
     # print(str(cursorRealEstate.query))
 
-    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable+ " "
+    # qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " LIMIT 10"
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
     cursorRealEstate.execute(qrySelectNaverMobileMaster)
     rstMasterDatas = cursorRealEstate.fetchall()
-
-    nLoop = 0
-    nMasterSeq = 0
-    issue_number = '00'
-    auction_code = '00'
 
     for MasterDataList in rstMasterDatas:
         nMasterSeq = str(MasterDataList.get('seq'))
         issue_number = str(MasterDataList.get('issue_number'))
+        auction_seq = str(MasterDataList.get('auction_seq'))
+        auction_day = str(MasterDataList.get('auction_day'))
         auction_code = str(MasterDataList.get('auction_code'))
+        address_data = str(MasterDataList.get('address_data'))
+        CityKey = str(MasterDataList.get('sido_code'))
+        strSiGuCode = str(MasterDataList.get('sigu_code'))
+
+
+        unique_value2 = str(MasterDataList.get('unique_value2'))
 
 
 
         print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
         nLoop = nLoop + 1
 
-        qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " WHERE seq = %s"
-        cursorRealEstate.execute(qrySelectNaverMobileMaster, nMasterSeq)
+        qrySelectNaverMobileMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
+        qrySelectNaverMobileMaster += " WHERE unique_value2 = %s "
+        cursorRealEstate.execute(qrySelectNaverMobileMaster, (unique_value2))
         rstBackupDatas = cursorRealEstate.fetchone()
         print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, rstBackupDatas)
+        print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, qrySelectNaverMobileMaster)
+        print(GetLogDef.lineno(__file__), "===================================> ", auction_code, auction_seq, auction_day)
+
+
 
         if rstBackupDatas is None:
             qryInsertCourtAuctionBackup = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
             qryInsertCourtAuctionBackup += " (SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
-            qryInsertCourtAuctionBackup += " WHERE seq = %s)"
-            print(GetLogDef.lineno(__file__), "INSERT =>", qryInsertCourtAuctionBackup, nMasterSeq)
-            cursorRealEstate.execute(qryInsertCourtAuctionBackup, nMasterSeq)
-
+            qryInsertCourtAuctionBackup += " WHERE unique_value2 = %s "
+            qryInsertCourtAuctionBackup += ")"
+            print(GetLogDef.lineno(__file__), "INSERT =>", qryInsertCourtAuctionBackup, (unique_value2))
+            cursorRealEstate.execute(qryInsertCourtAuctionBackup, (unique_value2))
 
         else:
 
             qryUpdateCourtAuctionBackup = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
             qryUpdateCourtAuctionBackup += " SET modify_date=NOW() "
-            qryUpdateCourtAuctionBackup += " WHERE seq = %s "
-            print(GetLogDef.lineno(__file__), "UPDATE =>", qryUpdateCourtAuctionBackup, nMasterSeq)
-            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, nMasterSeq)
+            qryUpdateCourtAuctionBackup += " , sido_code= %s "
+            qryUpdateCourtAuctionBackup += " , sigu_code=%s "
+            qryUpdateCourtAuctionBackup += " WHERE unique_value2 = %s "
+            # qryUpdateCourtAuctionBackup += " WHERE auction_code = %s AND auction_seq = %s AND auction_day =%s "
+            print(GetLogDef.lineno(__file__), "UPDATE =>", unique_value2)
+            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode , unique_value2))
 
         qryDeleteCourtAuctionData = " DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
         qryDeleteCourtAuctionData += " WHERE seq = %s LIMIT 1"
