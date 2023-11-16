@@ -158,7 +158,6 @@ def main():
         paging = 40
 
         # quit(GetLogDef.lineno(__file__))  # 예외를 발생시킴
-
         #
         for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
 
