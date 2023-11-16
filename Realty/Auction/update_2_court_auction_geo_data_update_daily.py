@@ -19,7 +19,7 @@ import urllib.request
 import traceback
 import logging
 import logging.handlers
-
+import inspect
 
 from typing import Dict, Union, Optional
 
@@ -44,6 +44,7 @@ from Lib.GeoDataModule import GeoDataModule
 
 
 def main():
+
     dtNow = DateTime.today()
     # print(dtNow.hour)
     # print(dtNow.minute)
@@ -80,8 +81,12 @@ def main():
     logger.addHandler(timeFileHandler)
 
     try:
-        print(GetLogDef.lineno(__file__), "============================================================")
-        logging.info("[CRONTAB START : " + GetLogDef.lineno(__file__) + "]=====================================")
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno),
+              "START => ============================================================")
+
+        logging.info("[CRONTAB START : " + inspect.getframeinfo(inspect.currentframe()).filename + "]=====================================")
 
 
         # 서울 부동산 실거래가 데이터 - 서울 버스 사용량
@@ -94,13 +99,16 @@ def main():
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+            raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
 
         if strResult == '10':
-            raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+            raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
 
         if strResult == '30':
-            raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+            raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -117,7 +125,15 @@ def main():
         # qrySelectCourtAuctionMaster += " seq='104781' " #데이터 있음
 
 
-        qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE process_step= '00' "
+        #CourtAuctionDataTable
+        qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE "
+        qrySelectCourtAuctionMaster += " process_step = '00' "  # 데이터 있음
+
+        # qrySelectCourtAuctionMaster += " process_step = '13' AND auction_type!='30' "  # 데이터 있음
+
+        # qrySelectCourtAuctionMaster += " seq='89986' " #데이터 있음
+
+
         # qrySelectCourtAuctionMaster += " limit 2"
 
         cursorRealEstate.execute(qrySelectCourtAuctionMaster)
@@ -134,9 +150,18 @@ def main():
 
         for SelectColumnList in rstFieldsLists:
 
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                  "------------------------------------------------------------------------------------------------------------")
+
             nSequence = SelectColumnList.get('seq')
 
             strFieldName = SelectColumnList.get('address_data')
+
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "nSequence> " +  str(nSequence) + " / strFieldName> " +  str(strFieldName) + "/ len(strFieldName) > " +  str(len(strFieldName)))
+
 
             strAuctionCode = SelectColumnList.get('auction_code')
             strCourtName = SelectColumnList.get('court_name')
@@ -146,36 +171,75 @@ def main():
             jsonFieldName = json.loads(strFieldName)
             # print(GetLogDef.lineno(__file__), "jsonFieldName >", type(jsonFieldName), jsonFieldName)
             # print(GetLogDef.lineno(__file__), "jsonFieldName[0] >", type(jsonFieldName[0]), jsonFieldName[0])
-            print(GetLogDef.lineno(__file__), "------------------------------------------------------------------------------------------------------------")
-            print(GetLogDef.lineno(__file__), "nSequence>", nSequence, strFieldName,len(strFieldName))
-            logging.info(GetLogDef.lineno(__file__)+ "------------------------------------------------------------------------------------------------------------")
-            logging.info(GetLogDef.lineno(__file__) + "nSequence>"+ str(nSequence) + str(strFieldName) + str(len(strFieldName)))
+
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "jsonFieldName> "+ str(jsonFieldName) + str(len(jsonFieldName)))
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                  "nSequence>", nSequence, strFieldName,len(strFieldName))
+
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "nSequence>"+ str(nSequence) + str(strFieldName) + str(len(strFieldName)))
 
             strStripFieldName = str(strFieldName).removeprefix("[\"").removesuffix("\"]")
-            print(GetLogDef.lineno(__file__), "strStripFieldName>", len(strStripFieldName), strStripFieldName)
-            logging.info(GetLogDef.lineno(__file__)+ "strStripFieldName>"+str(len(strStripFieldName)) + str(strStripFieldName))
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strStripFieldName>", len(strStripFieldName), strStripFieldName)
+
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "strStripFieldName>"+str(len(strStripFieldName)) + str(strStripFieldName))
 
 
             dictAddresses = str(strStripFieldName).split(":")
-            print(GetLogDef.lineno(__file__), "dictAddresses", type(dictAddresses), len(dictAddresses), dictAddresses)
-            logging.info(GetLogDef.lineno(__file__)+ "dictAddresses"+ type(dictAddresses)+ str(len(dictAddresses)) + dictAddresses)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "dictAddresses", type(dictAddresses), len(dictAddresses), dictAddresses)
+
+            for dictAddresse in dictAddresses:
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " dictAddresse >> " + dictAddresse)
+
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " strStripFieldName >> " + str(len(strStripFieldName)))
 
 
             if len(strStripFieldName) > 5:
+
                 #주소 예외 처리["사용본거지:경기도수원시권선구평동110-5"]
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " dictAddresses[0] >> " + str(dictAddresses[0]))
                 if dictAddresses[0] == '사용본거지':
                     jsonFieldName[0] = dictAddresses[1]
 
                 strTextAddress = str(jsonFieldName[0]).split(",")
+
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "strTextAddres>"+ str(len(strTextAddress))+ str(strTextAddress))
+
+
             else:
+
+                if len(strStripFieldName) < 1:
+                    strStripFieldName = "False"
+
                 strTextAddress = dict()
                 strTextAddress[0] = strStripFieldName
 
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "strTextAddres> " + str(len(strTextAddress)) + str(strTextAddress))
 
-            print(__file__, "strTextAddress>", type(strTextAddress), len(strTextAddress), strTextAddress)
-            print(GetLogDef.lineno(__file__), "strFieldName>", type(strFieldName), len(strFieldName), strFieldName)
-            logging.info(__file__, "strTextAddress>"+ type(strTextAddress)+ str(len(strTextAddress))+ strTextAddress)
-            logging.info(GetLogDef.lineno(__file__) + "strFieldName>"+ type(strFieldName)+ str(len(strFieldName))+ strFieldName)
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strTextAddress>", type(strTextAddress), len(strTextAddress), strTextAddress)
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strFieldName>", type(strFieldName), len(strFieldName), strFieldName)
+
+
+            for strTextAddres in strTextAddress:
+
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "strTextAddres>"+ str(strTextAddres))
+
 
             if len(strFieldName) < 10:
                 #주소가 없을떄 업데이트 SKIP
@@ -188,28 +252,34 @@ def main():
 
                 # 네이버 데이터 조회 시도
                 resultsDict = GeoDataModule.getNaverGeoData(strTextAddress[0])
-
-                print("146", "resultsDict>", type(resultsDict), resultsDict)
-
-                logging.info("146"+ "resultsDict>"+ type(resultsDict)+ resultsDict)
-
-
                 if resultsDict != False:
 
-                    # 네이버 데이터 조회 성공
-                    print(GetLogDef.lineno(__file__), "resultsDict>", type(resultsDict), resultsDict)
-                    logging.info("201" + "resultsDict>" + type(resultsDict) + resultsDict)
+                    for resultsOneDictKey, resultsOneDictValue in resultsDict.items():
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) +  "resultsDict>", type(resultsOneDictValue), resultsOneDictValue)
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " resultsOneDict =>" + resultsOneDictKey + " > " + resultsOneDictValue)
 
+                    # 네이버 데이터 조회 성공
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) , "resultsDict>", type(resultsDict), resultsDict)
                     strJiBunAddress = resultsDict['address_name']
+
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) + " strJiBunAddress =>" + strJiBunAddress )
+
+
                     strLongitude = resultsDict['x']  # 127
                     strLatitude = resultsDict['y']  # 37
                     nProcessStep = 10
 
                 else:
                     # 네이버 데이터 조회 실패
-                    # print(GetLogDef.lineno(__file__), "resultsDict>", type(resultsDict), resultsDict)
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strTextAddress>", type(strTextAddress), strTextAddress)
                     # 카카오 데이터 조회 시도
-                    resultsDict = GeoDataModule.getKakaoGeoData(strTextAddress)
+                    resultsDict = GeoDataModule.getKakaoGeoData(strTextAddress[0])
                     if resultsDict != False:
                         # 카카오 데이터 조회 성공
                         strJiBunAddress = resultsDict['address_name']
@@ -220,20 +290,30 @@ def main():
 
             strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
 
-            print(GetLogDef.lineno(__file__), "strJiBunAddress>", type(strJiBunAddress), strJiBunAddress)
-            print(GetLogDef.lineno(__file__), "strLongitude>", type(strLongitude), strLongitude)
-            print(GetLogDef.lineno(__file__), "strLatitude>", type(strLatitude), strLatitude)
-            print(GetLogDef.lineno(__file__), "nProcessStep>", type(nProcessStep), nProcessStep)
-            print(GetLogDef.lineno(__file__), "nSequence>",type(nSequence), nSequence)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strJiBunAddress>", type(strJiBunAddress), strJiBunAddress)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strLongitude>", type(strLongitude), strLongitude)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strLatitude>", type(strLatitude), strLatitude)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "nProcessStep>", type(nProcessStep), nProcessStep)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "nSequence>",type(nSequence), nSequence)
 
-            logging.info("222 strJiBunAddress>"+ type(strJiBunAddress)+ str(strJiBunAddress))
-            logging.info("223 strLongitude>" + type(strLongitude) + str(strLongitude))
-            logging.info("224 strLatitude>" + type(strLatitude) + str(strLatitude))
-            logging.info("225 nProcessStep>" + type(nProcessStep) + str(nProcessStep))
-            logging.info("226 nSequence>" + type(nSequence) + str(nSequence))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno)+" strJiBunAddress>"+  str(strJiBunAddress))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno)+"strLongitude>" +  str(strLongitude))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno)+ " strLatitude>" +  str(strLatitude))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno)+ "nProcessStep>" + str(nProcessStep))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "nSequence>" + str(nSequence))
 
 
-
+            # qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " SET "
             qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
             qryUpdateGeoPosition += " text_address = %s, "
             qryUpdateGeoPosition += " longitude = %s, "
@@ -245,7 +325,8 @@ def main():
             print("qryUpdateGeoPosition", qryUpdateGeoPosition, type(qryUpdateGeoPosition))
             print("data", strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence)
 
-            logging.info("248 qryUpdateGeoPosition>" + type(qryUpdateGeoPosition) + str(qryUpdateGeoPosition))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "qryUpdateGeoPosition>" + str(qryUpdateGeoPosition))
 
 
             cursorRealEstate.execute(qryUpdateGeoPosition, (strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence))
@@ -277,10 +358,12 @@ def main():
 
     except ValueError as v:
         print(v)
-        logging.info("280 ValueError>" + type(v) + str(v))
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "ValueError>" + str(v))
         err_msg = traceback.format_exc()
         print(err_msg)
-        logging.info("284 err_msg>" + type(err_msg) + str(err_msg))
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "err_msg>" +  str(err_msg))
 
         print(type(v))
 
@@ -290,35 +373,49 @@ def main():
         dictSwitchData = dict()
         dictSwitchData['result'] = '30'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "QuitException")
-        logging.info("294 QuitException>")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "QuitException")
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "QuitException>")
 
         err_msg = traceback.format_exc()
         print(err_msg)
-        logging.info("298 err_msg>" + type(err_msg) + str(err_msg))
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "err_msg>"  + str(err_msg))
         print(e)
         print(type(e))
 
     except Exception as e:
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "Error Exception")
+
         dictSwitchData = dict()
         dictSwitchData['result'] = '30'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-
-        print(GetLogDef.lineno(__file__), "Error Exception")
-        print(GetLogDef.lineno(__file__), e, type(e))
-
-        logging.info("312 Exception>")
-        logging.info("313 err_msg>" + type(e) + str(e))
         err_msg = traceback.format_exc()
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), e, type(e))
         print(err_msg)
-        logging.info("298 err_msg>" + type(err_msg) + str(err_msg))
-    else:
-        print(GetLogDef.lineno(__file__), "============================================================")
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "Exception>")
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " err_msg>" + str(e))
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " err_msg>" + str(err_msg))
 
-        logging.info("320 SUCCESS => ============================================================")
+
+
+    else:
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "============================================================")
+
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " SUCCESS => ============================================================")
 
     finally:
-        print("Finally END")
-        logging.info("Finally END => ============================================================")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "Finally END")
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "Finally END => ============================================================")
