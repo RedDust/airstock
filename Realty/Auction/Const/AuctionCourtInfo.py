@@ -1,7 +1,14 @@
 #initialization of constants
 
 #법원 이름 정보
-arrCourtName = {'서울중앙지방법원', '서울동부지방법원', '서울서부지방법원', '서울남부지방법원', '서울북부지방법원', '의정부지방법원', '고양지원', '남양주지원', '인천지방법원', '부천지원', '수원지방법원', '성남지원', '여주지원', '평택지원', '안산지원', '안양지원'}
+arrCourtName = {'서울중앙지방법원', '서울동부지방법원', '서울서부지방법원', '서울남부지방법원', '서울북부지방법원', '의정부지방법원', '고양지원',
+                '남양주지원', '인천지방법원', '부천지원', '수원지방법원', '성남지원', '여주지원', '평택지원', '안산지원', '안양지원',
+                '춘천지방법원' , '강릉지원', '원주지원', '속초지원','영월지원','청주지방법원','충주지원','제천지원','영동지원','대전지방법원',
+                '홍성지원','논산지원','천안지원','공주지원','서산지원','대구지방법원','안동지원','경주지원','김천지원','상주지원','의성지원',
+                '영덕지원','포항지원','대구서부지원','부산지방법원','부산동부지원','부산서부지원','울산지방법원','창원지방법원','마산지원',
+                '진주지원','통영지원','밀양지원','거창지원','광주지방법원','목포지원','장흥지원','순천지원','해남지원','전주지방법원',
+                '군산지원','정읍지원','남원지원','제주지방법원'
+                }
 
 
 dictCourtInfo = dict()
@@ -25,16 +32,88 @@ dictCourtInfo['안양지원'] = {"encoded": "%BE%C8%BE%E7%C1%F6%BF%F8"}
 
 
 #물건 위치 정보
-#41 : 서울
-#11 : 경기도
+#11 : 서울
 #28 : 인천광역시
-arrCityPlace = {'41', '11', '28'}
+#26 : 부산광역시
+#27 : 대구광역시
+#29 : 광주광역시
+#30 : 대전광역시
+#31 : 울산광역시
+#36 : 세종특별자치시
+#41 : 경기도
+#42 : 강원도
+#43 : 충청북도
+#44 : 충청남도
+#45 : 전라북도
+#46 : 전라남도
+#47 : 경상북도
+#48 : 경상남도
+#50 : 제주특별자치도
+#51 : 강원특별자치도
+
+dictCityPlace = dict()
+dictCityPlace['11'] = '서울특별시'
+dictCityPlace['28'] = '인천광역시'
+dictCityPlace['26'] = '부산광역시'
+dictCityPlace['27'] = '대구광역시'
+dictCityPlace['29'] = '광주광역시'
+dictCityPlace['30'] = '대전광역시'
+dictCityPlace['31'] = '울산광역시'
+dictCityPlace['36'] = '세종특별자치시'
+dictCityPlace['41'] = '경기도'
+dictCityPlace['42'] = '강원도'
+dictCityPlace['43'] = '충청북도'
+dictCityPlace['44'] = '충청남도'
+dictCityPlace['45'] = '전라북도'
+dictCityPlace['46'] = '전라남도'
+dictCityPlace['47'] = '경상북도'
+dictCityPlace['48'] = '경상남도'
+dictCityPlace['50'] = '제주특별자치도'
+dictCityPlace['51'] = '강원특별자치도'
+
+
+arrCityPlace = {'41', '11', '28','26','27','29','30','31','36','42','43','44','45','46','47','48','50','51'}
 
 
 dictAuctionTypes = dict()
 #상세물건조회
 dictAuctionTypes['1'] = {'url': 'https://www.courtauction.go.kr/RetrieveRealEstMulDetailList.laf', 'type': '10'}
 dictAuctionTypes['2'] = {'url': 'https://www.courtauction.go.kr/RetrieveMgakPlanMulSrch.laf', 'type': '20'}
-dictAuctionTypes['3'] = {'url': 'https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf', 'type': '30'}
+
+dictAuctionCompleteTypes = dict()
+dictAuctionCompleteTypes['1'] = {'url': 'https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf', 'type': '30'}
+
+
+dictBuildTypeKeyWord = dict()
+dictBuildTypeKeyWord['아파트'] = {'아파트'}
+dictBuildTypeKeyWord['오피스텔'] = {'오피스텔'}
+dictBuildTypeKeyWord['연립주택'] = {'연립주택', '빌라', '다세대', '연립주택다세대빌라'}
+dictBuildTypeKeyWord['단독/다가구'] = {'단독주택', '다가구주택', '다가구', '단독주택다가구'}
+dictBuildTypeKeyWord['상가'] = {'상가', '근린시설', '상가오피스텔근린시설'}
+dictBuildTypeKeyWord['대지'] = {'대지', '임야', '전답', '대지임야전답'}
+dictBuildTypeKeyWord['자동차/중기'] = {'자동차', '중기', '자동차중기'}
+dictBuildTypeKeyWord['기타'] = {'기타'}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
