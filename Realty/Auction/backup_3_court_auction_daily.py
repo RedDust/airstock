@@ -59,12 +59,7 @@ try:
     dictSwitchData['data_3'] = targetRow
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-    # # Master Table 에 있는 테이블 전체 백업하기
-    # qryBackupNaverMobileMaster = "INSERT INTO "+ConstRealEstateTable_AUC.CourtAuctionBackupTable+" SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
-    # cursorRealEstate.execute(qryBackupNaverMobileMaster)
-    # nLoop = 0
-    # print(str(cursorRealEstate.query))
-
+    print(GetLogDef.lineno(__file__), "CourtAuctionDataTable ===================================> ")
     # qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " LIMIT 10"
     qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
     cursorRealEstate.execute(qrySelectNaverMobileMaster)
@@ -83,8 +78,6 @@ try:
 
         unique_value2 = str(MasterDataList.get('unique_value2'))
 
-
-
         print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
         nLoop = nLoop + 1
 
@@ -92,13 +85,14 @@ try:
         qrySelectNaverMobileMaster += " WHERE unique_value2 = %s "
         cursorRealEstate.execute(qrySelectNaverMobileMaster, (unique_value2))
         rstBackupDatas = cursorRealEstate.fetchone()
+        nStatisticsCount = int(cursorRealEstate.rowcount)
+
         print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, rstBackupDatas)
         print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, qrySelectNaverMobileMaster)
         print(GetLogDef.lineno(__file__), "===================================> ", auction_code, auction_seq, auction_day)
 
 
-
-        if rstBackupDatas is None:
+        if nStatisticsCount < 1:
             qryInsertCourtAuctionBackup = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
             qryInsertCourtAuctionBackup += " (SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
             qryInsertCourtAuctionBackup += " WHERE unique_value2 = %s "
@@ -124,10 +118,75 @@ try:
 
         # if(rstBackupDatas.get > 0):
         #     print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
+        print("================For Loop", nLoop)
+        # ResRealEstateConnection.rollback()
+        ResRealEstateConnection.commit()
 
-    print("================For Loop", nLoop)
-    # ResRealEstateConnection.rollback()
-    ResRealEstateConnection.commit()
+
+
+    print(GetLogDef.lineno(__file__), "CourtAuctionCompleteTable ===================================> ")
+    qrySelectNaverMobileMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionCompleteTable
+    cursorRealEstate.execute(qrySelectNaverMobileMaster)
+    rstMasterDatas = cursorRealEstate.fetchall()
+
+    for MasterDataList in rstMasterDatas:
+        nMasterSeq = str(MasterDataList.get('seq'))
+        issue_number = str(MasterDataList.get('issue_number'))
+        auction_seq = str(MasterDataList.get('auction_seq'))
+        auction_day = str(MasterDataList.get('auction_day'))
+        auction_code = str(MasterDataList.get('auction_code'))
+        address_data = str(MasterDataList.get('address_data'))
+        CityKey = str(MasterDataList.get('sido_code'))
+        strSiGuCode = str(MasterDataList.get('sigu_code'))
+
+        unique_value2 = str(MasterDataList.get('unique_value2'))
+
+        print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
+        nLoop = nLoop + 1
+
+        qrySelectNaverMobileMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
+        qrySelectNaverMobileMaster += " WHERE unique_value2 = %s "
+        cursorRealEstate.execute(qrySelectNaverMobileMaster, (unique_value2))
+        print(GetLogDef.lineno(__file__), "SELECT =>", qrySelectNaverMobileMaster, (unique_value2))
+
+        rstBackupDatas = cursorRealEstate.fetchone()
+        nStatisticsCount = int(cursorRealEstate.rowcount)
+
+        print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, rstBackupDatas)
+        print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, qrySelectNaverMobileMaster)
+        print(GetLogDef.lineno(__file__), "===================================> ", nMasterSeq, nStatisticsCount)
+        print(GetLogDef.lineno(__file__), "===================================> ", auction_code, auction_code, auction_seq, auction_day)
+
+
+        if nStatisticsCount < 1:
+            qryInsertCourtAuctionBackup = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
+            qryInsertCourtAuctionBackup += " (SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionCompleteTable
+            qryInsertCourtAuctionBackup += " WHERE unique_value2 = %s "
+            qryInsertCourtAuctionBackup += ")"
+            print(GetLogDef.lineno(__file__), "INSERT =>", qryInsertCourtAuctionBackup, (unique_value2))
+            cursorRealEstate.execute(qryInsertCourtAuctionBackup, (unique_value2))
+
+        else:
+
+            qryUpdateCourtAuctionBackup = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
+            qryUpdateCourtAuctionBackup += " SET modify_date=NOW() "
+            qryUpdateCourtAuctionBackup += " , sido_code= %s "
+            qryUpdateCourtAuctionBackup += " , sigu_code=%s "
+            qryUpdateCourtAuctionBackup += " WHERE unique_value2 = %s "
+            # qryUpdateCourtAuctionBackup += " WHERE auction_code = %s AND auction_seq = %s AND auction_day =%s "
+            print(GetLogDef.lineno(__file__), "UPDATE =>", unique_value2)
+            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode , unique_value2))
+
+        qryDeleteCourtAuctionData = " DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionCompleteTable
+        qryDeleteCourtAuctionData += " WHERE seq = %s LIMIT 1"
+        print(GetLogDef.lineno(__file__), "DELETE =>", qryDeleteCourtAuctionData, nMasterSeq)
+        cursorRealEstate.execute(qryDeleteCourtAuctionData, nMasterSeq)
+
+        # if(rstBackupDatas.get > 0):
+        #     print(GetLogDef.lineno(__file__), "MasterDataList.seq => ", nMasterSeq)
+        print("================For Loop", nLoop)
+        # ResRealEstateConnection.rollback()
+        ResRealEstateConnection.commit()
 
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
