@@ -74,7 +74,7 @@ try:
         address_data = str(MasterDataList.get('address_data'))
         CityKey = str(MasterDataList.get('sido_code'))
         strSiGuCode = str(MasterDataList.get('sigu_code'))
-
+        strRoadName =  str(MasterDataList.get('road_name'))
 
         unique_value2 = str(MasterDataList.get('unique_value2'))
 
@@ -106,10 +106,11 @@ try:
             qryUpdateCourtAuctionBackup += " SET modify_date=NOW() "
             qryUpdateCourtAuctionBackup += " , sido_code= %s "
             qryUpdateCourtAuctionBackup += " , sigu_code=%s "
+            qryUpdateCourtAuctionBackup += " , road_name=%s "
             qryUpdateCourtAuctionBackup += " WHERE unique_value2 = %s "
             # qryUpdateCourtAuctionBackup += " WHERE auction_code = %s AND auction_seq = %s AND auction_day =%s "
             print(GetLogDef.lineno(__file__), "UPDATE =>", unique_value2)
-            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode , unique_value2))
+            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode , strRoadName , unique_value2))
 
         qryDeleteCourtAuctionData = " DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
         qryDeleteCourtAuctionData += " WHERE seq = %s LIMIT 1"
@@ -138,6 +139,7 @@ try:
         address_data = str(MasterDataList.get('address_data'))
         CityKey = str(MasterDataList.get('sido_code'))
         strSiGuCode = str(MasterDataList.get('sigu_code'))
+        strRoadName = str(MasterDataList.get('road_name'))
 
         unique_value2 = str(MasterDataList.get('unique_value2'))
 
@@ -172,10 +174,11 @@ try:
             qryUpdateCourtAuctionBackup += " SET modify_date=NOW() "
             qryUpdateCourtAuctionBackup += " , sido_code= %s "
             qryUpdateCourtAuctionBackup += " , sigu_code=%s "
+            qryUpdateCourtAuctionBackup += " , road_name=%s "
             qryUpdateCourtAuctionBackup += " WHERE unique_value2 = %s "
             # qryUpdateCourtAuctionBackup += " WHERE auction_code = %s AND auction_seq = %s AND auction_day =%s "
             print(GetLogDef.lineno(__file__), "UPDATE =>", unique_value2)
-            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode , unique_value2))
+            cursorRealEstate.execute(qryUpdateCourtAuctionBackup, (CityKey, strSiGuCode,strRoadName , unique_value2))
 
         qryDeleteCourtAuctionData = " DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionCompleteTable
         qryDeleteCourtAuctionData += " WHERE seq = %s LIMIT 1"
