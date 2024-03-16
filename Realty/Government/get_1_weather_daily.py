@@ -102,7 +102,7 @@ def main():
         quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
 
     if strResult == '10':
-        quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+        quit(GetLogDef.lineno(__file__) + 'It is currently in operation. => ' + strResult)  # 예외를 발생시킴
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
