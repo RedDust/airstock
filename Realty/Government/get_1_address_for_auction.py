@@ -128,6 +128,9 @@ def main():
         dictSwitchData['data_1'] = DBKuIndex
         dictSwitchData['data_2'] = DBCityKey
         dictSwitchData['data_3'] = targetRow
+        dictSwitchData['data_4'] = '0'
+        dictSwitchData['data_5'] = '0'
+        dictSwitchData['data_6'] = '0'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
 
@@ -153,7 +156,7 @@ def main():
         sqlCourtAuctionSelect = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE text_address != '' "
         # sqlCourtAuctionSelect += " AND build_type_text NOT LIKE '%대지%' "
         # sqlCourtAuctionSelect += " AND seq > " + DBKuIndex
-        # sqlCourtAuctionSelect += " AND seq=2051774 "
+        # sqlCourtAuctionSelect += " AND seq=2103704 "
         # sqlCourtAuctionSelect += " LIMIT 1 "
 
         cursorRealEstate.execute(sqlCourtAuctionSelect)
@@ -166,6 +169,7 @@ def main():
 
         for rstAddressList in rstAddressLists:
 
+            # 키워드 설정 영역 START
 
             intMasterProcessCount += 1
             strTextAddress = str(rstAddressList.get('address_data_text'))
@@ -193,6 +197,9 @@ def main():
             cursorRealEstate.execute(sqlAddressTableSelect, str(strDecodeCostomiseKeyword))
             intPreviewResultCount = cursorRealEstate.rowcount
 
+
+
+
             if intPreviewResultCount > 0:   #주소테이블에 주소가 있으면
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -202,7 +209,8 @@ def main():
                 strAddressConversionroadAddrPart1 = str(rstAddressConversionData.get('roadAddrPart1'))
 
                 sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
-                sqlCourtAuctionUpdate += " road_name = %s "
+                sqlCourtAuctionUpdate += " address_keyword = %s "
+                sqlCourtAuctionUpdate += " , road_name = %s "
                 sqlCourtAuctionUpdate += " WHERE seq = %s"
 
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -211,7 +219,7 @@ def main():
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
                              "[strAuctionMasterSecquence] => " + str(strAuctionMasterSecquence))
-                cursorRealEstate.execute(sqlCourtAuctionUpdate, (strAddressConversionroadAddrPart1, strAuctionMasterSecquence))
+                cursorRealEstate.execute(sqlCourtAuctionUpdate, ( str(strDecodeCostomiseKeyword), strAddressConversionroadAddrPart1, strAuctionMasterSecquence))
                 ResRealEstateConnection.commit()
                 continue
 
@@ -268,6 +276,7 @@ def main():
                     strNewDecodeCostomiseKeyword = strDecodeCostomiseKeyword
 
                     while True: # 루프를 돌리며 키워드 조회 될때 까지 글자를 줄여 가며 조회 한다.
+
                         strNewDecodeCostomiseKeyword = strNewDecodeCostomiseKeyword[0:-1]
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -326,7 +335,7 @@ def main():
 
 
                         strDecodeCostomiseKeyword = strNewDecodeCostomiseKeyword
-                        strResultTotalCount = intModifyResultTotalCount
+                        intResultTotalCount = intModifyResultTotalCount
                         strResultErrorCode = strModifyResultErrorCode
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -336,142 +345,151 @@ def main():
                                      "[break] => " + str(strDecodeCostomiseKeyword))
                         break
 
-
-
                 else:  #키워드로  API 주소가 확인된다.
                     if len(strDecodeCostomiseKeyword) < 6:
                         quit("349")
+            # 키워드 설정 영역 END =========================================================================
 
-
-            # 키워드 설정 영역 END
 
             # 조회 키워드 strDecodeCostomiseKeyword
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                            inspect.getframeinfo(inspect.currentframe()).lineno) +
                          "[조회 키워드] => " + str(strDecodeCostomiseKeyword))
-            # 키워드 조회 영역 START
 
+
+            # 키워드 조회 영역 START=========================================================================
             strEncodeCostomiseKeyword = parse.quote(strDecodeCostomiseKeyword)
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                            inspect.getframeinfo(inspect.currentframe()).lineno) +
                          "[strDecodeCostomiseKeyword] => " + str(strDecodeCostomiseKeyword))
 
 
-            #조회되는 첫 100 개만 가져 온다
-            DataListUrl  = "https://business.juso.go.kr/addrlink/addrLinkApi.do?currentPage=1"
-            DataListUrl += "&countPerPage=100&keyword=" + strEncodeCostomiseKeyword + ""
-            DataListUrl += "&confmKey=" + str(ConsStrAuthKey) + "&hstryYn=Y&resultType=json"
+            intLoopCount = math.ceil(intResultTotalCount / ConsIntProcessCount)
+            intKeywordSeq = 0
+            for i in range(intLoopCount):
 
-            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                           inspect.getframeinfo(inspect.currentframe()).lineno) +
-                         "[DataListUrl] => " + str(DataListUrl))
+                intPageNumber = int(i+1)
 
-            # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
-            ObjDataListResponse = urllib.request.urlopen(DataListUrl)
-            JsonDataList = ObjDataListResponse.read().decode("utf-8")
 
-            # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
-            DictJsonObject = json.loads(JsonDataList)
-            ListResultJusos = (DictJsonObject['results']['juso'])
-            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                           inspect.getframeinfo(inspect.currentframe()).lineno) +
-                         "[ListResultJusos] => " + str(ListResultJusos))
-
-            intDictResultJusoLoop = 0
-            strLoadAddress = ''
-
-            for dictResultJuso in ListResultJusos: #조회되는 주소록
-                intDictResultJusoLoop += 1
+                DataListUrl  = "https://business.juso.go.kr/addrlink/addrLinkApi.do?currentPage="+str(intPageNumber)
+                DataListUrl += "&countPerPage="+str(ConsIntProcessCount)+"&keyword=" + strEncodeCostomiseKeyword + ""
+                DataListUrl += "&confmKey=" + str(ConsStrAuthKey) + "&hstryYn=Y&resultType=json"
 
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
-                             "[dictResultJuso] => " + str(dictResultJuso))
+                             "[DataListUrl] => " + str(DataListUrl))
 
+                # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
+                ObjDataListResponse = urllib.request.urlopen(DataListUrl)
+                JsonDataList = ObjDataListResponse.read().decode("utf-8")
 
-                strLoadAddress = dictResultJuso['roadAddrPart1'].strip()
-                print("strLoadAddress========>",type(strLoadAddress) ,  strLoadAddress)
-
+                # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+                DictJsonObject = json.loads(JsonDataList)
+                ListResultJusos = (DictJsonObject['results']['juso'])
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
-                             "[intDictResultJusoLoop] => " + str(intDictResultJusoLoop))
+                             "[ListResultJusos] => " + str(ListResultJusos))
 
-                #주소가 이미 등록 되어 있는 주소인지 확인
-                sqlAddressTableSelect = " SELECT * FROM "+ ConstRealEstateTable_AUC.AddressConversionTable + " WHERE "
-                sqlAddressTableSelect += " jibunAddr=%s "
-
-                cursorRealEstate.execute(sqlAddressTableSelect, str(dictResultJuso['jibunAddr'].strip()))
-                rstMasterDatas = cursorRealEstate.fetchone()
-                nResultCount = cursorRealEstate.rowcount
-
-                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                               inspect.getframeinfo(inspect.currentframe()).lineno) +
-                             "[nResultCount] => " + str(nResultCount))
-                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                               inspect.getframeinfo(inspect.currentframe()).lineno) +
-                             "[rstMasterDatas] => " + str(rstMasterDatas))
-
-                if nResultCount > 0: #주소테이블에 이미 등록 되어 있는 주소인 경우 - modify_date UPDATE
-                    nConversionSequence = str(rstMasterDatas.get('seq'))
-                    # UPDATE
-                    qryInfoUpdate = " UPDATE " + ConstRealEstateTable_AUC.AddressConversionTable + " SET "
-                    qryInfoUpdate += " modify_date=now()"
-                    qryInfoUpdate += " WHERE seq='" + nConversionSequence + "' "
-
-                    print("qryInfoUpdate", qryInfoUpdate, type(qryInfoUpdate))
-                    cursorRealEstate.execute(qryInfoUpdate)
-                    intUpdateCount += 1
-
-                else:  #주소테이블에 없는 주소인 경우 INSERT
-
-                    sqlAddressTableInsert = "INSERT INTO " + ConstRealEstateTable_AUC.AddressConversionTable + " SET "
-                    sqlAddressTableInsert += " keyword='" + strDecodeCostomiseKeyword + "', "
-
-                    for dictResultJusoKey, dictResultJusoValue  in dictResultJuso.items():
-
-                        # Non-strings are converted to strings.
-                        if type(dictResultJusoValue) == 'int' and dictResultJusoValue =='':
-                            dictResultJusoValue = '0'
-
-                        if dictResultJusoKey == 'detBdNmList':
-                            dictResultJusoValue = trim_msg(dictResultJusoValue, 500, 'utf-8')
+                intDictResultJusoLoop = 0
+                strLoadAddress = ''
 
 
-                        dictResultJusoValue = dictResultJusoValue.strip()
-                        sqlAddressTableInsert += " " + dictResultJusoKey + "='" + dictResultJusoValue + "', "
+                for dictResultJuso in ListResultJusos: #조회되는 주소록
+                    intDictResultJusoLoop += 1
+                    intKeywordSeq += 1
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                 "[dictResultJuso] => " + str(dictResultJuso))
 
-                    sqlAddressTableInsert += " result_code = '"+strResultErrorCode+"', "
-                    sqlAddressTableInsert += " longitude = '"+strLongitude+"', "
-                    sqlAddressTableInsert += " latitude = '"+strLatitude+"', "
-                    sqlAddressTableInsert += " geo_point = ST_GeomFromText('POINT(" + strLongitude + " " + strLatitude + ")'), "
-                    sqlAddressTableInsert += " modify_date = now(), "
-                    sqlAddressTableInsert += " reg_date = now() "
-                    print("sqlAddressTableInsert => ", sqlAddressTableInsert)
-                    cursorRealEstate.execute(sqlAddressTableInsert)
-                    nConversionSequence = cursorRealEstate.lastrowid
-                    intInsertCount += 1
 
-                    print("intInsertCount => ", type(intInsertCount), intInsertCount)
-                    print("intUpdateCount => ", type(intUpdateCount), intUpdateCount)
-                    print("nMasterResultCount => ", type(nMasterResultCount), nMasterResultCount)
-                    print("strAuctionMasterSecquence => ", type(strAuctionMasterSecquence),
-                          strAuctionMasterSecquence)
-                    print("strDecodeCostomiseAddress => ", type(strDecodeCostomiseKeyword),
-                          strDecodeCostomiseKeyword)
+                    strLoadAddress = dictResultJuso['roadAddrPart1'].strip()
+                    print("strLoadAddress========>",type(strLoadAddress) ,  strLoadAddress)
 
-                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-                dictSwitchData = dict()
-                dictSwitchData['result'] = '10'
-                dictSwitchData['data_1'] = strAuctionMasterSecquence # 경매 테이블에서 조회된 키워드
-                dictSwitchData['data_2'] = strDecodeCostomiseKeyword # 처리된 키워드
-                dictSwitchData['data_3'] = nConversionSequence     # 주소록 테이블에서 처리된 seq
-                dictSwitchData['data_4'] = nMasterResultCount     # 경매테이블에서 조회된 건수
-                dictSwitchData['data_5'] = intMasterProcessCount  # 경매테이블에서 처리된 건수
-                dictSwitchData['data_6'] = intDictResultJusoLoop  # 조회된 주소록에서 처리된 건수
-                LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                 "[intDictResultJusoLoop] => " + str(intDictResultJusoLoop))
+
+                    #주소가 이미 등록 되어 있는 주소인지 확인
+                    sqlAddressTableSelect = " SELECT * FROM "+ ConstRealEstateTable_AUC.AddressConversionTable + " WHERE "
+                    sqlAddressTableSelect += " jibunAddr=%s "
+
+                    cursorRealEstate.execute(sqlAddressTableSelect, str(dictResultJuso['jibunAddr'].strip()))
+                    rstMasterDatas = cursorRealEstate.fetchone()
+                    nResultCount = cursorRealEstate.rowcount
+
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                 "[nResultCount] => " + str(nResultCount))
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                 "[rstMasterDatas] => " + str(rstMasterDatas))
+
+                    if nResultCount > 0: #주소테이블에 이미 등록 되어 있는 주소인 경우 - modify_date UPDATE
+                        nConversionSequence = str(rstMasterDatas.get('seq'))
+                        # UPDATE
+                        qryInfoUpdate = " UPDATE " + ConstRealEstateTable_AUC.AddressConversionTable + " SET "
+                        qryInfoUpdate += " modify_date=now()"
+                        qryInfoUpdate += " WHERE seq='" + nConversionSequence + "' "
+
+                        print("qryInfoUpdate", qryInfoUpdate, type(qryInfoUpdate))
+                        cursorRealEstate.execute(qryInfoUpdate)
+                        intUpdateCount += 1
+
+                    else:  #주소테이블에 없는 주소인 경우 INSERT
+
+                        sqlAddressTableInsert = "INSERT INTO " + ConstRealEstateTable_AUC.AddressConversionTable + " SET "
+                        sqlAddressTableInsert += " keyword='" + strDecodeCostomiseKeyword + "', "
+                        sqlAddressTableInsert += " keyword_seq='" + str(intKeywordSeq) + "', "
+
+
+
+                        for dictResultJusoKey, dictResultJusoValue  in dictResultJuso.items():
+
+                            # Non-strings are converted to strings.
+                            if type(dictResultJusoValue) == 'int' and dictResultJusoValue =='':
+                                dictResultJusoValue = '0'
+
+                            if dictResultJusoKey == 'detBdNmList':
+                                dictResultJusoValue = trim_msg(dictResultJusoValue, 500, 'utf-8')
+
+
+                            dictResultJusoValue = dictResultJusoValue.strip()
+                            sqlAddressTableInsert += " " + dictResultJusoKey + "='" + dictResultJusoValue + "', "
+
+                        sqlAddressTableInsert += " result_code = '"+strResultErrorCode+"', "
+                        sqlAddressTableInsert += " longitude = '"+strLongitude+"', "
+                        sqlAddressTableInsert += " latitude = '"+strLatitude+"', "
+                        sqlAddressTableInsert += " geo_point = ST_GeomFromText('POINT(" + strLongitude + " " + strLatitude + ")'), "
+                        sqlAddressTableInsert += " modify_date = now(), "
+                        sqlAddressTableInsert += " reg_date = now() "
+                        print("sqlAddressTableInsert => ", sqlAddressTableInsert)
+                        cursorRealEstate.execute(sqlAddressTableInsert)
+                        nConversionSequence = cursorRealEstate.lastrowid
+                        intInsertCount += 1
+
+                        print("intInsertCount => ", type(intInsertCount), intInsertCount)
+                        print("intUpdateCount => ", type(intUpdateCount), intUpdateCount)
+                        print("nMasterResultCount => ", type(nMasterResultCount), nMasterResultCount)
+                        print("strAuctionMasterSecquence => ", type(strAuctionMasterSecquence),
+                              strAuctionMasterSecquence)
+                        print("strDecodeCostomiseAddress => ", type(strDecodeCostomiseKeyword),
+                              strDecodeCostomiseKeyword)
+
+                    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                    dictSwitchData = dict()
+                    dictSwitchData['result'] = '10'
+                    dictSwitchData['data_1'] = strAuctionMasterSecquence # 경매 테이블에서 조회된 키워드
+                    dictSwitchData['data_2'] = strDecodeCostomiseKeyword # 처리된 키워드
+                    dictSwitchData['data_3'] = nConversionSequence     # 주소록 테이블에서 처리된 seq
+                    dictSwitchData['data_4'] = nMasterResultCount     # 경매테이블에서 조회된 건수
+                    dictSwitchData['data_5'] = intMasterProcessCount  # 경매테이블에서 처리된 건수
+                    dictSwitchData['data_6'] = intInsertCount         # 주소록에서 새로 추가된 건수
+                    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
             sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
-            sqlCourtAuctionUpdate += " road_name = %s "
+            sqlCourtAuctionUpdate += " address_keyword = %s "
+            sqlCourtAuctionUpdate += ",  road_name = %s "
             sqlCourtAuctionUpdate += " WHERE seq = %s"
 
             print("sqlCourtAuctionUpdate => ", type(sqlCourtAuctionUpdate), sqlCourtAuctionUpdate)
@@ -479,7 +497,7 @@ def main():
             print("strAuctionMasterSecquence => ", type(strAuctionMasterSecquence), strAuctionMasterSecquence)
             print("nConversionSequence => ", type(nConversionSequence), nConversionSequence)
 
-            cursorRealEstate.execute(sqlCourtAuctionUpdate , (strLoadAddress, strAuctionMasterSecquence))
+            cursorRealEstate.execute(sqlCourtAuctionUpdate , (str(strDecodeCostomiseKeyword),strLoadAddress, strAuctionMasterSecquence))
             ResRealEstateConnection.commit()
 
             # 테스트 딜레이 추가
