@@ -252,7 +252,7 @@ def main():
 
                 # 네이버 데이터 조회 시도
                 resultsDict = GeoDataModule.getNaverGeoData(strTextAddress[0])
-                if resultsDict != False:
+                if isinstance(resultsDict, dict) != False:
 
                     for resultsOneDictKey, resultsOneDictValue in resultsDict.items():
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -280,7 +280,7 @@ def main():
                                     inspect.getframeinfo(inspect.currentframe()).lineno), "strTextAddress>", type(strTextAddress), strTextAddress)
                     # 카카오 데이터 조회 시도
                     resultsDict = GeoDataModule.getKakaoGeoData(strTextAddress[0])
-                    if resultsDict != False:
+                    if isinstance(resultsDict, dict) != False:
                         # 카카오 데이터 조회 성공
                         strJiBunAddress = resultsDict['address_name']
                         strLongitude = resultsDict['x']
