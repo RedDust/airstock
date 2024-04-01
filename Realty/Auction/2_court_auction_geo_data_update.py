@@ -1,3 +1,5 @@
+# quit("500")
+#
 
 #https://console.ncloud.com/naver-service/application
 #VPC AI·NAVER API Application
@@ -34,40 +36,90 @@ from selenium.webdriver.support.select import Select
 from Realty.Auction.Const import AuctionCourtInfo
 from Init.DefConstant import ConstRealEstateTable
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
+from Lib.CustomException.QuitException import QuitException
+from Lib.GeoDataModule import GeoDataModule
 
 try:
     print(GetLogDef.lineno(__file__), "============================================================")
 
+    # 서울 부동산 실거래가 데이터 - 서울 버스 사용량
+    strProcessType = '020101'
+    KuIndex = '00'
+    arrCityPlace = '00'
+    targetRow = '00'
 
-    NAVER_API_URL: str = 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode'
-    NAVER_API_HEADERS: Dict[str, str] = {
-        'X-NCP-APIGW-API-KEY-ID': 'idgprv275x',
-        'X-NCP-APIGW-API-KEY': 'Ux9SxxEJiynvKt2CwKgfEOfXn6tA3ksyoVa4rAUs'
-    }
+    # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
+    rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
+    strResult = rstResult.get('result')
+    if strResult is False:
+        raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
 
+    if strResult == '10':
+        raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+
+    if strResult == '30':
+        raise QuitException(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '10'
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
     # DB 연결
     ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
     cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-    qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE process_step= '00'"
-    # qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " WHERE process_step= '10'"
-    # qrySelectCourtAuctionMaster += " limit 3"
+
+
+    qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " WHERE "
+    # qrySelectCourtAuctionMaster += " seq='101804' " #데이터 없음
+    # qrySelectCourtAuctionMaster += " seq='104781' " #데이터 있음
+
+
+    # qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE process_step= '11'"
+    # qrySelectCourtAuctionMaster += " limit 100"
 
     cursorRealEstate.execute(qrySelectCourtAuctionMaster)
     rstFieldsLists = cursorRealEstate.fetchall()
+
     # print(GetLogDef.lineno(__file__), "rstFieldsList>", rstFieldsLists)
+
+    nTotalCount = 0
+    nProcessCount = 0
+    strJiBunAddress = ''
+    strLongitude = '000.00000000'  # 127
+    strLatitude = '000.00000000'  # 37
+    nProcessStep = 13
 
     for SelectColumnList in rstFieldsLists:
 
         nSequence = SelectColumnList.get('seq')
 
         strFieldName = SelectColumnList.get('address_data')
-        print(GetLogDef.lineno(__file__), "strFieldName >", type(strFieldName), strFieldName)
+
+        strAuctionCode = SelectColumnList.get('auction_code')
+        strCourtName = SelectColumnList.get('court_name')
+        strAuctionDay = SelectColumnList.get('auction_day')
+
+        # print(GetLogDef.lineno(__file__), "strFieldName >", type(strFieldName), strFieldName)
         jsonFieldName = json.loads(strFieldName)
         # print(GetLogDef.lineno(__file__), "jsonFieldName >", type(jsonFieldName), jsonFieldName)
         # print(GetLogDef.lineno(__file__), "jsonFieldName[0] >", type(jsonFieldName[0]), jsonFieldName[0])
         print(GetLogDef.lineno(__file__), "------------------------------------------------------------------------------------------------------------")
         print(GetLogDef.lineno(__file__), "nSequence>", nSequence, strFieldName,len(strFieldName))
+
+        strStripFieldName = str(strFieldName).removeprefix("[\"").removesuffix("\"]")
+        print(GetLogDef.lineno(__file__), "strFieldName>", strStripFieldName)
+
+        dictAddresses = str(strStripFieldName).split(":")
+        print(GetLogDef.lineno(__file__), "dictAddresses", type(dictAddresses) , dictAddresses)
+
+
+        #주소 예외 처리["사용본거지:경기도수원시권선구평동110-5"]
+        if dictAddresses[0] == '사용본거지':
+            jsonFieldName[0] = dictAddresses[1]
+
+
+        strTextAddress = str(jsonFieldName[0]).split(",")
 
         if len(strFieldName) < 10:
             #주소가 없을떄 업데이트 SKIP
@@ -75,47 +127,43 @@ try:
             strLongitude = '000.00000000'  # 127
             strLatitude = '000.00000000'  # 37
             nProcessStep = 12
-            nTotalCount=0
+
         else:
-            strTextAddress = (jsonFieldName[0])
-            response = requests.get(
-                NAVER_API_URL,
-                params={'query': strTextAddress},
-                headers=NAVER_API_HEADERS
-            )
 
-            results = response.json()
-            print(GetLogDef.lineno(__file__), "results", type(results), results)
-
-            if results['status'] != 'OK':
-                Exception(GetLogDef.lineno(__file__), "results['status']  => ", results['status'] )  # 예외를 발생시킴
-                break
-
-            print(GetLogDef.lineno(__file__), "results['meta']>", type(results['meta']), results['meta'])
-            print(GetLogDef.lineno(__file__), "nTotalCount>", type(nTotalCount), nTotalCount)
-            print(GetLogDef.lineno(__file__), "results['addresses']>", type(results['addresses']), results['addresses'])
-            nTotalCount = results['meta']['totalCount']
-
-            if nTotalCount < 1:
-                strJiBunAddress = ''
-                strLongitude = '000.00000000'  # 127
-                strLatitude = '000.00000000'  # 37
-                nProcessStep = 11
-            else:
-                dictAddresses = results['addresses']
-                listFirstAddress = dictAddresses[0]
-                strJiBunAddress = listFirstAddress['jibunAddress']
-                strLongitude = listFirstAddress['x']  # 127
-                strLatitude = listFirstAddress['y']  # 37
+            print(GetLogDef.lineno(__file__), "strTextAddress>", type(strTextAddress), len(strTextAddress),
+                  strTextAddress)
+            # 네이버 데이터 조회 시도
+            resultsDict = GeoDataModule.getNaverGeoData(strTextAddress[0])
+            if isinstance(resultsDict, dict) != False:
+                # 네이버 데이터 조회 성공
+                print(GetLogDef.lineno(__file__), "resultsDict>", type(resultsDict), resultsDict)
+                dictAddresses = resultsDict['addresses']
+                strJiBunAddress = dictAddresses['jibunAddress']
+                strLongitude = dictAddresses['x']  # 127
+                strLatitude = dictAddresses['y']  # 37
                 nProcessStep = 10
 
+            else:
+                # 네이버 데이터 조회 실패
+                # print(GetLogDef.lineno(__file__), "resultsDict>", type(resultsDict), resultsDict)
+                # 카카오 데이터 조회 시도
+                resultsDict = GeoDataModule.getKakaoGeoData(strTextAddress)
+                if isinstance(resultsDict, dict) != False:
+                    # 카카오 데이터 조회 성공
+                    strJiBunAddress = resultsDict['address_name']
+                    strLongitude = resultsDict['x']
+                    strLatitude = resultsDict['y']
+                    nProcessStep = 11
 
-        print(GetLogDef.lineno(__file__), "strJiBunAddress>",type(strJiBunAddress), strJiBunAddress)
-        print(GetLogDef.lineno(__file__), "strLongitude>",type(strLongitude), strLongitude)
-        print(GetLogDef.lineno(__file__), "strLatitude>",type(strLatitude), strLatitude)
+        strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
+
+        print(GetLogDef.lineno(__file__), "strJiBunAddress>", type(strJiBunAddress), strJiBunAddress)
+        print(GetLogDef.lineno(__file__), "strLongitude>", type(strLongitude), strLongitude)
+        print(GetLogDef.lineno(__file__), "strLatitude>", type(strLatitude), strLatitude)
+        print(GetLogDef.lineno(__file__), "nProcessStep>", type(nProcessStep), nProcessStep)
         print(GetLogDef.lineno(__file__), "nSequence>",type(nSequence), nSequence)
 
-        qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
+        qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " SET "
         qryUpdateGeoPosition += " text_address = %s, "
         qryUpdateGeoPosition += " longitude = %s, "
         qryUpdateGeoPosition += " latitude = %s, "
@@ -124,66 +172,58 @@ try:
         qryUpdateGeoPosition += " WHERE seq = %s "
 
         print("qryInfoUpdate", qryUpdateGeoPosition, type(qryUpdateGeoPosition))
-        cursorRealEstate.execute(qryUpdateGeoPosition, (strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence))
+        print("data", strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence)
+        # cursorRealEstate.execute(qryUpdateGeoPosition, (strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence))
+        # ResRealEstateConnection.commit()
 
-        ResRealEstateConnection.commit()
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '10'
+        dictSwitchData['data_1'] = strJiBunAddress
+        dictSwitchData['data_2'] = strLongitude
+        dictSwitchData['data_3'] = strLatitude
+        dictSwitchData['data_4'] = nProcessStep
+        dictSwitchData['data_5'] = nProcessCount
+        # dictSwitchData['data_6'] = nCallEndCount
 
-    # qrySelectCourtAuctionBackup = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " "
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-    #
-    #
-    # response = requests.get(
-    #     NAVER_API_URL,
-    #     params={'query': strTextAddress },
-    #     headers=NAVER_API_HEADERS
-    # )
-    #
-    # results = response.json()
-    # print(results, type(results))
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '00'
+    dictSwitchData['data_1'] = strJiBunAddress
+    dictSwitchData['data_2'] = strLongitude
+    dictSwitchData['data_3'] = strLatitude
+    dictSwitchData['data_4'] = nProcessStep
+    dictSwitchData['data_5'] = nProcessCount
+    # dictSwitchData['data_6'] = nCallEndCount
 
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
+except ValueError as v:
+    print(v)
+    err_msg = traceback.format_exc()
+    print(err_msg)
+    print(type(v))
 
-    #
-    #
-    #
-    # dictAaa = results['addresses']
-    # dictAddress = dictAaa[0]
-    #
-    # strJiBunAddress = dictAddress['jibunAddress']
-    # strLongitude = dictAddress['x'] # 127
-    # strLatitude = dictAddress['y'] # 37
-    #
-    # qryUpdateGeoPosition = "UPDATE SET"
-    #
-    # print(dictAddress['jibunAddress'])
-    # print(GetLogDef.lineno(__file__), type(strJiBunAddress), strJiBunAddress, "============================================================")
-    # print(GetLogDef.lineno(__file__), type(strLongitude), strLongitude, "============================================================")
-    # print(GetLogDef.lineno(__file__), type(strLatitude), strLatitude, "============================================================")
+except QuitException.QuitException as e:
 
-
-    # aList = json.loads(results)
-    # aList = json.dumps(results)
-
-
-    # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
-
+    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+    dictSwitchData = dict()
+    dictSwitchData['result'] = '30'
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+    print(GetLogDef.lineno(__file__), "QuitException")
+    err_msg = traceback.format_exc()
+    print(err_msg)
+    print(e)
+    print(type(e))
 
 except Exception as e:
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '30'
-
-    # if KuIndex is not None:
-    #     dictSwitchData['data_1'] = KuIndex
-    #
-    # if arrCityPlace is not None:
-    #     dictSwitchData['data_2'] = arrCityPlace
-    #
-    # if targetRow is not None:
-    #     dictSwitchData['data_3'] = targetRow
-    #
-    # LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     print(GetLogDef.lineno(__file__), "Error Exception")
     print(GetLogDef.lineno(__file__), e, type(e))
@@ -195,4 +235,3 @@ else:
 
 finally:
     print("Finally END")
-
