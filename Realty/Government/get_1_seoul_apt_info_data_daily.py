@@ -11,12 +11,10 @@ import urllib.request
 import json
 import pymysql
 import datetime
+
 from Realty.Government.Init import init_conf
 from Realty.Government.Const import ConstRealEstateTable_GOV
 from Lib.RDB import pyMysqlConnector
-
-
-from SeoulLib.RDB import LibSeoulRealTradeSwitch
 
 from Init.Functions.Logs import GetLogDef
 
@@ -25,7 +23,6 @@ from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 import math
 from Lib.GeoDataModule import GeoDataModule
-from Realty.Auction.Const import ConstRealEstateTable_AUC
 
 import logging
 import logging.handlers
@@ -69,7 +66,7 @@ def main():
         # 최종번호
         nEndNumber = nProcessedCount
 
-        logFileName = str(stToday.year) + str(stToday.month) + str(stToday.day).zfill(2) + ".log"
+        logFileName = str(stToday.year) + str(stToday.month).zfill(2)  + str(stToday.day).zfill(2) + ".log"
 
 
 
@@ -87,7 +84,7 @@ def main():
 
         # RotatingFileHandler
         timeFileHandler = logging.handlers.TimedRotatingFileHandler(
-            filename='D:/PythonProjects/airstock/Shell/logs/'+strProcessType+ '_get_1_seoul_apt_info_data_daily_' + logFileName,
+            filename='D:/PythonProjects/airstock/Shell/logs/' + strProcessType + '/' + logFileName,
             when='midnight',
             interval=1,
             encoding='utf-8'
@@ -122,12 +119,15 @@ def main():
         dictSwitchData['data_3'] = targetRow
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-        print(GetLogDef.lineno(__file__), "dtProcessDay >", dtProcessDay, "strProcessYear > ", strProcessYear)
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  "dtProcessDay >" + str(dtProcessDay) + " strProcessYear > "+ str(strProcessYear))
 
         while True:
 
-            print(GetLogDef.lineno(__file__), "nStartNumber >", nStartNumber)
-            print(GetLogDef.lineno(__file__), "nEndNumber >", nEndNumber)
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " nStartNumber >" + str(nStartNumber))
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " nEndNumber >" + str(nEndNumber))
 
             # 시작번호가 총 카운트 보다 많으면 중단
             if (nTotalCount > 0) and (nStartNumber > nTotalCount):
@@ -136,7 +136,8 @@ def main():
 
             # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
             url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/OpenAptInfo/" + str(nStartNumber) + "/" + str(nEndNumber)
-            print(GetLogDef.lineno(__file__), "url>>>", type(url), url)
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " url>>>" + url)
 
 
             # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
@@ -154,7 +155,8 @@ def main():
 
             nTotalCount = bMore.get('list_total_count')
 
-            print("nTotalCount > ", nTotalCount)
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "nTotalCount > " + str(nTotalCount))
 
             jsonResultDatas = bMore.get('RESULT')
             jsonResultDatasResult = jsonResultDatas
@@ -163,7 +165,8 @@ def main():
             strResultMessage = jsonResultDatasResult.get('MESSAGE')
 
             if strResultCode != 'INFO-000':
-                raise Exception(GetLogDef.lineno(__file__), 'strResultCode => ', strResultCode)  # 예외를 발생시킴
+                raise Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + 'strResultCode => '+ str(strResultCode))  # 예외를 발생시킴
                 break
                 # GetOut while True:
 
@@ -193,8 +196,10 @@ def main():
 
             nLoop = 0
             for list in jsonRowDatas:
-                # print("---------------------------------------------------------------------------------------------")
-                # print("[ "+str(nStartNumber)+" - "+str(nEndNumber)+" ][ "+str(nLoop)+" ] ")
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "---------------------------------------------------------------------------------------------")
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +"[ "+str(nStartNumber)+" - "+str(nEndNumber)+" ][ "+str(nLoop)+" ] ")
                 nLoop += 1
 
                 dictSeoulRealtyTradeDataMaster = {}
@@ -210,10 +215,12 @@ def main():
 
                 #for dictSeoulMasterKeys in list.keys():
 
-                # print("dictSeoulRealtyTradeDataMaster", dictSeoulRealtyTradeDataMaster['SN'], type(dictSeoulRealtyTradeDataMaster['SN']))
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +"dictSeoulRealtyTradeDataMaster > " +  dictSeoulRealtyTradeDataMaster['SN'])
 
                 SeoulSN = math.floor(float(dictSeoulRealtyTradeDataMaster['SN']))
-                # print("SeoulSN", SeoulSN, type(SeoulSN))
+                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +"SeoulSN > " + str(SeoulSN))
 
                 APT_CODE = dictSeoulRealtyTradeDataMaster['APT_CODE']
                 APT_NM = dictSeoulRealtyTradeDataMaster['APT_NM']
@@ -227,8 +234,8 @@ def main():
                 strDBX_CODE = str(SwitchDataList.get('X_CODE'))
                 boolCheck = False
                 if len(strDBX_CODE) < 1:
-                    print("nResultCount", type(nResultCount), nResultCount)
-                    print("dictSeoulRealtyTradeDataMaster", dictSeoulRealtyTradeDataMaster['SN'], type(dictSeoulRealtyTradeDataMaster['SN']))
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "dictSeoulRealtyTradeDataMaster[SN] > " + str(dictSeoulRealtyTradeDataMaster['SN']))
                     boolCheck = True
 
                 if nResultCount > 0: #UPDATE
@@ -238,12 +245,10 @@ def main():
                     strDBX_CODE = str(SwitchDataList.get('X_CODE'))
                     strDBY_CODE = str(SwitchDataList.get('Y_CODE'))
 
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), " > strDBX_CODE",
-                          type(strDBX_CODE), strDBX_CODE)
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), " > strDBY_CODE",
-                          type(strDBY_CODE), strDBY_CODE)
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno) +  " > strDBX_CODE " + strDBX_CODE)
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno) +  " > strDBY_CODE" + strDBY_CODE)
 
                     if len(strDBX_CODE) < 4 or len(strDBY_CODE) < 3:
                         strDBADRES_DORO = str(SwitchDataList.get('ADRES_DORO'))
@@ -251,41 +256,38 @@ def main():
 
                         strDOROJUSO  = str(SwitchDataList.get('ADRES_CITY')) + " "
                         strDOROJUSO += str(SwitchDataList.get('ADRES_GU')) + " "
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) , len(strDBADRES_DORO), strDBADRES_DORO)
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-
-                                                inspect.getframeinfo(inspect.currentframe()).lineno),
-                              " > strDOROJUSO[ADRES_CITY + ADRES_GU ]", strDOROJUSO)
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " > " + strDBADRES_DORO)
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename, inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_CITY + ADRES_GU ]" + strDOROJUSO)
 
                         if len(strDBADRES_DORO) > 2:
                             strDOROJUSO += str(SwitchDataList.get('ADRES_DORO')) + " " + str(SwitchDataList.get('ADRES_DORO_RMNDR'))
-                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) , " > strDOROJUSO[ADRES_DORO + ADRES_DORO_RMNDR ]", strDOROJUSO)
+                            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_DORO + ADRES_DORO_RMNDR ]" + strDOROJUSO)
                         else:
                             strDOROJUSO += str(SwitchDataList.get('ADRES_DONG')) + " "
                             strDOROJUSO += str(SwitchDataList.get('APT_NM'))
-                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) , " > strDOROJUSO[ADRES_DONG + APT_NM ]", strDOROJUSO)
+                            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_DONG + APT_NM ]" + strDOROJUSO)
 
 
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) , " > strDOROJUSO", strDOROJUSO)
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO" + strDOROJUSO)
 
 
                         resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
                         if isinstance(resultsDict, dict) == False:
-                            print(GetLogDef.lineno(__file__), "strDOROJUSO", strDOROJUSO)
-                            print(GetLogDef.lineno(__file__), "resultsDict", resultsDict)
+                            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +   "strDOROJUSO > " + strDOROJUSO)
 
                             strDOROJUSO = str(SwitchDataList.get('DOROJUSO')) + " "
-                            print(GetLogDef.lineno(__file__), "strDOROJUSO[DOROJUSO]", strDOROJUSO)
+                            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "strDOROJUSO[DOROJUSO] >" + strDOROJUSO)
+
                             resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
                             if isinstance(resultsDict, dict) == False:
-                                print(GetLogDef.lineno(__file__),"strDOROJUSO", strDOROJUSO)
-                                print(GetLogDef.lineno(__file__),"resultsDict", resultsDict)
-
-                                raise Exception(GetLogDef.lineno(__file__) + 'strDOROJUSO => ' + str(strDOROJUSO))  # 예외를 발생시킴
+                                raise Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  'strDOROJUSO => ' + str(strDOROJUSO))  # 예외를 발생시킴
 
                             else:
                                 strDBLongitude = resultsDict['x']
@@ -299,10 +301,10 @@ def main():
                         strDBLongitude = str(SwitchDataList.get('naver_longitude'))
                         strDBLatitude = str(SwitchDataList.get('naver_latitude'))
 
-
-                # if boolCheck == True:
-                    print(GetLogDef.lineno(__file__), "strDBLongitude >", strDBLongitude )
-                    print(GetLogDef.lineno(__file__), "strDBLatitude >", strDBLatitude)
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " strDBLongitude >" + strDBLongitude )
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " strDBLatitude >" + strDBLatitude)
 
                     # UPDATE 쿼리 작성
                     qryInfoUpdate  = " UPDATE " + ConstRealEstateTable_GOV.SeoulAPTInfoTable + " SET "
@@ -311,13 +313,8 @@ def main():
                     if len(strDBLongitude) < 4 or len(strDBLatitude) < 3:
 
                         resultsDict = GeoDataModule.getNaverReverseGeoData(logger, strDBX_CODE , strDBY_CODE)
-                        print(GetLogDef.lineno(__file__), "resultsDict >", type(isinstance(resultsDict, str)), isinstance(resultsDict, str))
-
-
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename, inspect.getframeinfo(inspect.currentframe()).lineno) +
                                      "[resultsDict] => " + str(resultsDict))
-
 
                         strDOROJUSO  = resultsDict['dosi_name'] + " "
                         strDOROJUSO += resultsDict['sigu_name'] + " "
@@ -352,10 +349,6 @@ def main():
                     qryInfoUpdate += " , geo_point = ST_GeomFromText('POINT(" + strNaverLongitude +" "+ strNaverLatitude +")', 4326, 'axis-order=long-lat') "
 
                     qryInfoUpdate += " WHERE seq='"+str(nSequence)+"' "
-                    if boolCheck == True:
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename, inspect.getframeinfo(inspect.currentframe()).lineno), "qryInfoUpdate", qryInfoUpdate, type(qryInfoUpdate))
-                        print(GetLogDef.lineno(__file__), " UPDATE ResRealEstateConnection.commit()", "====================================================")
-
                     cursorRealEstate.execute(qryInfoUpdate)
                     ResRealEstateConnection.commit()
 
@@ -380,9 +373,6 @@ def main():
                     strDBY_CODE = str(dictSeoulRealtyTradeDataMaster['Y_CODE'])
 
                     resultsDict = GeoDataModule.getNaverReverseGeoData(logger, strDBX_CODE, strDBY_CODE)
-                    print(GetLogDef.lineno(__file__), "resultsDict >", type(isinstance(resultsDict, str)),
-                          isinstance(resultsDict, str))
-
                     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                    inspect.getframeinfo(inspect.currentframe()).lineno) +
                                  "[resultsDict] => " + str(resultsDict))
@@ -406,7 +396,8 @@ def main():
 
                     resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
                     if isinstance(resultsDict, dict) == False:
-                        raise Exception(GetLogDef.lineno(__file__) + 'resultsDict => ' + str(resultsDict))  # 예외를 발생시킴
+                        raise Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  'resultsDict => ' + str(resultsDict))  # 예외를 발생시킴
 
                     strNaverLongitude = resultsDict['x']
                     strNaverLatitude = resultsDict['y']
@@ -416,23 +407,27 @@ def main():
                     qryInfoInsert += " , geo_point = ST_GeomFromText('POINT(" + strNaverLongitude +" "+ strNaverLatitude +")', 4326, 'axis-order=long-lat') "
                     qryInfoInsert += ", reg_date=NOW()"
 
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno)," [qryInfoInsert >> ", qryInfoInsert, type(qryInfoInsert))
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " [qryInfoInsert >> " + qryInfoInsert)
                     cursorRealEstate.execute(qryInfoInsert)
                     ResRealEstateConnection.commit()
-                    print(GetLogDef.lineno(__file__),"qryInfoInsert ResRealEstateConnection.commit()", "====================================================")
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "qryInfoInsert ResRealEstateConnection.commit()")
 
             # for list in jsonRowDatas:
 
-            print(GetLogDef.lineno(__file__),"dictSeoulRealtyTradeDataMaster", "====================================================")
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "dictSeoulRealtyTradeDataMaster")
             nStartNumber = nEndNumber + 1
             nEndNumber = nEndNumber + nProcessedCount
         #while True:
 
     except Exception as e:
 
-        print(GetLogDef.lineno(__file__),"Error Exception")
-        print(GetLogDef.lineno(__file__),e)
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  "Error Exception")
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + e)
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -467,5 +462,5 @@ def main():
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
     finally:
-        print(GetLogDef.lineno(__file__),"Finally END")
+        logging.info(GetLogDef.lineno(__file__) + "Finally END")
         ResRealEstateConnection.close()
