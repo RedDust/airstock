@@ -231,12 +231,15 @@ def main():
                 SwitchDataList = cursorRealEstate.fetchone()
 
                 #Log
-                strDBX_CODE = str(SwitchDataList.get('X_CODE'))
-                boolCheck = False
-                if len(strDBX_CODE) < 1:
-                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "dictSeoulRealtyTradeDataMaster[SN] > " + str(dictSeoulRealtyTradeDataMaster['SN']))
-                    boolCheck = True
+                # logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                #                                inspect.getframeinfo(inspect.currentframe()).lineno) + "SwitchDataList> " + str())
+
+                # strDBX_CODE = str(SwitchDataList.get('X_CODE'))
+                # boolCheck = False
+                # if len(strDBX_CODE) < 1:
+                #     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                #                                        inspect.getframeinfo(inspect.currentframe()).lineno) + "dictSeoulRealtyTradeDataMaster[SN] > " + str(dictSeoulRealtyTradeDataMaster['SN']))
+                #     boolCheck = True
 
                 if nResultCount > 0: #UPDATE
                     nSequence   = str(SwitchDataList.get('seq'))
@@ -450,7 +453,8 @@ def main():
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     else:
-
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  "SUCCESS")
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
@@ -461,6 +465,7 @@ def main():
         dictSwitchData['data_5'] = nSequence
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
     finally:
         logging.info(GetLogDef.lineno(__file__) + "Finally END")
         ResRealEstateConnection.close()
