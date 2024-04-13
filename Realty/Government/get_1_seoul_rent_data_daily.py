@@ -26,7 +26,7 @@ from Init.Functions.Logs import GetLogDef
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
-
+from Lib.GeoDataModule import GeoDataModule
 
 try:
     #사용변수 초기화
@@ -41,7 +41,7 @@ try:
     nUpdateCount = 0
 
     #서울 부동산 실거래가 데이터 - 임대차
-    strProcessType = '034110'
+    strProcessType = '034200'
     KuIndex = '00'
     arrCityPlace = '00'
     targetRow = '00'
@@ -68,7 +68,7 @@ try:
 
 
 
-    for nLoop in range(0, 180):
+    for nLoop in range(0, 61):
         nbaseDate = stToday - TimeDelta(days=nLoop)
         dtProcessDay = int(nbaseDate.strftime("%Y%m%d"))
 
@@ -90,7 +90,7 @@ try:
         strProcessYear = strProcessDay[0:4]
 
 
-        print( GetLogDef.lineno(), "dtProcessDay >", dtProcessDay , "strProcessYear > ", strProcessYear )
+        print( GetLogDef.lineno(__file__), "dtProcessDay >", dtProcessDay , "strProcessYear > ", strProcessYear )
 
         while True:
 
@@ -98,14 +98,14 @@ try:
             if (nTotalCount > 0) and (nStartNumber > nTotalCount):
                 break
 
-            print(GetLogDef.lineno(), "nStartNumber >", nStartNumber)
-            print(GetLogDef.lineno(), "nEndNumber >", nEndNumber)
+            print(GetLogDef.lineno(__file__), "nStartNumber >", nStartNumber)
+            print(GetLogDef.lineno(__file__), "nEndNumber >", nEndNumber)
 
             # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
             url = "http://openapi.seoul.go.kr:8088/" + init_conf.SeoulAuthorizationKey + "/json/tbLnOpendataRentV/"+str(nStartNumber)+"/"+str(nEndNumber) \
                   + "/%20/%20/%20/%20/%20/%20/%20/" + strProcessDay + "/%20/%20/"
 
-            print("url > ", url)
+            print(GetLogDef.lineno(__file__), "url > ", url)
 
 
             # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
@@ -118,7 +118,7 @@ try:
             bMore = json_object.get('tbLnOpendataRentV')
 
             if bMore is None:
-                Exception(GetLogDef.lineno(), 'bMore => ', bMore)  # 예외를 발생시킴
+                Exception(GetLogDef.lineno(__file__), 'bMore => ', bMore)  # 예외를 발생시킴
                 break
 
             nTotalCount = bMore.get('list_total_count')
@@ -132,58 +132,16 @@ try:
             strResultMessage = jsonResultDatasResult.get('MESSAGE')
 
             if strResultCode != 'INFO-000':
-                Exception(GetLogDef.lineno(), 'strResultCode => ', strResultCode)  # 예외를 발생시킴
+                Exception(GetLogDef.lineno(__file__), 'strResultCode => ', strResultCode)  # 예외를 발생시킴
                 break
                 #GetOut while True:
 
 
             jsonRowDatas = bMore.get('row')
 
-
             # DB 연결
             ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
-
-            qrySelectSeoulSwitch = "SELECT * FROM "+ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable+" WHERE ACC_YEAR = %s AND state <> '30' LIMIT 1 "
-            cursorRealEstate.execute(qrySelectSeoulSwitch, strProcessYear)
-
-            nResultCount = cursorRealEstate.rowcount
-            if nResultCount < 1:
-                qrySwitchInsert = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentMasterSwitchTable + " SET " \
-                                    "ACC_YEAR='"+strProcessYear+"', " \
-                                    "START_NUMBER='"+str(nStartNumber)+"', " \
-                                    "END_NUMBER='" + str(nEndNumber) + "', "\
-                                    "RESULT_CODE='"+str(strResultCode)+"', " \
-                                    "RESULT_MESSAGE='"+str(strResultMessage)+"', " \
-                                    "list_total_count='"+str(nTotalCount)+"' ," \
-                                    "state='00' "
-                cursorRealEstate.execute(qrySwitchInsert)
-                nSequence = cursorRealEstate.lastrowid
-                print(GetLogDef.lineno(), "qrySwitchInert >", qrySwitchInsert)
-
-            else:
-                SwitchDataList = cursorRealEstate.fetchone()
-                nSequence = SwitchDataList.get('seq')
-                strStateCode = SwitchDataList.get('state')
-                START_NUMBER = SwitchDataList.get('START_NUMBER')
-                END_NUMBER = SwitchDataList.get('END_NUMBER')
-                nLoopTotalCount = SwitchDataList.get('total_processed_count')
-
-            ResRealEstateConnection.commit()
-
-            # print(nTotalCount)
-            # print(jsonResultDatas)
-            # quit("END")
-
-            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-            dictSwitchData = dict()
-            dictSwitchData['result'] = '10'
-            dictSwitchData['data_1'] = dtProcessDay
-            dictSwitchData['data_2'] = strProcessDay
-            dictSwitchData['data_3'] = nStartNumber
-            dictSwitchData['data_4'] = nEndNumber
-            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-
 
             # 3. 건별 처리
             print("Processing", "====================================================")
@@ -257,38 +215,108 @@ try:
                 if len(dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE']) < 1:
                     dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE'] = '0'
 
+                strTradeDBMasterBOBN = str(dictSeoulRealtyTradeDataMaster['BOBN']).lstrip("0")
+                strTradeDBMasterBUBEON = str(dictSeoulRealtyTradeDataMaster['BUBN']).lstrip("0")
 
-                sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentDataTable + " SET unique_key='"+strUniqueKey+"' ," \
-                                    " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "', " \
-                                    " SGG_CD='" + dictSeoulRealtyTradeDataMaster['SGG_CD'] + "', " \
-                                    " SGG_NM='" + dictSeoulRealtyTradeDataMaster['SGG_NM'] + "', " \
-                                    " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "', " \
-                                    " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + "', " \
-                                    " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LAND_GBN'] + "', " \
-                                    " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LAND_GBN_NM'] + "', " \
-                                    " BOBN='" + dictSeoulRealtyTradeDataMaster['BOBN'] + "', " \
-                                    " BUBN='" + dictSeoulRealtyTradeDataMaster['BUBN'] + "', " \
-                                    " FLR_NO='" + dictSeoulRealtyTradeDataMaster['FLR_NO'] + "', " \
-                                    " CNTRCT_DE='" + dictSeoulRealtyTradeDataMaster['CNTRCT_DE'] + "', " \
-                                    " RENT_GBN='" + dictSeoulRealtyTradeDataMaster['RENT_GBN'] + "', " \
-                                    " RENT_AREA='" + dictSeoulRealtyTradeDataMaster['RENT_AREA'] + "', " \
-                                    " RENT_GTN='" + dictSeoulRealtyTradeDataMaster['RENT_GTN'] + "', " \
-                                    " RENT_FEE='" + dictSeoulRealtyTradeDataMaster['RENT_FEE'] + "', " \
-                                    " BLDG_NM='" + dictSeoulRealtyTradeDataMaster['BLDG_NM'].replace('\'', "\\'") + "', " \
-                                    " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['BUILD_YEAR'] + "', " \
-                                    " HOUSE_GBN_NM='" + dictSeoulRealtyTradeDataMaster['HOUSE_GBN_NM'] + "', " \
-                                    " CNTRCT_PRD_START='" + arrCNTRCT_PRD[0] + "', " \
-                                    " CNTRCT_PRD_END='" + arrCNTRCT_PRD[1] + "', " \
-                                    " NEW_RON_SECD='" + dictSeoulRealtyTradeDataMaster['NEW_RON_SECD'] + "', " \
-                                    " CNTRCT_UPDT_RQEST_AT='" + dictSeoulRealtyTradeDataMaster['CNTRCT_UPDT_RQEST_AT'] + "', " \
-                                    " BEFORE_GRNTY_AMOUNT='" + dictSeoulRealtyTradeDataMaster['BEFORE_GRNTY_AMOUNT'] + "', " \
-                                    " BEFORE_MT_RENT_CHRGE='" + dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE'] + "' " \
+                strGOVHouseType = str(dictSeoulRealtyTradeDataMaster['HOUSE_GBN_NM'])
+
+                if strGOVHouseType != '단독다가구':
+
+                    qrySelectSeoulRentMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulRealRentDataTable + " "
+                    qrySelectSeoulRentMaster += " WHERE SGG_NM=%s "
+                    qrySelectSeoulRentMaster += " AND BJDONG_NM=%s "
+                    qrySelectSeoulRentMaster += " AND BOBN=%s "
+                    qrySelectSeoulRentMaster += " AND BUBN=%s "
+                    qrySelectSeoulRentMaster += " AND lat!='' "
+                    qrySelectSeoulRentMaster += " AND lng!='' "
+                    qrySelectSeoulRentMaster += " LIMIT 1 "
+
+                    cursorRealEstate.execute(qrySelectSeoulRentMaster, (dictSeoulRealtyTradeDataMaster['SGG_NM'],dictSeoulRealtyTradeDataMaster['BJDONG_NM'],dictSeoulRealtyTradeDataMaster['BOBN'] ,dictSeoulRealtyTradeDataMaster['BUBN'] ))
+                    intSelectResult = cursorRealEstate.rowcount
+                    if intSelectResult > 0:
+                        rstSelectData = cursorRealEstate.fetchone()
+                        strCancelState = rstSelectData.get('state')
+                        strNaverLongitude = str(rstSelectData.get('lng'))  # 127
+                        strNaverLatitude = str(rstSelectData.get('lat'))  # 37
+                    else:
+
+                        strTradeDBMasterBOBN = strTradeDBMasterBOBN
+                        if strTradeDBMasterBUBEON != '':
+                            strTradeDBMasterBUBEON = "-" + strTradeDBMasterBUBEON
+
+                        strDOROJUSO = "서울특별시 "
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['SGG_NM'] + " "
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + " "
+                        strDOROJUSO += strTradeDBMasterBOBN
+                        strDOROJUSO += strTradeDBMasterBUBEON
+                        print(GetLogDef.lineno(__file__), "strDOROJUSO => ", strDOROJUSO)
+
+                        resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
+                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
+
+                        if isinstance(resultsDict, dict) == False:
+                            print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                        else:
+                            print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
+                            strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
+
+                        resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
+                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                        if isinstance(resultsDict, dict) == False:
+                            print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                            raise Exception(GetLogDef.lineno(__file__) + 'strResultCode => ' + strResultCode)  # 예외를 발생시킴
+                            break
+
+                        strNaverLongitude = str(resultsDict['x'])  # 127
+                        strNaverLatitude = str(resultsDict['y'])  # 37
+
+                else:
+                    strNaverLongitude = str(0)
+                    strNaverLatitude = str(0)
+
+
+                sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentDataTable + " SET unique_key='"+strUniqueKey+"' ,"
+                sqlSeoulRealTrade += " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "', "
+                sqlSeoulRealTrade += " SGG_CD='" + dictSeoulRealtyTradeDataMaster['SGG_CD'] + "', "
+                sqlSeoulRealTrade += " SGG_NM='" + dictSeoulRealtyTradeDataMaster['SGG_NM'] + "', "
+                sqlSeoulRealTrade += " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "', "
+                sqlSeoulRealTrade += " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + "', "
+                sqlSeoulRealTrade += " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LAND_GBN'] + "', "
+                sqlSeoulRealTrade += " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LAND_GBN_NM'] + "', "
+                sqlSeoulRealTrade += " BOBN='" + dictSeoulRealtyTradeDataMaster['BOBN'] + "', "
+                sqlSeoulRealTrade += " BUBN='" + dictSeoulRealtyTradeDataMaster['BUBN'] + "', "
+                sqlSeoulRealTrade += " lng='" + strNaverLongitude + "', "
+                sqlSeoulRealTrade += " lat='" + strNaverLatitude + "', "
+                sqlSeoulRealTrade += " geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat'), "
+                sqlSeoulRealTrade += " FLR_NO='" + dictSeoulRealtyTradeDataMaster['FLR_NO'] + "', "
+                sqlSeoulRealTrade += " CNTRCT_DE='" + dictSeoulRealtyTradeDataMaster['CNTRCT_DE'] + "', "
+                sqlSeoulRealTrade += " RENT_GBN='" + dictSeoulRealtyTradeDataMaster['RENT_GBN'] + "', "
+                sqlSeoulRealTrade += " RENT_AREA='" + dictSeoulRealtyTradeDataMaster['RENT_AREA'] + "', "
+                sqlSeoulRealTrade += " RENT_GTN='" + dictSeoulRealtyTradeDataMaster['RENT_GTN'] + "', "
+                sqlSeoulRealTrade += " RENT_FEE='" + dictSeoulRealtyTradeDataMaster['RENT_FEE'] + "', "
+                sqlSeoulRealTrade += " BLDG_NM='" + dictSeoulRealtyTradeDataMaster['BLDG_NM'].replace('\'', "\\'") + "', "
+                sqlSeoulRealTrade += " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['BUILD_YEAR'] + "', "
+                sqlSeoulRealTrade += " HOUSE_GBN_NM='" + dictSeoulRealtyTradeDataMaster['HOUSE_GBN_NM'] + "', "
+                sqlSeoulRealTrade += " CNTRCT_PRD_START='" + arrCNTRCT_PRD[0] + "', "
+                sqlSeoulRealTrade += " CNTRCT_PRD_END='" + arrCNTRCT_PRD[1] + "', "
+                sqlSeoulRealTrade += " NEW_RON_SECD='" + dictSeoulRealtyTradeDataMaster['NEW_RON_SECD'] + "', "
+                sqlSeoulRealTrade += " CNTRCT_UPDT_RQEST_AT='" + dictSeoulRealtyTradeDataMaster['CNTRCT_UPDT_RQEST_AT'] + "', "
+                sqlSeoulRealTrade += " BEFORE_GRNTY_AMOUNT='" + dictSeoulRealtyTradeDataMaster['BEFORE_GRNTY_AMOUNT'] + "', "
+                sqlSeoulRealTrade += " BEFORE_MT_RENT_CHRGE='" + dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE'] + "' "
 
                 print("sqlSeoulRealTrade > ", sqlSeoulRealTrade)
                 cursorRealEstate.execute(sqlSeoulRealTrade)
                 nInsertedCount = nInsertedCount + 1
 
                 ResRealEstateConnection.commit()
+
+                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                dictSwitchData = dict()
+                dictSwitchData['result'] = '10'
+                dictSwitchData['data_1'] = nLoop
+                dictSwitchData['data_2'] = nInsertedCount
+                dictSwitchData['data_3'] = strUniqueKey
+                LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
 
 
@@ -300,11 +328,11 @@ try:
             ResRealEstateConnection.close()
 
         #while True:
-        print(GetLogDef.lineno(), "End While")
+        print(GetLogDef.lineno(__file__), "End While")
 
 
     # For nProcessYear:
-    print(GetLogDef.lineno(), "End nProcessYears")
+    print(GetLogDef.lineno(__file__), "End nProcessYears")
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
@@ -327,9 +355,9 @@ except Exception as e:
     dictSeoulSwitch = {}
     dictSeoulSwitch['seq'] = nSequence
     dictSeoulSwitch['state'] = 20
-    print(GetLogDef.lineno(), "dictSeoulSwitch >", dictSeoulSwitch)
+    print(GetLogDef.lineno(__file__), "dictSeoulSwitch >", dictSeoulSwitch)
     bSwitchUpdateResult = LibSeoulRealTradeSwitch.SwitchSeoulUpdate(dictSeoulSwitch)
-    print(GetLogDef.lineno(), "bSwitchUpdateResult >", bSwitchUpdateResult)
+    print(GetLogDef.lineno(__file__), "bSwitchUpdateResult >", bSwitchUpdateResult)
 
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
