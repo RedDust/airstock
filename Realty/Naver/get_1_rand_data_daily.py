@@ -17,8 +17,8 @@ from Init.DefConstant import ConstRealEstateTable
 from Init.DefConstant import ConstSectorInfo
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
-from Lib.SeleniumModule.Windows import Chrome
 from Const import Common_Const
+from Lib.SeleniumModule.Windows import Chrome, Firefox
 
 try:
 
@@ -70,8 +70,8 @@ try:
     dictSwitchData['result'] = '10'
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-    # 크롬 셀리니움 드라이버
-    driver = Chrome.defChromeDrive()
+    #파이어폭스 셀리니움 드라이버
+    driver = Firefox.defFireBoxDrive()
 
     # 동별 정보 수집
     for KuIndex, KuInfo in ConstSectorInfo.dictCortarList.items():
@@ -215,7 +215,9 @@ try:
                 sqlInsertNaverMobileMaster = "INSERT INTO " + ConstRealEstateTable.NaverMobileMasterTable + " SET masterCortarNo='"+str(cortarNo)+"' ,masterCortarName='"+cortarName+"'  "
                 dictNaverMobileMaster = {}
 
-
+                strNaverLongitude = str(list.get('lng'))
+                strNaverLatitude = str(list.get('lat'))
+                sqlInsertNaverMobileMaster += ", geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat') "
 
                 for dictNaverMobileMasterKeys in list.keys():
 
@@ -238,10 +240,18 @@ try:
                         #여기 작업 이전 데이터 처리에 연결된 처리 방법
                         dtBaseDate = int(dtBaseYear + dtBaseMonth + dtBaseDay)
 
+                    if dictNaverMobileMasterKeys == 'sameAddrPremMin':
+                        dictNaverMobileMaster[dictNaverMobileMasterKeys] = dictNaverMobileMaster[dictNaverMobileMasterKeys][0:10]
 
+                    if dictNaverMobileMasterKeys == 'sameAddrPremMax':
+                        dictNaverMobileMaster[dictNaverMobileMasterKeys] = dictNaverMobileMaster[dictNaverMobileMasterKeys][0:10]
 
                     if dictNaverMobileMasterKeys == 'atclNo':
                         switchAtclNo = dictNaverMobileMaster[dictNaverMobileMasterKeys]
+
+                    # if dictNaverMobileMasterKeys == 'geo_point':
+                    #     strNaverLongitude = dictNaverMobileMaster['lng']
+                    #     strNaverLatitude = dictNaverMobileMaster['lat']
 
 
                     if dictNaverMobileMasterKeys == 'spc1'  or dictNaverMobileMasterKeys == 'spc2':
