@@ -558,18 +558,30 @@ def main():
                         strLongitude = '000.00000000'  # 127
                         strLatitude = '000.00000000'  # 37
                         nProcessStep = str(00).zfill(2)
+                        strBackAddressKeyword=''
                         strRoadName = ''
+
+                        dtRegNow = DateTime.today()
+                        dtResourceTomorrow = dtRegNow + TimeDelta(days=1)
+                        dtBackupRegDate = str(dtRegNow.strftime('%Y-%m-%d 00:00:00'))
+                        strTomorrowYMD = str(dtResourceTomorrow.strftime('%Y-%m-%d 00:00:00'))
+
                         #주소가 없는 경우는 Backup  테이블 에서 조회 Insert
                         # if len(jSonAddressInfo) <= 2:
                         rstBackupLists = cursorRealEstate.fetchall()
                         for rstBackupList in rstBackupLists:
                             jsonBackAddressData = rstBackupList.get('address_data')
+                            strBackAddressKeyword = str(rstBackupList.get('address_keyword'))
                             strLongitude = str(rstBackupList.get('longitude'))
                             strLatitude = str(rstBackupList.get('latitude'))
                             strRoadName = str(rstBackupList.get('road_name'))
+
                             strJiBunAddress = str(rstBackupList.get('text_address'))
+
+
                             strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
                             nProcessStep = str(rstBackupList.get('process_step'))
+                            dtBackupRegDate = str(rstBackupList.get('reg_date'))
 
                             print(GetLogDef.lineno(__file__), jsonBackAddressData ,'-------------------------------------------------------------')
                             if len(jsonBackAddressData) > 5:
@@ -641,6 +653,12 @@ def main():
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
                                      "[strSiGuCode: (" + str(len(strSiGuCode)) + ")" + str(strSiGuCode))
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                     "[dtBackupRegDate: (" + str(len(dtBackupRegDate)) + ")" + str(dtBackupRegDate))
+
+
+
 
                         sqlCourtAuctionInsert = " INSERT INTO " +ConstRealEstateTable_AUC.CourtAuctionDataTable +" SET "
                         sqlCourtAuctionInsert += " unique_value= '" + strUniqueValueEnc + "', "
@@ -667,10 +685,12 @@ def main():
                         sqlCourtAuctionInsert += " longitude= '" + strLongitude + "', "
                         sqlCourtAuctionInsert += " latitude= '" + strLatitude + "', "
                         sqlCourtAuctionInsert += " geo_point = ST_GeomFromText('POINT(" + strLongitude + " " + strLatitude + ")'), "
+                        sqlCourtAuctionInsert += " address_keyword= '" + strBackAddressKeyword + "', "
                         sqlCourtAuctionInsert += " road_name= '" + strRoadName + "', "
                         sqlCourtAuctionInsert += " process_step= '" + nProcessStep + "', "
                         sqlCourtAuctionInsert += " state= '" + strDBState + "', "
-                        sqlCourtAuctionInsert += " bidding_info= '" + strBiddingInfo + "' "
+                        sqlCourtAuctionInsert += " bidding_info= '" + strBiddingInfo + "', "
+                        sqlCourtAuctionInsert += " reg_date= '" + dtBackupRegDate + "' "
 
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
