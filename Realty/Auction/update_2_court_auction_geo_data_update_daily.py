@@ -41,7 +41,8 @@ from Init.DefConstant import ConstRealEstateTable
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.CustomException.QuitException import QuitException
 from Lib.GeoDataModule import GeoDataModule
-
+import Realty.Auction.AuctionLib.AuctionDataDecode as AuctionDataDecode
+import Realty.Government.MolitLib.GetRoadNameJuso as GetRoadNameJuso
 
 def main():
 
@@ -106,9 +107,9 @@ def main():
             raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
 
-        if strResult == '30':
-            raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                    inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
+        # if strResult == '30':
+        #     raise QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+        #                             inspect.getframeinfo(inspect.currentframe()).lineno))  # 예외를 발생시킴
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -127,19 +128,18 @@ def main():
 
         #CourtAuctionDataTable
         qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE "
-        qrySelectCourtAuctionMaster += " process_step = '00' "  # 데이터 있음
+        # qrySelectCourtAuctionMaster += " process_step = '00' "  # 데이터 있음
 
         # qrySelectCourtAuctionMaster += " process_step = '13' AND auction_type!='30' "  # 데이터 있음
-
-        # qrySelectCourtAuctionMaster += " seq='89986' " #데이터 있음
-
-
+        # qrySelectCourtAuctionMaster += " process_step = '13' AND auction_type!='30' "  # 데이터 있음
+        qrySelectCourtAuctionMaster += " seq='2722742' " #데이터 있음
         # qrySelectCourtAuctionMaster += " limit 2"
+
 
         cursorRealEstate.execute(qrySelectCourtAuctionMaster)
         rstFieldsLists = cursorRealEstate.fetchall()
 
-        # print(GetLogDef.lineno(__file__), "rstFieldsList>", rstFieldsLists)
+        print(GetLogDef.lineno(__file__), "rstFieldsList>", rstFieldsLists)
 
         nTotalCount = 0
         nProcessCount = 0
@@ -151,6 +151,7 @@ def main():
         for SelectColumnList in rstFieldsLists:
 
 
+
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno),
                   "------------------------------------------------------------------------------------------------------------")
@@ -158,6 +159,15 @@ def main():
             nSequence = SelectColumnList.get('seq')
 
             strFieldName = SelectColumnList.get('address_data')
+            strDBIssueNumberText = SelectColumnList.get('issue_number_text')
+            strDBTextAddress =  SelectColumnList.get('address_data_text')
+
+            strIssueNumber = AuctionDataDecode.DecodeIssueNumber(strDBIssueNumberText)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), len(strIssueNumber),
+                  strIssueNumber)
+
+
 
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno) + "nSequence> " +  str(nSequence) + " / strFieldName> " +  str(strFieldName) + "/ len(strFieldName) > " +  str(len(strFieldName)))
@@ -250,13 +260,23 @@ def main():
 
             else:
 
+                print("strTextAddress[0]================>" ,strTextAddress[0])
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), len(strTextAddress),
+                      strTextAddress)
+
+                strTextAddressReturn = GetRoadNameJuso.GetJusoApiForAddress(logging, strIssueNumber, strDBTextAddress)
+                print("strTextAddressReturn================>" ,strTextAddressReturn)
+
+
                 # 네이버 데이터 조회 시도
                 resultsDict = GeoDataModule.getNaverGeoData(strTextAddress[0])
                 if isinstance(resultsDict, dict) != False:
 
                     for resultsOneDictKey, resultsOneDictValue in resultsDict.items():
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                    inspect.getframeinfo(inspect.currentframe()).lineno) +  "resultsDict>", type(resultsOneDictValue), resultsOneDictValue)
+                                    inspect.getframeinfo(inspect.currentframe()).lineno) +  " resultsDict =>", type(resultsOneDictValue), resultsOneDictValue)
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno) + " resultsOneDict =>" + resultsOneDictKey + " > " + resultsOneDictValue)
 
@@ -264,6 +284,7 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno) , "resultsDict>", type(resultsDict), resultsDict)
                     strJiBunAddress = resultsDict['address_name']
+                    strRoadName = resultsDict['road_name']
 
                     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                    inspect.getframeinfo(inspect.currentframe()).lineno) + " strJiBunAddress =>" + strJiBunAddress )
@@ -292,6 +313,10 @@ def main():
 
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno), "strJiBunAddress>", type(strJiBunAddress), strJiBunAddress)
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "strRoadName>", type(strRoadName), strRoadName)
+
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno), "strLongitude>", type(strLongitude), strLongitude)
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -300,7 +325,6 @@ def main():
                                     inspect.getframeinfo(inspect.currentframe()).lineno), "nProcessStep>", type(nProcessStep), nProcessStep)
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno), "nSequence>",type(nSequence), nSequence)
-
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno)+" strJiBunAddress>"+  str(strJiBunAddress))
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -316,6 +340,7 @@ def main():
             # qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " SET "
             qryUpdateGeoPosition = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
             qryUpdateGeoPosition += " text_address = %s, "
+            qryUpdateGeoPosition += " road_name = %s, "
             qryUpdateGeoPosition += " longitude = %s, "
             qryUpdateGeoPosition += " latitude = %s, "
             qryUpdateGeoPosition += " geo_point = ST_GeomFromText('POINT("+strLongitude+" "+strLatitude+")'), "
@@ -323,13 +348,13 @@ def main():
             qryUpdateGeoPosition += " WHERE seq = %s "
 
             print("qryUpdateGeoPosition", qryUpdateGeoPosition, type(qryUpdateGeoPosition))
-            print("data", strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence)
+            print("data", strJiBunAddress,strRoadName, strLongitude, strLatitude, nProcessStep, nSequence)
 
             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno) + "qryUpdateGeoPosition>" + str(qryUpdateGeoPosition))
 
 
-            cursorRealEstate.execute(qryUpdateGeoPosition, (strJiBunAddress, strLongitude, strLatitude, nProcessStep, nSequence))
+            cursorRealEstate.execute(qryUpdateGeoPosition, (strJiBunAddress, strRoadName, strLongitude, strLatitude, nProcessStep, nSequence))
             ResRealEstateConnection.commit()
 
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)

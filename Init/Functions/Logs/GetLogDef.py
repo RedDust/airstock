@@ -58,7 +58,6 @@ def stripSpecharsForText(inputString):
     try:
         inputString = inputString.replace("\'", "")
         inputString = inputString.replace("'", "")
-        inputString = inputString.replace(" ", "")
         inputString = inputString.replace("\\n", "")
         inputString = inputString.replace("\\t", "")
         inputString = inputString.replace("\\r", "")
@@ -66,9 +65,7 @@ def stripSpecharsForText(inputString):
         inputString = inputString.replace("\r", "")
         inputString = inputString.replace("\n", "")
         inputString = inputString.replace("\xa0", "")
-
-
-
+        inputString = str(inputString).strip()
 
     except Exception as e:
         print(os.path.basename(__path__))
