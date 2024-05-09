@@ -41,6 +41,27 @@ try:
     ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
     cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
+
+    # 스위치 데이터 조회 type(000200) result (10:정기점검)
+    rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2('000200')
+    strResult = rstResult.get('result')
+    if strResult is False:
+        quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+    if strResult == '10':
+        process_start_date = rstResult.get('process_start_date').strftime('%Y-%m-%d %H:%M:%S')
+        last_date = rstResult.get('last_date').strftime('%Y-%m-%d %H:%M:%S')
+        dtRegNow = DateTime.today()
+        process_start_date_obj = DateTime.strptime(process_start_date, '%Y-%m-%d %H:%M:%S')
+        last_date_obj = DateTime.strptime(last_date, '%Y-%m-%d %H:%M:%S')
+
+        if (process_start_date_obj <= dtRegNow) and (dtRegNow <= last_date_obj):
+            print("process_start_date >> ", process_start_date)
+            print("dtRegNow >> ", dtRegNow)
+            print("last_date >> ", last_date)
+            quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+
     # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
     rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
     strResult = rstResult.get('result')
