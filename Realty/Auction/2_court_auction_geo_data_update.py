@@ -42,7 +42,7 @@ from Lib.GeoDataModule import GeoDataModule
 try:
     print(GetLogDef.lineno(__file__), "============================================================")
 
-    # 서울 부동산 실거래가 데이터 - 서울 버스 사용량
+    # 법원 경매 부동산 MASTER 테이블 위도경도 업데이트
     strProcessType = '020101'
     KuIndex = '00'
     arrCityPlace = '00'
@@ -156,6 +156,9 @@ try:
                     nProcessStep = 11
 
         strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
+
+        strLongitude = strLongitude.lstrip("0")
+        strLatitude = strLatitude.lstrip("0")
 
         print(GetLogDef.lineno(__file__), "strJiBunAddress>", type(strJiBunAddress), strJiBunAddress)
         print(GetLogDef.lineno(__file__), "strLongitude>", type(strLongitude), strLongitude)

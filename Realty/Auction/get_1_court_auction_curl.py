@@ -14,6 +14,8 @@ import logging
 import logging.handlers
 import inspect
 import traceback
+import re
+
 
 import datetime
 sys.path.append("D:/PythonProjects/airstock")
@@ -33,7 +35,7 @@ from Init.DefConstant import ConstRealEstateTable
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.CryptoModule import AesCrypto
 from Realty.Auction.AuctionLib import MakeAuctionUniqueKey
-
+import Realty.Government.MolitLib.GetRoadNameJuso as GetRoadNameJuso
 
 def main():
 
@@ -88,6 +90,24 @@ def main():
         logger.addHandler(timeFileHandler)
 
 
+        # 스위치 데이터 조회 type(000200) result (10:정기점검)
+        rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2('000200')
+        strResult = rstResult.get('result')
+        if strResult is False:
+            quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+
+        if strResult == '10':
+            process_start_date = rstResult.get('process_start_date').strftime('%Y-%m-%d %H:%M:%S')
+            last_date = rstResult.get('last_date').strftime('%Y-%m-%d %H:%M:%S')
+            dtRegNow = DateTime.today()
+            process_start_date_obj = DateTime.strptime(process_start_date, '%Y-%m-%d %H:%M:%S')
+            last_date_obj = DateTime.strptime(last_date, '%Y-%m-%d %H:%M:%S')
+
+            if (process_start_date_obj <= dtRegNow ) and (dtRegNow <= last_date_obj):
+                print("process_start_date >> ", process_start_date)
+                print("dtRegNow >> ", dtRegNow)
+                print("last_date >> ", last_date)
+                quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
 
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
@@ -98,6 +118,10 @@ def main():
 
         if strResult == '10':
             quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+
+        if strResult == '40':
+            quit(GetLogDef.lineno(__file__), '경매 서비스 점검 ', strResult)  # 예외를 발생시킴
+
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -435,6 +459,16 @@ def main():
                         #     print("어레이가 2개 이상", len(arrTempUsageInfo))
 
                         jsonUsageInfo = json.dumps(arrTempUsageInfo, ensure_ascii=False)
+
+                        strBuildTypeText = re.sub(r"[^가-힣]", "", jsonUsageInfo)
+
+                        print("AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText] > " , AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText])
+
+                        print("AuctionCourtInfo.dictBuildTypeKeyWord[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]> ",
+                              AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]])
+
+                        strBuildTypeCode = AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]
+
                         # print(jsonUsageInfo)
 
                         # ["'1'", "'대지'", "'임야'", "'전답'"]
@@ -574,12 +608,12 @@ def main():
                             strBackAddressKeyword = str(rstBackupList.get('address_keyword'))
                             strLongitude = str(rstBackupList.get('longitude'))
                             strLatitude = str(rstBackupList.get('latitude'))
-                            strRoadName = str(rstBackupList.get('road_name'))
+                            strRoadName = GetLogDef.stripSpecharsForText(str(rstBackupList.get('road_name')))
 
-                            strJiBunAddress = str(rstBackupList.get('text_address'))
+                            strTextAddress = str(rstBackupList.get('text_address'))
 
 
-                            strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
+                            strJiBunAddress = GetLogDef.stripSpecharsForText(strTextAddress)
                             nProcessStep = str(rstBackupList.get('process_step'))
                             dtBackupRegDate = str(rstBackupList.get('reg_date'))
 
@@ -589,6 +623,17 @@ def main():
                                 print(GetLogDef.lineno(__file__), ">>", type(jsonBackAddressData), len(jsonBackAddressData), jsonBackAddressData)
                                 jSonAddressInfo = jsonBackAddressData
                                 break
+
+
+                        # # 도로명 주소 없으면
+                        # if len(strRoadName) < 2:
+                        #
+                        #     strIssueNumber = AuctionDataDecode.DecodeIssueNumber(issue_number_text)
+                        #
+                        #
+                        #     strRoadName = GetRoadNameJuso.GetJusoApiForAddress(strJiBunAddress)
+
+
 
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -670,6 +715,7 @@ def main():
                         sqlCourtAuctionInsert += " issue_number_text= '" + jsonIssueNumber + "', "
                         sqlCourtAuctionInsert += " build_type= '" + jsonUsageInfo + "', "
                         sqlCourtAuctionInsert += " build_type_text= '" + jsonUsageInfo + "', "
+                        sqlCourtAuctionInsert += " build_type_code= '" + strBuildTypeCode + "', "
                         sqlCourtAuctionInsert += " sido_code= '" + CityKey + "', "
                         sqlCourtAuctionInsert += " sigu_code= '" + strSiGuCode + "', "
                         sqlCourtAuctionInsert += " address_data= '" + jSonAddressInfo + "', "
