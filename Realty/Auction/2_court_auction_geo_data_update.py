@@ -1,5 +1,4 @@
-# quit("500")
-#
+quit("500")
 
 #https://console.ncloud.com/naver-service/application
 #VPC AI·NAVER API Application
