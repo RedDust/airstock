@@ -429,6 +429,18 @@ def main():
                     jsonUsageInfo = json.dumps(arrTempUsageInfo, ensure_ascii=False)
                     # print(jsonUsageInfo)
 
+                    strBuildTypeText = re.sub(r"[^가-힣]", "", jsonUsageInfo)
+
+                    print("AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText] > ",
+                          AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText])
+
+                    print(
+                        "AuctionCourtInfo.dictBuildTypeKeyWord[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]> ",
+                        AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]])
+
+                    strBuildTypeCode = AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]
+
+
                     # ["'1'", "'대지'", "'임야'", "'전답'"]
                     # 법원경매 2번째 컬럼 (용도번호) END
 
@@ -625,6 +637,8 @@ def main():
                         strJiBunAddress = GetLogDef.stripSpecharsForText(strJiBunAddress)
                         nProcessStep = str(rstBackupList.get('process_step'))
                         strRoadName = str(rstBackupList.get('road_name'))
+                        strBuildTypeCode = str(rstBackupList.get('build_type_code'))
+
 
 
 
@@ -715,6 +729,7 @@ def main():
                     sqlCourtAuctionInsert += " issue_number_text= '" + jsonIssueNumber + "', "
                     sqlCourtAuctionInsert += " build_type= '" + jsonUsageInfo + "', "
                     sqlCourtAuctionInsert += " build_type_text= '" + jsonUsageInfo + "', "
+                    sqlCourtAuctionInsert += " build_type_code= '" + strBuildTypeCode + "', "
                     sqlCourtAuctionInsert += " sido_code= '" + CityKey + "', "
                     sqlCourtAuctionInsert += " sigu_code= '" + strSiGuCode + "', "
                     sqlCourtAuctionInsert += " address_data= '" + jSonAddressInfo + "', "
