@@ -70,7 +70,11 @@ if __name__ == '__main__':
 
         #일괄 프로세스를 위한 변수 START
         # dtToday = datetime.datetime(2015, 12, 31, 00, 00, 00)
+
         dtToday = DateTime.today()
+        dtCheckDay = dtToday - TimeDelta(days=4)
+
+
 
         # 일괄 프로세스를 위한 변수 END
 
@@ -78,15 +82,21 @@ if __name__ == '__main__':
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
-        strInsertYear = str(dtToday.year)
+        strInsertYear = str(dtCheckDay.year)
 
         #
         qrySelectLastProcessDate = "SELECT USE_DT FROM kt_realty_seoul_bus_using_static_"+strInsertYear+" order by USE_DT desc limit 1 "
+
+        print(GetLogDef.lineno(__file__), qrySelectLastProcessDate)
+
         cursorRealEstate.execute(qrySelectLastProcessDate)
         SelectUseDT = cursorRealEstate.fetchone()
 
-        print(GetLogDef.lineno(__file__), type(SelectUseDT['USE_DT']), SelectUseDT['USE_DT'])
-        nFinalDate = int(SelectUseDT['USE_DT'])
+        if SelectUseDT is None:
+            nFinalDate = int(dtToday.strftime('%Y0101'))
+        else:
+            print(GetLogDef.lineno(__file__), type(SelectUseDT['USE_DT']), SelectUseDT['USE_DT'])
+            nFinalDate = int(SelectUseDT['USE_DT'])
 
 
         dictSeoulColumnInfoData = {}
@@ -113,10 +123,10 @@ if __name__ == '__main__':
 
         while True:
 
-            end_date = dtToday - TimeDelta(days=nBaseProcessDate)
+            end_date = dtCheckDay - TimeDelta(days=nBaseProcessDate)
             nBaseDate = int(end_date.strftime('%Y%m%d'))
 
-            if nFinalDate >= nBaseDate:
+            if nFinalDate > nBaseDate:
                 print(GetLogDef.lineno(__file__), "finalDate > ", nFinalDate, nBaseDate)
                 break
 
