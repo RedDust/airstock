@@ -149,8 +149,8 @@ def main():
                 while True:
                     print(GetLogDef.lineno(__file__), "url===> ", strAdminSection, dtProcessDay, url)
                     print(GetLogDef.lineno(__file__), "params===> ", strAdminSection, dtProcessDay, params)
-                    print(GetLogDef.lineno(__file__), "============================time.sleep(2) ")
-                    time.sleep(2)
+                    print(GetLogDef.lineno(__file__), "============================time.sleep(1) ")
+                    time.sleep(1)
                     response = requests.get(url, params=params)
                     print(GetLogDef.lineno(__file__), "response===> ", type(response), response)
                     print(GetLogDef.lineno(__file__), "response.status_code===> ", type(response.status_code), response.status_code)
