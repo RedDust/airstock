@@ -239,7 +239,7 @@ def main():
                 #주소 예외 처리["사용본거지:경기도수원시권선구평동110-5"]
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                     inspect.getframeinfo(inspect.currentframe()).lineno) + " dictAddresses[0] >> " + str(dictAddresses[0]))
-                if dictAddresses[0] == '사용본거지':
+                if dictAddresses[0].strip() == '사용본거지':
                     jsonFieldName[0] = dictAddresses[1]
 
                 strTextAddress = str(jsonFieldName[0]).split(",")
