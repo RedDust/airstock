@@ -154,6 +154,10 @@ def main():
                         responseContents = response.text  # page_source 얻기
                         ElementResponseRoot = ET.fromstring(responseContents)
                         strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
+                        strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
+                        print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
+                        print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
+
                         if strHeaderResultCode == '00':
                             print("url===> ", type(url), url)
                             print("params===> ", type(params), params)
