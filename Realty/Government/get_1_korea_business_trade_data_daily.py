@@ -386,60 +386,71 @@ def main():
                     else:
                         rstSelectMOLIT = cursorRealEstate.fetchone()
                         DBstate = rstSelectMOLIT.get('state')
+                        DBREGISTER_YMD = rstSelectMOLIT.get('REGISTER_YMD')
 
                         print(GetLogDef.lineno(__file__), "UPDATE SET ", strUniqueKey)
                         print(GetLogDef.lineno(__file__), DBstate, type(DBstate), " != ", state, type(state))
 
-                        if DBstate != '00':
-                            print(GetLogDef.lineno(__file__), "-----------------------------------------")
-                            continue
+                        print(GetLogDef.lineno(__file__), "UPDATE SET ", strUniqueKey)
+                        print(GetLogDef.lineno(__file__), DBstate, type(DBstate), " != ", state, type(state))
 
-                        print(GetLogDef.lineno(__file__), "-----------------------------------------")
+                        # DB는 정상이고, 조회는 정상이 아닌경우 취소 처리
+                        if DBstate == '00' and DBstate != state:
 
-                        if DBstate == state:
-                            print(GetLogDef.lineno(__file__), DBstate, " == ", state)
-                            continue
+                            sqlSelectMOLITCancel = "SELECT * FROM " + ConstRealEstateTable_GOV.MolitBusinessRealTradeCancelTable + " WHERE unique_key = %s "
+                            cursorRealEstate.execute(sqlSelectMOLITCancel, (strUniqueKey))
+                            intMolitCancelCount = cursorRealEstate.rowcount
+                            if intMolitCancelCount < 0:
+                                sqlInsertMOLITCancel = " INSERT INTO " + ConstRealEstateTable_GOV.MolitBusinessRealTradeCancelTable + " SET "
+                                sqlInsertMOLITCancel += " unique_key = %s"
+                                sqlInsertMOLITCancel += " , SIDO_CD = '" + sido_code + "'"
+                                sqlInsertMOLITCancel += " , SIDO_NM = '" + SIDO_NM + "'"
+                                sqlInsertMOLITCancel += " , SGG_CD = '" + sigu_code + "'"
+                                sqlInsertMOLITCancel += " , SGG_NM = '" + SGG_NM + "'"
+                                sqlInsertMOLITCancel += " , BJDONG_CD = '" + BJDONG_CD + "'"
+                                sqlInsertMOLITCancel += " , BJDONG_NM = '" + BJDONG_NM + "'"
+                                sqlInsertMOLITCancel += " , BONBEON = '" + BJD_JIUN + "'"
+                                sqlInsertMOLITCancel += " , lng= '0' "
+                                sqlInsertMOLITCancel += " , lat= '0' "
+                                sqlInsertMOLITCancel += " , geo_point = ST_GeomFromText('POINT(0 0)', 4326,'axis-order=long-lat') "
+                                sqlInsertMOLITCancel += " , BUILD_YEAR = '" + BUILD_YEAR + "'"
+                                sqlInsertMOLITCancel += " , HOUSE_TYPE = '" + HOUSE_TYPE + "'"
+                                sqlInsertMOLITCancel += " , DEAL_YMD = '" + DEAL_YMD + "'"
+                                sqlInsertMOLITCancel += " , OBJ_AMT = '" + OBJ_AMT + "'"
+                                sqlInsertMOLITCancel += " , TOT_AREA = '" + TOT_AREA + "'"
+                                sqlInsertMOLITCancel += " , REQ_GBN = '" + REQ_GBN + "'"
+                                sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
+                                sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
+                                sqlInsertMOLITCancel += " , AGENT_ADDR = '" + AGENT_ADDR + "'"
+                                sqlInsertMOLITCancel += " , CNTL_YMD = '" + CNTL_YMD + "'"
+                                sqlInsertMOLITCancel += " , state = '" + state + "'"
+                                print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
+                                cursorRealEstate.execute(sqlInsertMOLITCancel, (strUniqueKey))
 
-                        sqlSelectMOLITCancel = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitBusinessRealTradeCancelTable+" WHERE unique_key = %s "
-                        cursorRealEstate.execute(sqlSelectMOLIT, (strUniqueKey))
-                        intMolitCancelCount = cursorRealEstate.rowcount
-                        if intMolitCancelCount < 0:
-                            sqlInsertMOLITCancel  = " INSERT INTO "+ConstRealEstateTable_GOV.MolitBusinessRealTradeCancelTable+" SET "
-                            sqlInsertMOLITCancel += " unique_key = %s"
-                            sqlInsertMOLITCancel += " , SIDO_CD = '"+sido_code+"'"
-                            sqlInsertMOLITCancel += " , SIDO_NM = '"+SIDO_NM+"'"
-                            sqlInsertMOLITCancel += " , SGG_CD = '"+sigu_code+"'"
-                            sqlInsertMOLITCancel += " , SGG_NM = '"+SGG_NM+"'"
-                            sqlInsertMOLITCancel += " , BJDONG_CD = '"+BJDONG_CD+"'"
-                            sqlInsertMOLITCancel += " , BJDONG_NM = '"+BJDONG_NM+"'"
-                            sqlInsertMOLITCancel += " , BONBEON = '"+BJD_JIUN+"'"
-                            sqlInsertMOLITCancel += " , lng= '0' "
-                            sqlInsertMOLITCancel += " , lat= '0' "
-                            sqlInsertMOLITCancel += " , geo_point = ST_GeomFromText('POINT(0 0)', 4326,'axis-order=long-lat') "
-                            sqlInsertMOLITCancel += " , BUILD_YEAR = '"+BUILD_YEAR+"'"
-                            sqlInsertMOLITCancel += " , HOUSE_TYPE = '"+HOUSE_TYPE+"'"
-                            sqlInsertMOLITCancel += " , DEAL_YMD = '"+DEAL_YMD+"'"
-                            sqlInsertMOLITCancel += " , OBJ_AMT = '"+OBJ_AMT+"'"
-                            sqlInsertMOLITCancel += " , TOT_AREA = '" + TOT_AREA + "'"
-                            sqlInsertMOLITCancel += " , REQ_GBN = '"+REQ_GBN+"'"
-                            sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
-                            sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
-                            sqlInsertMOLITCancel += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
-                            sqlInsertMOLITCancel += " , CNTL_YMD = '"+CNTL_YMD+"'"
-                            sqlInsertMOLITCancel += " , state = '"+state+"'"
-                            print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
-                            cursorRealEstate.execute(sqlInsertMOLITCancel, (strUniqueKey))
+                            sqlUpdateMOLIT = " UPDATE " + ConstRealEstateTable_GOV.MolitBusinessRealTradeMasterTable + " SET "
+                            sqlUpdateMOLIT += " CNTL_YMD = '" + CNTL_YMD + "'"
+                            sqlUpdateMOLIT += " , state = '" + state + "'"
+                            sqlUpdateMOLIT += " , modify_date = NOW() "
+                            sqlUpdateMOLIT += " WHERE unique_key = %s"
+                            print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
+                            cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey))
+                            ResRealEstateConnection.commit()
+                            nUpdateCount = nUpdateCount + 1
 
+                        #DB에 이미 등기 되었거나,  등기 된 내역이 아니면
+                        if len(DBREGISTER_YMD) > 1 and len(REGISTER_YMD) < 0:
 
-                        sqlUpdateMOLIT = " UPDATE "+ConstRealEstateTable_GOV.MolitBusinessRealTradeMasterTable+" SET "
-                        sqlUpdateMOLIT += " CNTL_YMD = '"+CNTL_YMD+"'"
-                        sqlUpdateMOLIT += " , state = '"+state+"'"
-                        sqlUpdateMOLIT += " , modify_date = NOW() "
-                        sqlUpdateMOLIT += " WHERE unique_key = %s"
-                        print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
-                        cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey) )
-                        ResRealEstateConnection.commit()
-                        nUpdateCount = nUpdateCount + 1
+                            print(GetLogDef.lineno(__file__), "DBREGISTER_YMD=>" , DBREGISTER_YMD)
+                            sqlUpdateMOLIT = " UPDATE " + ConstRealEstateTable_GOV.MolitRealTradeMasterTable + " SET "
+                            sqlUpdateMOLIT += " REGISTER_YMD = '" + REGISTER_YMD + "'"
+                            sqlUpdateMOLIT += " , modify_date = NOW() "
+                            sqlUpdateMOLIT += " WHERE unique_key = %s"
+                            print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
+                            cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey))
+                            ResRealEstateConnection.commit()
+                            nUpdateCount = nUpdateCount + 1
+
+                        print(GetLogDef.lineno(__file__), "END strUniqueKey > ", strUniqueKey)
 
                         print(GetLogDef.lineno(__file__), "END strUniqueKey > ",strUniqueKey)
                         print(GetLogDef.lineno(__file__), "nInsertedCount ", nInsertedCount)
