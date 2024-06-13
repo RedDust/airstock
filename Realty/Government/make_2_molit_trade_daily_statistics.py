@@ -175,7 +175,6 @@ def main():
 
 
 
-
             sqlSelectStatistics = " SELECT * FROM " + strNewPartTable + " "
             sqlSelectStatistics += " WHERE unique_key = %s "
 
@@ -184,9 +183,35 @@ def main():
 
             if intMolitStaticCount > 0:
 
+                rstStaticsData = cursorRealEstate.fetchone()
+
+                intDB_APT_TRADE_MONEY = int(rstStaticsData.get('APT_TRADE_MONEY'))
+                intDB_APT_TRADE_CNT = int(rstStaticsData.get('APT_TRADE_CNT'))
+                intDB_APT_TRADE_CANCEL_MONEY = int(rstStaticsData.get('APT_TRADE_CANCEL_MONEY'))
+                intDB_APT_TRADE_CANCEL_CNT = int(rstStaticsData.get('APT_TRADE_CANCEL_CNT'))
+                intDB_TOT_AREA = int(rstStaticsData.get('TOT_AREA'))
+
+                print(GetLogDef.lineno(__file__), "intDB_APT_TRADE_MONEY > ", intDB_APT_TRADE_MONEY)
+                print(GetLogDef.lineno(__file__), "intDB_APT_TRADE_CANCEL_MONEY > ", intDB_APT_TRADE_CANCEL_MONEY)
+                print(GetLogDef.lineno(__file__), "intCancelMoney > ", intCancelMoney)
+
+                print(GetLogDef.lineno(__file__), "intDB_APT_TRADE_CNT > ", intDB_APT_TRADE_CNT)
+                print(GetLogDef.lineno(__file__), "intDB_APT_TRADE_CANCEL_CNT > ", intDB_APT_TRADE_CANCEL_CNT)
+                print(GetLogDef.lineno(__file__), "intCancelCount > ", intCancelCount)
+
+
+                intCalculateTradeMoney = int(intDB_APT_TRADE_MONEY - intDB_APT_TRADE_CANCEL_MONEY - intCancelMoney)
+                intCalculateTradeCount = int(intDB_APT_TRADE_CNT - intDB_APT_TRADE_CANCEL_CNT - intCancelCount)
+
+                if intCalculateTradeMoney > 1:
+                    APT_TRADE_UNIT_PRICE = round(int(intCalculateTradeMoney) / int(intCalculateTradeCount) /  intDB_TOT_AREA )
+                else:
+                    APT_TRADE_UNIT_PRICE = 0
+
                 sqlModityStatistics  = " UPDATE " + strNewPartTable + " SET "
                 sqlModityStatistics += " APT_TRADE_CNT = APT_TRADE_CNT + '" + str(intTradeCount) + "'  ,  "
                 sqlModityStatistics += " APT_TRADE_MONEY = APT_TRADE_MONEY + '" + str(intTradeMoney) + "'  ,  "
+                sqlModityStatistics += " APT_TRADE_UNIT_PRICE = '" + str(APT_TRADE_UNIT_PRICE) + "'  ,  "
                 sqlModityStatistics += " APT_TRADE_CANCEL_CNT = APT_TRADE_CANCEL_CNT + '" + str(intCancelCount) + "' ,  "
                 sqlModityStatistics += " APT_TRADE_CANCEL_MONEY = APT_TRADE_CANCEL_MONEY + '" + str(intCancelMoney) + "' ,  "
                 sqlModityStatistics += " APT_TRADE_REGISTER_CNT = APT_TRADE_REGISTER_CNT + '" + str(intRegisterCount) + "',  "
@@ -195,6 +220,14 @@ def main():
                 nUpdateCount = nUpdateCount + 1
 
             else:
+
+                print(GetLogDef.lineno(__file__), "intTradeMoney > ", intTradeMoney)
+                print(GetLogDef.lineno(__file__), "strDBTOT_AREA > ", strDBTOT_AREA)
+
+                APT_TRADE_UNIT_PRICE = round(int(intTradeMoney) / int(strDBTOT_AREA) )
+
+                print(GetLogDef.lineno(__file__), "APT_TRADE_UNIT_PRICE > ", APT_TRADE_UNIT_PRICE)
+
                 #INSERT
                 sqlModityStatistics  = " INSERT INTO " + strNewPartTable + " SET "
                 sqlModityStatistics += " unique_key = %s, "
@@ -212,6 +245,9 @@ def main():
                 sqlModityStatistics += " TOT_AREA = '" + strDBTOT_AREA + "' ,  "
                 sqlModityStatistics += " APT_TRADE_CNT = '" + str(intTradeCount) + "', "
                 sqlModityStatistics += " APT_TRADE_MONEY = '" + str(intTradeMoney) + "', "
+
+                sqlModityStatistics += " APT_TRADE_UNIT_PRICE = '" + str(APT_TRADE_UNIT_PRICE) + "', "
+
                 sqlModityStatistics += " APT_TRADE_CANCEL_CNT = '" + str(intCancelCount) + "', "
                 sqlModityStatistics += " APT_TRADE_CANCEL_MONEY = '" + str(intCancelMoney) + "', "
                 sqlModityStatistics += " APT_TRADE_REGISTER_CNT = '" + str(intRegisterCount) + "', "
