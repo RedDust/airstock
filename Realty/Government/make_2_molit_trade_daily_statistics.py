@@ -178,6 +178,9 @@ def main():
             sqlSelectStatistics = " SELECT * FROM " + strNewPartTable + " "
             sqlSelectStatistics += " WHERE unique_key = %s "
 
+            print(GetLogDef.lineno(__file__), "sqlSelectStatistics > ", sqlSelectStatistics)
+            print(GetLogDef.lineno(__file__), "strUniqueKey > ", strUniqueKey)
+
             cursorRealEstate.execute(sqlSelectStatistics, strUniqueKey)
             intMolitStaticCount = cursorRealEstate.rowcount
 
@@ -188,6 +191,7 @@ def main():
                 intDB_APT_TRADE_MONEY = int(rstStaticsData.get('APT_TRADE_MONEY'))
                 intDB_APT_TRADE_CNT = int(rstStaticsData.get('APT_TRADE_CNT'))
                 intDB_APT_TRADE_CANCEL_MONEY = int(rstStaticsData.get('APT_TRADE_CANCEL_MONEY'))
+                intDB_APT_TRADE_CANCEL_CNT = int(rstStaticsData.get('APT_TRADE_CANCEL_CNT'))
                 intDB_APT_TRADE_CANCEL_CNT = int(rstStaticsData.get('APT_TRADE_CANCEL_CNT'))
                 intDB_TOT_AREA = int(rstStaticsData.get('TOT_AREA'))
 
@@ -200,8 +204,12 @@ def main():
                 print(GetLogDef.lineno(__file__), "intCancelCount > ", intCancelCount)
 
 
-                intCalculateTradeMoney = int(intDB_APT_TRADE_MONEY - intDB_APT_TRADE_CANCEL_MONEY - intCancelMoney)
-                intCalculateTradeCount = int(intDB_APT_TRADE_CNT - intDB_APT_TRADE_CANCEL_CNT - intCancelCount)
+                intCalculateTradeMoney = int((intDB_APT_TRADE_MONEY + intTradeMoney) - intDB_APT_TRADE_CANCEL_MONEY - intCancelMoney)
+                intCalculateTradeCount = int((intDB_APT_TRADE_CNT + intTradeCount) - intDB_APT_TRADE_CANCEL_CNT - intCancelCount)
+
+                print(GetLogDef.lineno(__file__), "intCalculateTradeMoney > ", intCalculateTradeMoney)
+                print(GetLogDef.lineno(__file__), "intCalculateTradeCount > ", intCalculateTradeCount)
+
 
                 if intCalculateTradeMoney > 1:
                     APT_TRADE_UNIT_PRICE = round(int(intCalculateTradeMoney) / int(intCalculateTradeCount) /  intDB_TOT_AREA )
