@@ -11,7 +11,7 @@ import urllib.request
 import json
 import pymysql
 import datetime
-
+import traceback
 import pandas as pd
 from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
@@ -160,12 +160,12 @@ try:
             print("[",jsonRowData ,"][ " + str(nLoop) + " ] ")
             nLoop += 1
             print(GetLogDef.lineno(__file__), "====================================================")
-            USE_DT = jsonRowData.get('USE_DT')
-            LINE_NUM = jsonRowData.get('LINE_NUM')
-            SUB_STA_NM = jsonRowData.get('SUB_STA_NM')
-            RIDE_PASGR_NUM = str(jsonRowData.get('RIDE_PASGR_NUM'))
-            ALIGHT_PASGR_NUM = str(jsonRowData.get('ALIGHT_PASGR_NUM'))
-            WORK_DT = jsonRowData.get('WORK_DT')
+            USE_DT = str(jsonRowData.get('USE_YMD'))
+            LINE_NUM = jsonRowData.get('SBWY_ROUT_LN_NM')
+            SUB_STA_NM = jsonRowData.get('SBWY_STNS_NM')
+            RIDE_PASGR_NUM = str(jsonRowData.get('GTON_TNOPE'))
+            ALIGHT_PASGR_NUM = str(jsonRowData.get('GTOFF_TNOPE'))
+            WORK_DT = str(jsonRowData.get('REG_YMD'))
 
             dtBaseYear = int(USE_DT[0:4])
             dtBaseMonth = int(USE_DT[4:6])
@@ -200,7 +200,7 @@ try:
                                 " , ALIGHT_PASGR_NUM=%s" \
                                 " , WORK_DT=%s" \
 
-            insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, float(RIDE_PASGR_NUM), float(ALIGHT_PASGR_NUM), WORK_DT)
+            insertDict = (USE_DT, nWeekDay, LINE_NUM, SUB_STA_NM, str(RIDE_PASGR_NUM), str(ALIGHT_PASGR_NUM), WORK_DT)
 
             print(GetLogDef.lineno(__file__), "====================================================")
 
@@ -239,6 +239,9 @@ except Exception as e:
     dictSwitchData = dict()
     dictSwitchData['result'] = '30'
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+    err_msg = traceback.format_exc()
+    print(GetLogDef.lineno(__file__), err_msg)
 
     print(GetLogDef.lineno(__file__), "Error Exception")
     print(e)
