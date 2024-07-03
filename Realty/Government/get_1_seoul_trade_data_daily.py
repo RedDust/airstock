@@ -10,6 +10,7 @@ import datetime
 import time
 import pandas as pd
 import logging , inspect
+import traceback
 
 sys.path.append("D:/PythonProjects/airstock")
 #https://data.seoul.go.kr/dataList/OA-21275/S/1/datasetView.do
@@ -223,13 +224,13 @@ try:
 
 
                 # `ACC_YEAR`, `SGG_CD`, `BJDONG_CD`,BONBEON BUBEON , `FLOOR` `DEAL_YMD`, `OBJ_AMT`
-                strUniqueKey = dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['SGG_CD'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BONBEON'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BUBEON'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['FLOOR'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['DEAL_YMD'] + "_" + dictSeoulRealtyTradeDataMaster['OBJ_AMT']
+                strUniqueKey = dictSeoulRealtyTradeDataMaster['RCPT_YR'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['CGG_CD'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['STDG_CD'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['MNO'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['SNO'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['FLR'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['CTRT_DAY'] + "_" + dictSeoulRealtyTradeDataMaster['THING_AMT']
 
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                    inspect.getframeinfo(inspect.currentframe()).lineno)+ "strUniqueKey > "+ str(strUniqueKey))
@@ -241,7 +242,7 @@ try:
                 row_result = cursorRealEstate.rowcount
                 # 등록되어 있는 물건이면 패스
 
-                if len(dictSeoulRealtyTradeDataMaster['CNTL_YMD']) > 5:
+                if len(dictSeoulRealtyTradeDataMaster['RTRCN_DAY']) > 5:
                     strState = "10"
                 else:
                     strState = "00"
@@ -353,10 +354,10 @@ try:
                     #         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                     #                inspect.getframeinfo(inspect.currentframe()).lineno) +  "if(len(strCNTLYMD) < 1 ) END" + str(strNaverLatitude))
 
-                    strCNTLYMD = rstSelectDatas.get('CNTL_YMD')
+                    strCNTLYMD = rstSelectDatas.get('RTRCN_DAY')
 
                     sqlSeoulRealTrade  = " UPDATE " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET "
-                    sqlSeoulRealTrade += " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['CNTL_YMD'] + "' "
+                    sqlSeoulRealTrade += " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['RTRCN_DAY'] + "' "
                     sqlSeoulRealTrade += " , state='" + strState + "' "
                     sqlSeoulRealTrade += " , modify_date=NOW() "
                     sqlSeoulRealTrade += " WHERE unique_key='"+strUniqueKey+"' "
@@ -368,20 +369,20 @@ try:
 
                 else:
 
-                    strGOVHouseType = str(dictSeoulRealtyTradeDataMaster['HOUSE_TYPE'])
-                    strTradeDBLAND_GBN_NM = str(rstSelectDatas.get('LAND_GBN_NM'))
+                    strGOVHouseType = str(dictSeoulRealtyTradeDataMaster['BLDG_USG'])
+                    strTradeDBLAND_GBN_NM = str(dictSeoulRealtyTradeDataMaster['LOTNO_SE_NM'])
 
                     if strGOVHouseType != '단독다가구' and strTradeDBLAND_GBN_NM != '블럭':
 
-                        strTradeDBMasterBUBEON = str(dictSeoulRealtyTradeDataMaster['BUBEON']).lstrip("0")
+                        strTradeDBMasterBUBEON = str(dictSeoulRealtyTradeDataMaster['SNO']).lstrip("0")
                         if strTradeDBMasterBUBEON != '':
                             strTradeDBMasterBUBEON = "-" + strTradeDBMasterBUBEON
 
 
                         strDOROJUSO = "서울특별시 "
-                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['SGG_NM'] + " "
-                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + " "
-                        strDOROJUSO += str(dictSeoulRealtyTradeDataMaster['BONBEON']).lstrip("0")
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['CGG_NM'] + " "
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['STDG_NM'] + " "
+                        strDOROJUSO += str(dictSeoulRealtyTradeDataMaster['MNO']).lstrip("0")
                         strDOROJUSO += str(strTradeDBMasterBUBEON)
 
                         resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
@@ -419,31 +420,31 @@ try:
                         strNaverLatitude = str(0)
 
                     sqlSeoulRealTrade  = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealTradeDataTable + " SET unique_key='"+strUniqueKey+"' ,"
-                    sqlSeoulRealTrade += " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "', "
-                    sqlSeoulRealTrade += " SGG_CD='" + dictSeoulRealtyTradeDataMaster['SGG_CD'] + "', "
-                    sqlSeoulRealTrade += " SGG_NM='" + dictSeoulRealtyTradeDataMaster['SGG_NM'] + "', "
-                    sqlSeoulRealTrade += " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "', "
-                    sqlSeoulRealTrade += " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + "', "
-                    sqlSeoulRealTrade += " BONBEON='" + dictSeoulRealtyTradeDataMaster['BONBEON'] + "', "
-                    sqlSeoulRealTrade += " BUBEON='" + dictSeoulRealtyTradeDataMaster['BUBEON'] + "', "
+                    sqlSeoulRealTrade += " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['RCPT_YR'] + "', "
+                    sqlSeoulRealTrade += " SGG_CD='" + dictSeoulRealtyTradeDataMaster['CGG_CD'] + "', "
+                    sqlSeoulRealTrade += " SGG_NM='" + dictSeoulRealtyTradeDataMaster['CGG_NM'] + "', "
+                    sqlSeoulRealTrade += " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['STDG_CD'] + "', "
+                    sqlSeoulRealTrade += " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['STDG_NM'] + "', "
+                    sqlSeoulRealTrade += " BONBEON='" + dictSeoulRealtyTradeDataMaster['MNO'] + "', "
+                    sqlSeoulRealTrade += " BUBEON='" + dictSeoulRealtyTradeDataMaster['SNO'] + "', "
                     sqlSeoulRealTrade += " lng='" + strNaverLongitude + "', "
                     sqlSeoulRealTrade += " lat='" + strNaverLatitude + "', "
                     sqlSeoulRealTrade += " geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat'), "
-                    sqlSeoulRealTrade += " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LAND_GBN'] + "', "
-                    sqlSeoulRealTrade += " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LAND_GBN_NM'] + "', "
+                    sqlSeoulRealTrade += " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LOTNO_SE'] + "', "
+                    sqlSeoulRealTrade += " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LOTNO_SE_NM'] + "', "
                     sqlSeoulRealTrade += " BLDG_NM='" + dictSeoulRealtyTradeDataMaster['BLDG_NM'].replace('\'', "\\'") + "', "
-                    sqlSeoulRealTrade += " HOUSE_TYPE='" + dictSeoulRealtyTradeDataMaster['HOUSE_TYPE'] + "', "
-                    sqlSeoulRealTrade += " DEAL_YMD='" + dictSeoulRealtyTradeDataMaster['DEAL_YMD'] + "', "
-                    sqlSeoulRealTrade += " OBJ_AMT='" + dictSeoulRealtyTradeDataMaster['OBJ_AMT'] + "', "
-                    sqlSeoulRealTrade += " BLDG_AREA='" + dictSeoulRealtyTradeDataMaster['BLDG_AREA'] + "', "
-                    sqlSeoulRealTrade += " TOT_AREA='" + dictSeoulRealtyTradeDataMaster['TOT_AREA'] + "', "
-                    sqlSeoulRealTrade += " FLOOR='" + dictSeoulRealtyTradeDataMaster['FLOOR'] + "', "
-                    sqlSeoulRealTrade += " RIGHT_GBN='" + dictSeoulRealtyTradeDataMaster['RIGHT_GBN'] + "', "
-                    sqlSeoulRealTrade += " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['CNTL_YMD'] + "', "
-                    sqlSeoulRealTrade += " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['BUILD_YEAR'] + "', "
+                    sqlSeoulRealTrade += " HOUSE_TYPE='" + dictSeoulRealtyTradeDataMaster['BLDG_USG'] + "', "
+                    sqlSeoulRealTrade += " DEAL_YMD='" + dictSeoulRealtyTradeDataMaster['CTRT_DAY'] + "', "
+                    sqlSeoulRealTrade += " OBJ_AMT='" + dictSeoulRealtyTradeDataMaster['THING_AMT'] + "', "
+                    sqlSeoulRealTrade += " BLDG_AREA='" + dictSeoulRealtyTradeDataMaster['ARCH_AREA'] + "', "
+                    sqlSeoulRealTrade += " TOT_AREA='" + dictSeoulRealtyTradeDataMaster['LAND_AREA'] + "', "
+                    sqlSeoulRealTrade += " FLOOR='" + dictSeoulRealtyTradeDataMaster['FLR'] + "', "
+                    sqlSeoulRealTrade += " RIGHT_GBN='" + dictSeoulRealtyTradeDataMaster['RGHT_SE'] + "', "
+                    sqlSeoulRealTrade += " CNTL_YMD='" + dictSeoulRealtyTradeDataMaster['RTRCN_DAY'] + "', "
+                    sqlSeoulRealTrade += " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['ARCH_YR'] + "', "
                     sqlSeoulRealTrade += " state='" + strState + "', "
-                    sqlSeoulRealTrade += " REQ_GBN='" + dictSeoulRealtyTradeDataMaster['REQ_GBN'] + "', "
-                    sqlSeoulRealTrade += " RDEALER_LAWDNM='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "' "
+                    sqlSeoulRealTrade += " REQ_GBN='" + dictSeoulRealtyTradeDataMaster['DCLR_SE'] + "', "
+                    sqlSeoulRealTrade += " RDEALER_LAWDNM='" + dictSeoulRealtyTradeDataMaster['OPBIZ_RESTAGNT_SGG_NM'] + "' "
                     cursorRealEstate.execute(sqlSeoulRealTrade)
 
                     nInsertedCount = nInsertedCount + 1
@@ -483,10 +484,10 @@ try:
     dictSwitchData = dict()
     dictSwitchData['result'] = '00'
     dictSwitchData['data_1'] = dtProcessDay
-    dictSwitchData['data_2'] = strProcessDay
+    dictSwitchData['data_2'] = nLoop
     dictSwitchData['data_3'] = nStartNumber
     dictSwitchData['data_4'] = nEndNumber
-    dictSwitchData['data_5'] = dtProcessDay
+    dictSwitchData['data_5'] = nUpdateCount
     dictSwitchData['data_6'] = nInsertedCount
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
@@ -497,6 +498,12 @@ except Exception as e:
                                    inspect.getframeinfo(inspect.currentframe()).lineno) +  str(e))
     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                    inspect.getframeinfo(inspect.currentframe()).lineno) + str(type(e)))
+
+    print(GetLogDef.lineno(__file__), "Error Exception")
+    print(GetLogDef.lineno(__file__), e)
+    print(GetLogDef.lineno(__file__), type(e))
+    err_msg = traceback.format_exc()
+    print(GetLogDef.lineno(__file__), err_msg)
 
     # Switch 오류 업데이트
     dictSeoulSwitch = {}
