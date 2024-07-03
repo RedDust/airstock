@@ -23,7 +23,7 @@ from Lib.RDB import pyMysqlConnector
 from SeoulLib.RDB import LibSeoulRealTradeSwitch
 
 from Init.Functions.Logs import GetLogDef
-
+import traceback
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
@@ -145,7 +145,7 @@ try:
             cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
             qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulSisulDataTable + "  WHERE  PJT_CD=%s"
 
-            cursorRealEstate.execute(qrySelectSeoulTradeMaster, dictSeoulRealtyTradeDataMaster['PJT_CD'])
+            cursorRealEstate.execute(qrySelectSeoulTradeMaster, dictSeoulRealtyTradeDataMaster['BIZ_CD'])
             row_result = cursorRealEstate.rowcount
             #이미 저장 되어 있으면 더이상 저장 하지 않는다.
             if row_result > 0:
@@ -153,42 +153,42 @@ try:
 
             arrCNTRCT_PRD = []
             # 계약기간이 명시 되어 있지 않으면 예외처리
-            if len(dictSeoulRealtyTradeDataMaster['DU_DATE']) < 2:
+            if len(dictSeoulRealtyTradeDataMaster['CSTRN_PRD']) < 2:
                 arrCNTRCT_PRD = [str(0000-00-00), str(0000-00-00)]
             else:
-                arrCNTRCT_PRD = dictSeoulRealtyTradeDataMaster['DU_DATE'].split("~")
+                arrCNTRCT_PRD = dictSeoulRealtyTradeDataMaster['CSTRN_PRD'].split("~")
 
             sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulSisulDataTable + " SET " \
-                                " PJT_CD='" + dictSeoulRealtyTradeDataMaster['PJT_CD'] + "', " \
-                                " PJT_NAME='" + dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'") + "', " \
-                                " PJT_FIN_YN='" + dictSeoulRealtyTradeDataMaster['PJT_FIN_YN'] + "', " \
-                                " PJT_FIN_YN_NM='" + dictSeoulRealtyTradeDataMaster['PJT_FIN_YN_NM'] + "', " \
-                                " PLAN_RT='" + dictSeoulRealtyTradeDataMaster['PLAN_RT'] + "', " \
-                                " REAL_RT='" + dictSeoulRealtyTradeDataMaster['REAL_RT'] + "', " \
+                                " PJT_CD='" + dictSeoulRealtyTradeDataMaster['BIZ_CD'] + "', " \
+                                " PJT_NAME='" + dictSeoulRealtyTradeDataMaster['BIZ_NM'].replace('\'', "\\'") + "', " \
+                                " PJT_FIN_YN='" + dictSeoulRealtyTradeDataMaster['CMCN_YN1'] + "', " \
+                                " PJT_FIN_YN_NM='" + dictSeoulRealtyTradeDataMaster['CMCN_YN2'] + "', " \
+                                " PLAN_RT='" + dictSeoulRealtyTradeDataMaster['PROCS_PLAN'] + "', " \
+                                " REAL_RT='" + dictSeoulRealtyTradeDataMaster['PROCS_PRFMNC'] + "', " \
                                 " PER_RT='" + dictSeoulRealtyTradeDataMaster['PER_RT'] + "', " \
-                                " BASIC_DT='" + dictSeoulRealtyTradeDataMaster['BASIC_DT'] + "', " \
-                                " DT1='" + dictSeoulRealtyTradeDataMaster['DT1'] + "', " \
-                                " DT2='" + dictSeoulRealtyTradeDataMaster['DT2'] + "', " \
-                                " DT3='" + dictSeoulRealtyTradeDataMaster['DT3'] + "', " \
-                                " TOT_CNTRT_AMT='" + dictSeoulRealtyTradeDataMaster['TOT_CNTRT_AMT'] + "', " \
-                                " TOT_PJT_AMT='" + dictSeoulRealtyTradeDataMaster['TOT_PJT_AMT'] + "', " \
+                                " BASIC_DT='" + dictSeoulRealtyTradeDataMaster['CRTR_YMD'] + "', " \
+                                " DT1='" + dictSeoulRealtyTradeDataMaster['DAY_TOT'] + "', " \
+                                " DT2='" + dictSeoulRealtyTradeDataMaster['DAY_ELPS'] + "', " \
+                                " DT3='" + dictSeoulRealtyTradeDataMaster['DAY_JOB'] + "', " \
+                                " TOT_CNTRT_AMT='" + dictSeoulRealtyTradeDataMaster['AMT_CTRT'] + "', " \
+                                " TOT_PJT_AMT='" + dictSeoulRealtyTradeDataMaster['AMT_BIZ'] + "', " \
                                 " DU_DATE_START='" + arrCNTRCT_PRD[0] + "', " \
                                 " DU_DATE_END='" + arrCNTRCT_PRD[1] + "', " \
-                                " OFFICE_ADDR='" + dictSeoulRealtyTradeDataMaster['OFFICE_ADDR'].replace('\'', "\\'") + "', " \
+                                " OFFICE_ADDR='" + dictSeoulRealtyTradeDataMaster['CSTRN_PSTN'].replace('\'', "\\'") + "', " \
                                 " LAT='" + dictSeoulRealtyTradeDataMaster['LAT'] + "', " \
-                                " LNG='" + dictSeoulRealtyTradeDataMaster['LNG'] + "', " \
-                                " USER_1='" + dictSeoulRealtyTradeDataMaster['USER_1'].replace('\'', "\\'") + "', " \
-                                " USER_2='" + dictSeoulRealtyTradeDataMaster['USER_2'].replace('\'', "\\'") + "', " \
-                                " USER_3='" + dictSeoulRealtyTradeDataMaster['USER_3'].replace('\'', "\\'") + "', " \
-                                " ORG_1='" + dictSeoulRealtyTradeDataMaster['ORG_1'].replace('\'', "\\'") + "', " \
-                                " ORG_2='" + dictSeoulRealtyTradeDataMaster['ORG_2'].replace('\'', "\\'") + "', " \
-                                " ORG_3='" + dictSeoulRealtyTradeDataMaster['ORG_3'].replace('\'', "\\'") + "', " \
-                                " PJT_SCALE='" + dictSeoulRealtyTradeDataMaster['PJT_SCALE'].replace('\'', "\\'") + "', " \
-                                " RTSP_ADDR='" + dictSeoulRealtyTradeDataMaster['RTSP_ADDR'].replace('\'', "\\'") + "', " \
-                                " CNRT_ADDR='" + dictSeoulRealtyTradeDataMaster['CNRT_ADDR'].replace('\'', "\\'") + "', " \
-                                " BILLPAY_ADDR='" + dictSeoulRealtyTradeDataMaster['BILLPAY_ADDR'].replace('\'', "\\'") + "', " \
-                                " AIR_VIEW_IMG='" + dictSeoulRealtyTradeDataMaster['AIR_VIEW_IMG'].replace('\'', "\\'") + "', " \
-                                " ALIMI_ADDR='" + dictSeoulRealtyTradeDataMaster['ALIMI_ADDR'].replace('\'', "\\'") + "' "
+                                " LNG='" + dictSeoulRealtyTradeDataMaster['LOT'] + "', " \
+                                " USER_1='" + dictSeoulRealtyTradeDataMaster['PIC_PE_NM'].replace('\'', "\\'") + "', " \
+                                " USER_2='" + dictSeoulRealtyTradeDataMaster['SPVS_PE_NM'].replace('\'', "\\'") + "', " \
+                                " USER_3='" + dictSeoulRealtyTradeDataMaster['AGT_PE_NM'].replace('\'', "\\'") + "', " \
+                                " ORG_1='" + dictSeoulRealtyTradeDataMaster['INST_NM'].replace('\'', "\\'") + "', " \
+                                " ORG_2='" + dictSeoulRealtyTradeDataMaster['SPVS_NM'].replace('\'', "\\'") + "', " \
+                                " ORG_3='" + dictSeoulRealtyTradeDataMaster['CNST_ENT'].replace('\'', "\\'") + "', " \
+                                " PJT_SCALE='" + dictSeoulRealtyTradeDataMaster['BIZ_SCL'].replace('\'', "\\'") + "', " \
+                                " RTSP_ADDR='" + dictSeoulRealtyTradeDataMaster['WEB_CMR_RTSP_ADDR'].replace('\'', "\\'") + "', " \
+                                " CNRT_ADDR='" + dictSeoulRealtyTradeDataMaster['CTRT_INFO_URL'].replace('\'', "\\'") + "', " \
+                                " BILLPAY_ADDR='" + dictSeoulRealtyTradeDataMaster['IMPL_INFO_URL'].replace('\'', "\\'") + "', " \
+                                " AIR_VIEW_IMG='" + dictSeoulRealtyTradeDataMaster['ARLV_IMG_URL'].replace('\'', "\\'") + "', " \
+                                " ALIMI_ADDR='" + dictSeoulRealtyTradeDataMaster['CSTRN_OTLN'].replace('\'', "\\'") + "' "
 
             print("sqlSeoulRealTrade > ", sqlSeoulRealTrade)
             cursorRealEstate.execute(sqlSeoulRealTrade)
@@ -204,25 +204,32 @@ try:
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전(처리완료), 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['PJT_CD']
-        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'")
+        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['BIZ_CD']
+        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['BIZ_NM'].replace('\'', "\\'")
         dictSwitchData['data_3'] = nStartNumber
         dictSwitchData['data_4'] = nEndNumber
-        dictSwitchData['data_5'] = dictSeoulRealtyTradeDataMaster['ORG_1'].replace('\'', "\\'")
+        dictSwitchData['data_5'] = dictSeoulRealtyTradeDataMaster['INST_NM'].replace('\'', "\\'")
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
 except Exception as e:
 
+
+    print("Error Exception")
+    print(e)
+    print(type(e))
+    err_msg = traceback.format_exc()
+    print(GetLogDef.lineno(__file__), err_msg)
+
     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
     dictSwitchData = dict()
     dictSwitchData['result'] = '30'
-    if dictSeoulRealtyTradeDataMaster['PJT_CD'] is not None:
-        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['PJT_CD']
+    if dictSeoulRealtyTradeDataMaster['BIZ_CD'] is not None:
+        dictSwitchData['data_1'] = dictSeoulRealtyTradeDataMaster['BIZ_CD']
 
-    if dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'") is not None:
-        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['PJT_NAME'].replace('\'', "\\'")
+    if dictSeoulRealtyTradeDataMaster['BIZ_NM'].replace('\'', "\\'") is not None:
+        dictSwitchData['data_2'] = dictSeoulRealtyTradeDataMaster['BIZ_NM'].replace('\'', "\\'")
 
     if nStartNumber is not None:
         dictSwitchData['data_3'] = nStartNumber
@@ -232,9 +239,7 @@ except Exception as e:
 
     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-    print("Error Exception")
-    print(e)
-    print(type(e))
+    print("========================= Exception END")
 else:
     print("========================= SUCCESS END")
 
