@@ -167,13 +167,13 @@ try:
 
 
                 # `ACC_YEAR`, `SGG_CD`, `BJDONG_CD`,BONBEON BUBEON , `FLOOR` `DEAL_YMD`, `OBJ_AMT`
-                strUniqueKey = dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['SGG_CD'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BOBN'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['BUBN'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['FLR_NO'] + "_" +\
-                               dictSeoulRealtyTradeDataMaster['CNTRCT_DE'] + "_" + dictSeoulRealtyTradeDataMaster['RENT_GTN']
+                strUniqueKey = dictSeoulRealtyTradeDataMaster['RCPT_YR'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['CGG_CD'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['STDG_CD'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['MNO'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['SNO'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['FLR'] + "_" +\
+                               dictSeoulRealtyTradeDataMaster['CTRT_DAY'] + "_" + dictSeoulRealtyTradeDataMaster['GRFE']
 
                 # print("strUniqueKey > ", strUniqueKey)
                 # print(dictSeoulRealtyTradeDataMaster)
@@ -195,30 +195,30 @@ try:
 
                 arrCNTRCT_PRD = []
                 # 계약기간이 명시 되어 있지 않으면 예외처리
-                if len(dictSeoulRealtyTradeDataMaster['CNTRCT_PRD']) < 2:
+                if len(dictSeoulRealtyTradeDataMaster['CTRT_PRD']) < 2:
                     arrCNTRCT_PRD = [str(00.0), str(00.0)]
                 else:
-                    arrCNTRCT_PRD = dictSeoulRealtyTradeDataMaster['CNTRCT_PRD'].split("~")
+                    arrCNTRCT_PRD = dictSeoulRealtyTradeDataMaster['CTRT_PRD'].split("~")
 
 
                 # print(arrCNTRCT_PRD ,type( arrCNTRCT_PRD))
 
-                if len(dictSeoulRealtyTradeDataMaster['RENT_GTN']) < 1:
-                    dictSeoulRealtyTradeDataMaster['RENT_GTN'] = '0'
+                if len(dictSeoulRealtyTradeDataMaster['GRFE']) < 1:
+                    dictSeoulRealtyTradeDataMaster['GRFE'] = '0'
 
-                if len(dictSeoulRealtyTradeDataMaster['RENT_FEE']) < 1:
-                    dictSeoulRealtyTradeDataMaster['RENT_FEE'] = '0'
+                if len(dictSeoulRealtyTradeDataMaster['RTFE']) < 1:
+                    dictSeoulRealtyTradeDataMaster['RTFE'] = '0'
 
-                if len(dictSeoulRealtyTradeDataMaster['BEFORE_GRNTY_AMOUNT']) < 1:
-                    dictSeoulRealtyTradeDataMaster['BEFORE_GRNTY_AMOUNT'] = '0'
+                if len(dictSeoulRealtyTradeDataMaster['BFR_GRFE']) < 1:
+                    dictSeoulRealtyTradeDataMaster['BFR_GRFE'] = '0'
 
-                if len(dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE']) < 1:
-                    dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE'] = '0'
+                if len(dictSeoulRealtyTradeDataMaster['BFR_RTFE']) < 1:
+                    dictSeoulRealtyTradeDataMaster['BFR_RTFE'] = '0'
 
-                strTradeDBMasterBOBN = str(dictSeoulRealtyTradeDataMaster['BOBN']).lstrip("0")
-                strTradeDBMasterBUBEON = str(dictSeoulRealtyTradeDataMaster['BUBN']).lstrip("0")
+                strTradeDBMasterBOBN = str(dictSeoulRealtyTradeDataMaster['MNO']).lstrip("0")
+                strTradeDBMasterBUBEON = str(dictSeoulRealtyTradeDataMaster['SNO']).lstrip("0")
 
-                strGOVHouseType = str(dictSeoulRealtyTradeDataMaster['HOUSE_GBN_NM'])
+                strGOVHouseType = str(dictSeoulRealtyTradeDataMaster['BLDG_USG'])
 
                 if strGOVHouseType != '단독다가구':
 
@@ -231,7 +231,7 @@ try:
                     qrySelectSeoulRentMaster += " AND lng!='' "
                     qrySelectSeoulRentMaster += " LIMIT 1 "
 
-                    cursorRealEstate.execute(qrySelectSeoulRentMaster, (dictSeoulRealtyTradeDataMaster['SGG_NM'],dictSeoulRealtyTradeDataMaster['BJDONG_NM'],dictSeoulRealtyTradeDataMaster['BOBN'] ,dictSeoulRealtyTradeDataMaster['BUBN'] ))
+                    cursorRealEstate.execute(qrySelectSeoulRentMaster, (dictSeoulRealtyTradeDataMaster['CGG_NM'],dictSeoulRealtyTradeDataMaster['STDG_NM'],dictSeoulRealtyTradeDataMaster['MNO'] ,dictSeoulRealtyTradeDataMaster['SNO'] ))
                     intSelectResult = cursorRealEstate.rowcount
                     if intSelectResult > 0:
                         rstSelectData = cursorRealEstate.fetchone()
@@ -245,8 +245,8 @@ try:
                             strTradeDBMasterBUBEON = "-" + strTradeDBMasterBUBEON
 
                         strDOROJUSO = "서울특별시 "
-                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['SGG_NM'] + " "
-                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + " "
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['CGG_NM'] + " "
+                        strDOROJUSO += dictSeoulRealtyTradeDataMaster['STDG_NM'] + " "
                         strDOROJUSO += strTradeDBMasterBOBN
                         strDOROJUSO += strTradeDBMasterBUBEON
                         print(GetLogDef.lineno(__file__), "strDOROJUSO => ", strDOROJUSO)
@@ -276,33 +276,33 @@ try:
 
 
                 sqlSeoulRealTrade = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulRealRentDataTable + " SET unique_key='"+strUniqueKey+"' ,"
-                sqlSeoulRealTrade += " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['ACC_YEAR'] + "', "
-                sqlSeoulRealTrade += " SGG_CD='" + dictSeoulRealtyTradeDataMaster['SGG_CD'] + "', "
-                sqlSeoulRealTrade += " SGG_NM='" + dictSeoulRealtyTradeDataMaster['SGG_NM'] + "', "
-                sqlSeoulRealTrade += " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['BJDONG_CD'] + "', "
-                sqlSeoulRealTrade += " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['BJDONG_NM'] + "', "
-                sqlSeoulRealTrade += " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LAND_GBN'] + "', "
-                sqlSeoulRealTrade += " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LAND_GBN_NM'] + "', "
-                sqlSeoulRealTrade += " BOBN='" + dictSeoulRealtyTradeDataMaster['BOBN'] + "', "
-                sqlSeoulRealTrade += " BUBN='" + dictSeoulRealtyTradeDataMaster['BUBN'] + "', "
+                sqlSeoulRealTrade += " ACC_YEAR='" + dictSeoulRealtyTradeDataMaster['RCPT_YR'] + "', "
+                sqlSeoulRealTrade += " SGG_CD='" + dictSeoulRealtyTradeDataMaster['CGG_CD'] + "', "
+                sqlSeoulRealTrade += " SGG_NM='" + dictSeoulRealtyTradeDataMaster['CGG_NM'] + "', "
+                sqlSeoulRealTrade += " BJDONG_CD='" + dictSeoulRealtyTradeDataMaster['STDG_CD'] + "', "
+                sqlSeoulRealTrade += " BJDONG_NM='" + dictSeoulRealtyTradeDataMaster['STDG_NM'] + "', "
+                sqlSeoulRealTrade += " LAND_GBN='" + dictSeoulRealtyTradeDataMaster['LOTNO_SE'] + "', "
+                sqlSeoulRealTrade += " LAND_GBN_NM='" + dictSeoulRealtyTradeDataMaster['LOTNO_SE_NM'] + "', "
+                sqlSeoulRealTrade += " BOBN='" + dictSeoulRealtyTradeDataMaster['MNO'] + "', "
+                sqlSeoulRealTrade += " BUBN='" + dictSeoulRealtyTradeDataMaster['SNO'] + "', "
                 sqlSeoulRealTrade += " lng='" + strNaverLongitude + "', "
                 sqlSeoulRealTrade += " lat='" + strNaverLatitude + "', "
                 sqlSeoulRealTrade += " geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat'), "
-                sqlSeoulRealTrade += " FLR_NO='" + dictSeoulRealtyTradeDataMaster['FLR_NO'] + "', "
-                sqlSeoulRealTrade += " CNTRCT_DE='" + dictSeoulRealtyTradeDataMaster['CNTRCT_DE'] + "', "
-                sqlSeoulRealTrade += " RENT_GBN='" + dictSeoulRealtyTradeDataMaster['RENT_GBN'] + "', "
+                sqlSeoulRealTrade += " FLR_NO='" + dictSeoulRealtyTradeDataMaster['FLR'] + "', "
+                sqlSeoulRealTrade += " CNTRCT_DE='" + dictSeoulRealtyTradeDataMaster['CTRT_DAY'] + "', "
+                sqlSeoulRealTrade += " RENT_GBN='" + dictSeoulRealtyTradeDataMaster['RENT_SE'] + "', "
                 sqlSeoulRealTrade += " RENT_AREA='" + dictSeoulRealtyTradeDataMaster['RENT_AREA'] + "', "
-                sqlSeoulRealTrade += " RENT_GTN='" + dictSeoulRealtyTradeDataMaster['RENT_GTN'] + "', "
-                sqlSeoulRealTrade += " RENT_FEE='" + dictSeoulRealtyTradeDataMaster['RENT_FEE'] + "', "
+                sqlSeoulRealTrade += " RENT_GTN='" + dictSeoulRealtyTradeDataMaster['GRFE'] + "', "
+                sqlSeoulRealTrade += " RENT_FEE='" + dictSeoulRealtyTradeDataMaster['RTFE'] + "', "
                 sqlSeoulRealTrade += " BLDG_NM='" + dictSeoulRealtyTradeDataMaster['BLDG_NM'].replace('\'', "\\'") + "', "
-                sqlSeoulRealTrade += " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['BUILD_YEAR'] + "', "
-                sqlSeoulRealTrade += " HOUSE_GBN_NM='" + dictSeoulRealtyTradeDataMaster['HOUSE_GBN_NM'] + "', "
+                sqlSeoulRealTrade += " BUILD_YEAR='" + dictSeoulRealtyTradeDataMaster['ARCH_YR'] + "', "
+                sqlSeoulRealTrade += " HOUSE_GBN_NM='" + dictSeoulRealtyTradeDataMaster['BLDG_USG'] + "', "
                 sqlSeoulRealTrade += " CNTRCT_PRD_START='" + arrCNTRCT_PRD[0] + "', "
                 sqlSeoulRealTrade += " CNTRCT_PRD_END='" + arrCNTRCT_PRD[1] + "', "
-                sqlSeoulRealTrade += " NEW_RON_SECD='" + dictSeoulRealtyTradeDataMaster['NEW_RON_SECD'] + "', "
-                sqlSeoulRealTrade += " CNTRCT_UPDT_RQEST_AT='" + dictSeoulRealtyTradeDataMaster['CNTRCT_UPDT_RQEST_AT'] + "', "
-                sqlSeoulRealTrade += " BEFORE_GRNTY_AMOUNT='" + dictSeoulRealtyTradeDataMaster['BEFORE_GRNTY_AMOUNT'] + "', "
-                sqlSeoulRealTrade += " BEFORE_MT_RENT_CHRGE='" + dictSeoulRealtyTradeDataMaster['BEFORE_MT_RENT_CHRGE'] + "' "
+                sqlSeoulRealTrade += " NEW_RON_SECD='" + dictSeoulRealtyTradeDataMaster['NEW_UPDT_YN'] + "', "
+                sqlSeoulRealTrade += " CNTRCT_UPDT_RQEST_AT='" + dictSeoulRealtyTradeDataMaster['CTRT_UPDT_USE_YN'] + "', "
+                sqlSeoulRealTrade += " BEFORE_GRNTY_AMOUNT='" + dictSeoulRealtyTradeDataMaster['BFR_GRFE'] + "', "
+                sqlSeoulRealTrade += " BEFORE_MT_RENT_CHRGE='" + dictSeoulRealtyTradeDataMaster['BFR_RTFE'] + "' "
 
                 print("sqlSeoulRealTrade > ", sqlSeoulRealTrade)
                 cursorRealEstate.execute(sqlSeoulRealTrade)
