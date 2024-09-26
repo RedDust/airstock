@@ -20,13 +20,18 @@ from Lib.RDB import pyMysqlConnector
 def CustomiseAddressText(strTextAddress):
 
     listResult = list()
-    print("strTextAddress", len(strTextAddress), strTextAddress)
+    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strTextAddress", len(strTextAddress), type(strTextAddress), strTextAddress)
 
     # strStripFieldName = str(strTextAddress).removeprefix("[\"").removesuffix("\"]")
     # print("listStripFieldName" , len(strStripFieldName), strStripFieldName)
 
     strStripFieldName = re.sub(r"[^\uAC00-\uD7A30-9a-zA-Z-,\s]", "", strTextAddress)
-    print("listStripFieldName" , len(strStripFieldName), strStripFieldName)
+    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "listStripFieldName" , len(strStripFieldName), type(strTextAddress), strStripFieldName)
+
+    strStripFieldName = strStripFieldName.strip('사용본거지')
+
 
     listStripFieldNames = str(strStripFieldName).split(",")
 
@@ -40,7 +45,8 @@ def CustomiseAddressText(strTextAddress):
             # print("dictCityPlaceValue", len(dictCityPlaceValue), dictCityPlaceValue)
            if str(strAddress).startswith(dictCityPlaceValue) == True:
                 listResult.append(strAddress)
-                print("strAddress", len(strAddress), strAddress)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "strAddress", len(strAddress), strAddress)
 
 
     return listResult
@@ -118,7 +124,6 @@ def GetJusoApiForAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
 
             else:
 
-
                 print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
                              "[listExtractionAddressTexts] => " , type(listExtractionAddressText) , listExtractionAddressText)
@@ -135,7 +140,8 @@ def GetJusoApiForAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
                 strDataListUrl += "&keyword=" + strEncodeCostomiseKeyword + ""
                 strDataListUrl += "&confmKey=" + ConsStrAuthKey + "&hstryYn=Y&resultType=json"
 
-                print("==============strDataListUrl", len(strDataListUrl), strDataListUrl)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "strDataListUrl", len(strDataListUrl), strDataListUrl)
 
                 print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -148,7 +154,8 @@ def GetJusoApiForAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
                 DictJsonObject = json.loads(JsonDataList)
 
                 ListResultJusos = (DictJsonObject['results']['juso'])
-                print("ListResultJusos", len(ListResultJusos), ListResultJusos)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "ListResultJusos", len(ListResultJusos), ListResultJusos)
 
                 dictGetURLResultCommon = (DictJsonObject['results']['common'])
                 intResultTotalCount = int(dictGetURLResultCommon['totalCount'])
@@ -199,7 +206,8 @@ def GetJusoApiForAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
                 ResRealEstateConnection.commit()
 
                 strLoadAddress = ListResultJusos[0]['roadAddrPart1'].strip()
-                print("strLoadAddress========>", type(strLoadAddress), strLoadAddress)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "strLoadAddress========>", type(strLoadAddress), strLoadAddress)
 
 
 
@@ -239,10 +247,232 @@ def GetJusoApiForAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
 
 
 
+def GetDictConversionAddress(logging,strIssueNumber, strDecodeCostomiseKeyword):
+
+    try:
+        strReturn = ''
+        strLongitude = str(0)
+        strLatitude = str(0)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "strDecodeCostomiseKeyword",strDecodeCostomiseKeyword , type(strDecodeCostomiseKeyword))
+
+
+        ConsStrAuthKey = 'U01TX0FVVEgyMDI0MDMxNTExMTQxNzExNDYwMTU='
+        strApiAddress = 'https://business.juso.go.kr/addrlink/addrLinkApi.do'
+
+        strAddressKeyword = GetLogDef.stripSpecharsForText(strDecodeCostomiseKeyword)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+"strIssueNumber", len(strIssueNumber), strIssueNumber)
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+"AddressKeyWord", len(strAddressKeyword), strAddressKeyword)
+
+        listExtractionAddressTexts = CustomiseAddressText(strDecodeCostomiseKeyword)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "listExtractionAddressTexts",listExtractionAddressTexts)
+
+        #DB 연결 선언
+        ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+        cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listExtractionAddressTexts",listExtractionAddressTexts)
+
+        sqlSelectAddressTable =  " SELECT * FROM " + ConstRealEstateTable_AUC.AddressConversionTable
+        sqlSelectAddressTable += " WHERE keyword= %s "
+        sqlSelectAddressTable += " LIMIT 1 "
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno) + "strIssueNumber",
+              len(strIssueNumber), strIssueNumber)
+
+        cursorRealEstate.execute(sqlSelectAddressTable, (strIssueNumber))
+        intMasterResultCount = cursorRealEstate.rowcount
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "nMasterResultCount", type(intMasterResultCount), intMasterResultCount)
+
+        if intMasterResultCount > 0:
+
+            rstFieldsList = cursorRealEstate.fetchone()
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) , "nMasterResultCount", type(rstFieldsList), rstFieldsList)
+
+        else:
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "nMasterResultCount",
+                  type(intMasterResultCount), intMasterResultCount)
+
+            for listExtractionAddressText in listExtractionAddressTexts:
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno),
+                      "listExtractionAddressText", type(listExtractionAddressText), listExtractionAddressText )
+
+                listStripFieldNames = str(listExtractionAddressText).split(" ")
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno),
+                      "listStripFieldNames",
+                      type(listStripFieldNames), listStripFieldNames)
+
+                while True:
+
+                    intTemp = 0
+                    strExtractionAddressText = ''
+                    intLoopCount = len(listStripFieldNames)
+
+                    while intTemp < intLoopCount:
+
+                        strExtractionAddressText += listStripFieldNames[intTemp] + " "
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno),
+                              " strExtractionAddressText ==>>", strExtractionAddressText)
+                        intTemp += 1
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno),
+                          " strExtractionAddressText ==>>", strExtractionAddressText)
+
+                    strEncodeCostomiseKeyword = parse.quote(strExtractionAddressText)
+
+                    strDataListUrl = strApiAddress + "?currentPage=1&countPerPage=1"
+                    strDataListUrl += "&keyword=" + strEncodeCostomiseKeyword + ""
+                    strDataListUrl += "&confmKey=" + ConsStrAuthKey + "&hstryYn=Y&resultType=json"
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno) ,"==============strDataListUrl", len(strDataListUrl), strDataListUrl)
+
+                    ObjDataListResponse = urllib.request.urlopen(strDataListUrl)
+                    JsonDataList = ObjDataListResponse.read().decode("utf-8")
+
+                    # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+                    DictJsonObject = json.loads(JsonDataList)
+
+                    ListResultJusos = (DictJsonObject['results']['juso'])
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "ListResultJusos", len(ListResultJusos), ListResultJusos)
+
+                    dictGetURLResultCommon = (DictJsonObject['results']['common'])
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                    inspect.getframeinfo(inspect.currentframe()).lineno), "dictGetURLResultCommon", len(dictGetURLResultCommon), dictGetURLResultCommon)
+
+                    intResultTotalCount = int(dictGetURLResultCommon['totalCount'])
+                    strResultErrorCode = str(dictGetURLResultCommon['errorCode'])
+
+                    if intResultTotalCount > 0:
+                        intKeywordSeq = 0
+
+                        rstFieldsList = ListResultJusos[0]
+                        print("strLoadAddress==>", type(rstFieldsList), rstFieldsList)
+                        break
+
+                    else:
+
+                        listStripFieldNames.pop()
+
+                        print("strResultErrorCode==>", type(strResultErrorCode), strResultErrorCode)
 
 
 
 
+
+
+            #
+            #
+            #
+            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                         inspect.getframeinfo(inspect.currentframe()).lineno),
+            #       " strExtractionAddressText ==>>", strExtractionAddressText)
+            #
+            # strEncodeCostomiseKeyword = parse.quote(strExtractionAddressText)
+            #
+            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                         inspect.getframeinfo(inspect.currentframe()).lineno),
+            #       " strEncodeCostomiseKeyword ==>>", strEncodeCostomiseKeyword)
+            #
+
+
+
+
+            #
+            #
+            # for listExtractionAddressText in listExtractionAddressTexts:
+            #     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                             inspect.getframeinfo(inspect.currentframe()).lineno) , " listExtractionAddressText ==>>", len(listExtractionAddressText), listExtractionAddressText)
+            #
+            #
+            #
+            #     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                             inspect.getframeinfo(inspect.currentframe()).lineno),
+            #           " rstExtractionAddress ==>>", len(rstExtractionAddress), rstExtractionAddress)
+            #
+            #
+            #
+            #
+            #
+            #         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                                 inspect.getframeinfo(inspect.currentframe()).lineno),
+            #               "intTemp/intLoopCount ==>>", intTemp ,  intLoopCount)
+            #
+            #         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+            #                                 inspect.getframeinfo(inspect.currentframe()).lineno) +
+            #               "[strDecodeCostomiseAddress] => " + str(listExtractionAddressText) )
+            #
+
+            #
+
+
+
+
+
+                #
+                # if len(ListResultJusos) < 1:
+                #     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                #                             inspect.getframeinfo(inspect.currentframe()).lineno), len(ListResultJusos),
+                #           ListResultJusos)
+                #     break
+                #
+                # else:
+
+
+
+
+
+
+
+    except Exception as e:
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno) +
+              "Error Exception")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno) +
+              str(e))
+
+        strReturn = ''
+
+    else:
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                     "[GetJusoApiForAddress]")
+
+        strReturn = rstFieldsList
+
+    finally:
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                   inspect.getframeinfo(inspect.currentframe()).lineno) +
+                 "[CRONTAB END]==================================================================")
+
+    return strReturn
 
 
 
