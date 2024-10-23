@@ -383,6 +383,7 @@ def main():
                         sqlInsertMOLIT += " , SELLER = '" + SELLER + "'"
                         sqlInsertMOLIT += " , BUYER = '" + BUYER + "'"
                         sqlInsertMOLIT += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                        sqlInsertMOLIT += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                         sqlInsertMOLIT += " , CNTL_YMD = '"+CNTL_YMD+"'"
                         sqlInsertMOLIT += " , state = '"+state+"'"
                         print(GetLogDef.lineno(__file__), "sqlInsertMOLIT ", sqlInsertMOLIT)
@@ -429,6 +430,7 @@ def main():
                             sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
                             sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
                             sqlInsertMOLITCancel += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                            sqlInsertMOLITCancel += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                             sqlInsertMOLITCancel += " , CNTL_YMD = '"+CNTL_YMD+"'"
                             sqlInsertMOLITCancel += " , state = '"+state+"'"
                             print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
