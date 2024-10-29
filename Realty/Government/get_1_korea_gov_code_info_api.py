@@ -186,6 +186,16 @@ def main():
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
+
+        sqlUpdateGovCode = " UPDATE " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
+        sqlUpdateGovCode += " state = '01'  "
+        cursorRealEstate.execute(sqlUpdateGovCode)
+        row_result = cursorRealEstate.rowcount
+        if row_result < 1:
+            Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno), 'row_result => ', row_result)  # 예외를 발생시킴
+
+
         while True:
 
             # 시작번호가 총 카운트 보다 많으면 중단
@@ -235,6 +245,8 @@ def main():
             print("Processing", "====================================================")
             nLoop = 0
             strUniqueKey = ''
+
+
 
             for jsonRowData in jsonRowDatas:
                 print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -302,7 +314,8 @@ def main():
                 else:
                     # UPDATE
                     sqlUpdateGovCode = " UPDATE " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
-                    sqlUpdateGovCode += " modify_date = NOW()  "
+                    sqlUpdateGovCode += " state = '00'  "
+                    sqlUpdateGovCode += " , modify_date = NOW()  "
                     sqlUpdateGovCode += " WHERE region_cd = %s  "
                     cursorRealEstate.execute(sqlUpdateGovCode, (strUrlRegionCd))
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
