@@ -299,21 +299,30 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                             inspect.getframeinfo(inspect.currentframe()).lineno), "INSERT => ", strUrlRegionCd, strUrlSidoCd, strUrlSggCd, strUrlUmdCd, strUrlRiCd, strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm, strUrlLocatOrder,strUrlLocatRm,strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe)
 
+                else:
+                    # UPDATE
+                    sqlUpdateGovCode = " UPDATE " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
+                    sqlUpdateGovCode += " modify_date = NOW()  "
+                    sqlUpdateGovCode += " WHERE region_cd = %s  "
+                    cursorRealEstate.execute(sqlUpdateGovCode, (strUrlRegionCd))
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno), "UPDATE => ", strUrlRegionCd)
+
                 ResRealEstateConnection.commit()
 
             nStartNumber += 1
             time.sleep(2)
 
 
-
-
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        dictSwitchData['data_1'] = jsonIssueNumber
-        dictSwitchData['data_2'] = jsonIssueNumber
-        dictSwitchData['data_3'] = jsonIssueNumber
-        dictSwitchData['data_4'] = jsonIssueNumber
+        dictSwitchData['data_1'] = strUrlRegionCd
+        dictSwitchData['data_2'] = nStartNumber
+        dictSwitchData['data_3'] = nProcessedCount
+        dictSwitchData['data_4'] = strUrlRegionCd
+        dictSwitchData['data_5'] = strUrlLocataddNm
+        dictSwitchData['data_6'] = strUrlLocallowNm
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
         print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", jsonIssueNumber)
 
@@ -325,13 +334,14 @@ def main():
         dictSwitchData['result'] = '30'
 
         if KuIndex is not None:
-            dictSwitchData['data_1'] = KuIndex
+            dictSwitchData['data_1'] = strUrlRegionCd
 
         if CityKey is not None:
-            dictSwitchData['data_2'] = CityKey
+            dictSwitchData['data_2'] = nStartNumber
 
         if targetRow is not None:
-            dictSwitchData['data_3'] = targetRow
+            dictSwitchData['data_3'] =         dictSwitchData['data_3'] = nProcessedCount
+
 
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
