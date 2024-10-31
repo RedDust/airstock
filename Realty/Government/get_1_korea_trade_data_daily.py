@@ -2,11 +2,13 @@ import sys
 sys.path.append("D:/PythonProjects/airstock")
 
 # https://www.data.go.kr/data/15057511/openapi.do
-#국토부 아파트 실거래
-#SERVICE URL https://www.data.go.kr/data/15057511/openapi.do
-#[국토부 아파트 실거래 상세 자료]API URL http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev
-#[국토부 아파트 실거래 자료]API URL http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade
+#-> https://www.data.go.kr/data/15126469/openapi.do
 
+#국토교통부 실거래가 정보 - 아파트 매매 실거래가 자료
+#SERVICE URL https://www.data.go.kr/data/15126469/openapi.do
+#[국토부 아파트 실거래 상세 자료]API URL http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev
+#[국토부 아파트 실거래 자료]API URL 	https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade
+#
 #ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable = 'kt_realty_gov_code_info'
 #ConstRealEstateTable_GOV.MolitRealTradeMasterTable = 'kt_realty_molit_real_trade_master'
 #ConstRealEstateTable_GOV.MolitRealTradeCancelTable = 'kt_realty_molit_real_trade_master_cancel'
@@ -18,6 +20,10 @@ import json
 import pymysql
 import traceback
 import time
+import logging
+import logging.handlers
+import inspect
+import traceback
 import re
 import pandas as pd
 import requests
@@ -27,8 +33,9 @@ from Lib.RDB import pyMysqlConnector
 from dateutil.relativedelta import relativedelta
 
 from Init.Functions.Logs import GetLogDef
-
 from Realty.Government.Const import ConstRealEstateTable_GOV
+from Init.DefConstant import ConstRealEstateTable
+
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
@@ -71,10 +78,14 @@ def main():
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            QuitException(GetLogDef.lineno(__file__)+ 'strResult => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+ 'strResult => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '10':
-            QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+
+        
 
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
@@ -89,17 +100,25 @@ def main():
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-        qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
-        qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
-        qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
+
+
+        qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+        qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 100 "
+        # qrySelectSeoulTradeMaster += " LIMIT 1 "
+
+        # qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
+        # qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
+        # qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
+        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
+        # # qrySelectSeoulTradeMaster += " LIMIT 100 "
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         row_result = cursorRealEstate.rowcount
         # 등록되어 있는 물건이면 패스
 
 
-        print(GetLogDef.lineno(__file__), "row_result >> " , row_result)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "row_result >> " , row_result)
         rstSelectDatas = cursorRealEstate.fetchall()
 
         intRangeStart = int(intLoopStart)
@@ -108,19 +127,20 @@ def main():
         for rstSelectData in rstSelectDatas:
 
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
-            print(GetLogDef.lineno(__file__), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
 
-            sido_code = str(rstSelectData.get('sido_code')).zfill(2)
-            sigu_code = rstSelectData.get('sigu_code').zfill(3)
+            sido_code = str(rstSelectData.get('sido_cd')).zfill(2)
+            sigu_code = rstSelectData.get('sgg_cd').zfill(3)
 
-            sido_name = str(rstSelectData.get('sido_name'))
-            sigu_name = rstSelectData.get('sigu_name')
+            strAdminName = str(rstSelectData.get('locatadd_nm'))
 
             strAdminSection =  sido_code+sigu_code
-            strAdminName = sido_name + " " + sigu_name
 
-            print(GetLogDef.lineno(__file__), "strAdminName >> ", strAdminName)
-            print(GetLogDef.lineno(__file__), "strAdminSection >> ", strAdminSection)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strAdminName >> ", strAdminName)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strAdminSection >> ", strAdminSection)
 
             dtToday = DateTime.now()
 
@@ -129,16 +149,17 @@ def main():
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
-                print(GetLogDef.lineno(__file__), "[START LOOP]]================== ", nLoop)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[START LOOP]]================== ", nLoop)
 
                 nbaseDate = dtToday - relativedelta(months=nLoop)
                 dtProcessDay = str(int(nbaseDate.strftime("%Y%m")))
 
-                print(GetLogDef.lineno(__file__), "dtProcessDay >> ", dtProcessDay)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "dtProcessDay >> ", dtProcessDay)
 
-                url = 'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade'
-
-                # url = 'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?_wadl&type=xml'
+                # url = 'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade'
+                url = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade'
 
                 params = {'serviceKey': init_conf.MolitDecodedAuthorizationKey, 'LAWD_CD': strAdminSection,'DEAL_YMD': str(dtProcessDay)}
                 # print("url===> ", strAdminSection, dtProcessDay, url)
@@ -149,15 +170,21 @@ def main():
 
                 # if response.status_code != 200:
                 while True:
-                    print(GetLogDef.lineno(__file__), "============================time.sleep(1) ")
-                    time.sleep(1)
-                    print(GetLogDef.lineno(__file__), "url===> ", strAdminSection, dtProcessDay, url)
-                    print(GetLogDef.lineno(__file__), "params===> ", strAdminSection, dtProcessDay, params)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "============================time.sleep(1) ")
+                    time.sleep(2)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", strAdminSection, dtProcessDay, url)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "params===> ", strAdminSection, dtProcessDay, params)
                     response = requests.get(url, params=params)
-                    print(GetLogDef.lineno(__file__), "response===> ", type(response), response)
-                    print(GetLogDef.lineno(__file__), "response.status_code===> ", type(response.status_code), response.status_code)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(response), response)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "response.status_code===> ", type(response.status_code), response.status_code)
                     if response.status_code == int(200):
-                        print(GetLogDef.lineno(__file__), "break ", type(response.raise_for_status()), response.raise_for_status())
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "break ", type(response.raise_for_status()), response.raise_for_status())
                         responseContents = response.text  # page_source 얻기
                         print("responseContents===> ", type(responseContents), len(responseContents), responseContents)
                         ElementResponseRoot = ET.fromstring(responseContents)
@@ -167,7 +194,7 @@ def main():
                         print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
                         print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
 
-                        if strHeaderResultCode == '00':
+                        if strHeaderResultCode == '000':
                             print("url===> ", type(url), url)
                             print("params===> ", type(params), params)
                             break
@@ -183,14 +210,24 @@ def main():
 
 
                 objectBodyItemAll = ElementResponseRoot.find('body').find('items')
-                print(GetLogDef.lineno(__file__), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
                 # intGetCount = len(objectBodyItemAll)
                 for objectBodyItem in objectBodyItemAll:
-                    print(GetLogDef.lineno(__file__), "================objectBodyItem >> ", len(objectBodyItem) , objectBodyItem.tag)
-                    print(GetLogDef.lineno(__file__), "================Text >> ", type( objectBodyItemAll.iter()) ,  objectBodyItemAll.iter())
+
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "=============================================================objectBodyItem >> ")
+
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "================objectBodyItem >> ", len(objectBodyItem) , objectBodyItem.tag)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "================Text >> ", type( objectBodyItemAll.iter()) ,  objectBodyItemAll.iter())
 
                     for aaa in objectBodyItem.iter():
-                        print(GetLogDef.lineno(__file__), "objectBodyItem.iter() >> ", aaa.tag ," =>" , aaa.text)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "objectBodyItem.iter() >> ", aaa.tag ," =>" , aaa.text)
 
                     # print(objectBodyItem.find('거래금액').text)
                     OBJ_AMT='0'
@@ -213,87 +250,100 @@ def main():
                     CANCEL_YN=''
                     CNTL_YMD=''
 
+                    print("objectBodyItem>>" , objectBodyItem)
 
-                    if objectBodyItem.find('거래금액') != None:
-                        OBJ_AMT = str(objectBodyItem.find('거래금액').text).strip().replace(",", "")
-                    if objectBodyItem.find('거래유형') != None:
-                        REQ_GBN = str(objectBodyItem.find('거래유형').text).strip()
-                    if objectBodyItem.find('건축년도') != None:
-                        BUILD_YEAR = str(objectBodyItem.find('건축년도').text).strip()
-                    if objectBodyItem.find('년') != None:
-                        strTradeYYYY = str(objectBodyItem.find('년').text).strip().zfill(4)
-                    if objectBodyItem.find('월') != None:
-                        strTradeMM = str(objectBodyItem.find('월').text).strip().zfill(2)
-                    if objectBodyItem.find('일') != None:
-                        strTradeDD = str(objectBodyItem.find('일').text).strip().zfill(2)
-                    if objectBodyItem.find('동') != None:
-                        BLDG_DONG = str(objectBodyItem.find('동').text).strip()
-                    if objectBodyItem.find('등기일자') != None:
-                        REGISTER_YMD = str(objectBodyItem.find('등기일자').text).strip()
-                    if objectBodyItem.find('매도자') != None:
-                        SELLER = str(objectBodyItem.find('매도자').text).strip()
-                    if objectBodyItem.find('매수자') != None:
-                        BUYER = str(objectBodyItem.find('매수자').text).strip()
-                    if objectBodyItem.find('법정동') != None:
-                        BJDONG_NM = str(objectBodyItem.find('법정동').text).strip()
-                    if objectBodyItem.find('아파트') != None:
-                        BLDG_NM = str(objectBodyItem.find('아파트').text).strip().replace('\'',"")
-                    if objectBodyItem.find('전용면적') != None:
-                        TOT_AREA = str(objectBodyItem.find('전용면적').text).strip()
-                    if objectBodyItem.find('중개사소재지') != None:
-                        AGENT_ADDR = str(objectBodyItem.find('중개사소재지').text).strip()
-                    if objectBodyItem.find('지번') != None:
-                        BJD_JIUN = str(objectBodyItem.find('지번').text).strip()
-                    if objectBodyItem.find('지역코드') != None:
-                        SGG_CD = str(objectBodyItem.find('지역코드').text).strip()
-                    if objectBodyItem.find('층') != None:
-                        FLOOR = str(objectBodyItem.find('층').text).strip()
-                    if objectBodyItem.find('해제여부') != None:
-                        CANCEL_YN = str(objectBodyItem.find('해제여부').text).strip()
-                    if objectBodyItem.find('해제사유발생일') != None:
-                        CNTL_YMD = str(objectBodyItem.find('해제사유발생일').text).replace(".", "")
+
+                    if objectBodyItem.find('dealAmount') != None:
+                        OBJ_AMT = str(objectBodyItem.find('dealAmount').text).strip().replace(",", "")
+                    if objectBodyItem.find('dealingGbn') != None:
+                        REQ_GBN = str(objectBodyItem.find('dealingGbn').text).strip()
+                    if objectBodyItem.find('buildYear') != None:
+                        BUILD_YEAR = str(objectBodyItem.find('buildYear').text).strip()
+                    if objectBodyItem.find('dealYear') != None:
+                        strTradeYYYY = str(objectBodyItem.find('dealYear').text).strip().zfill(4)
+                    if objectBodyItem.find('dealMonth') != None:
+                        strTradeMM = str(objectBodyItem.find('dealMonth').text).strip().zfill(2)
+                    if objectBodyItem.find('dealDay') != None:
+                        strTradeDD = str(objectBodyItem.find('dealDay').text).strip().zfill(2)
+                    if objectBodyItem.find('aptDong') != None:
+                        BLDG_DONG = str(objectBodyItem.find('aptDong').text).strip()
+                    if objectBodyItem.find('rgstDate') != None:
+                        REGISTER_YMD = str(objectBodyItem.find('rgstDate').text).strip()
+                    if objectBodyItem.find('slerGbn') != None:
+                        SELLER = str(objectBodyItem.find('slerGbn').text).strip()
+                    if objectBodyItem.find('buyerGbn') != None:
+                        BUYER = str(objectBodyItem.find('buyerGbn').text).strip()
+                    if objectBodyItem.find('umdNm') != None:
+                        BJDONG_NM = str(objectBodyItem.find('umdNm').text).strip()
+                    if objectBodyItem.find('aptNm') != None:
+                        BLDG_NM = str(objectBodyItem.find('aptNm').text).strip().replace('\'',"")
+                    if objectBodyItem.find('excluUseAr') != None:
+                        TOT_AREA = str(objectBodyItem.find('excluUseAr').text).strip()
+                    if objectBodyItem.find('estateAgentSggNm') != None:
+                        AGENT_ADDR = str(objectBodyItem.find('estateAgentSggNm').text).strip()
+                    if objectBodyItem.find('jibun') != None:
+                        BJD_JIUN = str(objectBodyItem.find('jibun').text).strip()
+                    if objectBodyItem.find('sggCd') != None:
+                        SGG_CD = str(objectBodyItem.find('sggCd').text).strip()
+                    if objectBodyItem.find('floor') != None:
+                        FLOOR = str(objectBodyItem.find('floor').text).strip()
+                    if objectBodyItem.find('cdealType') != None:
+                        CANCEL_YN = str(objectBodyItem.find('cdealType').text).strip()
+                    if objectBodyItem.find('cdealDay') != None:
+                        CNTL_YMD = str(objectBodyItem.find('cdealDay').text).replace(".", "")
+
 
                     DEAL_YMD = strTradeYYYY + strTradeMM + strTradeDD
 
-                    print(GetLogDef.lineno(__file__), "BJD_JIUN =====> ", BJD_JIUN)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "DEAL_YMD =====> ", DEAL_YMD)
 
                     listBJD_JIUN = BJD_JIUN.split("-")
-                    print(GetLogDef.lineno(__file__), "listBJD_JIUN =====> ", listBJD_JIUN , len(listBJD_JIUN) , type(listBJD_JIUN))
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listBJD_JIUN =====> ", listBJD_JIUN , len(listBJD_JIUN) , type(listBJD_JIUN))
 
                     if len(listBJD_JIUN) == 1:
                         BONBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[0]).zfill(4)
                         BUBEON = '0000'
-                        print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON),type(BONBEON))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON),type(BONBEON))
 
                     elif len(listBJD_JIUN) == 2:
                         BONBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[0]).zfill(4)
                         BUBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[1]).zfill(4)
-                        print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
 
                     elif len(listBJD_JIUN) > 2:
                         listTemp = []
                         for intTempLoop in range(len(listBJD_JIUN)):
-                            print(GetLogDef.lineno(__file__), "intTempLoop=====> ", intTempLoop, type(intTempLoop))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intTempLoop=====> ", intTempLoop, type(intTempLoop))
                             strTemp = re.sub(r'[^0-9]', '', listBJD_JIUN[intTempLoop])
 
-                            print(GetLogDef.lineno(__file__), "strTemp=====> ", strTemp, type(strTemp))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strTemp=====> ", strTemp, type(strTemp))
 
                             if len(strTemp) > 0:
                                 listTemp.append(strTemp)
 
-                        print(GetLogDef.lineno(__file__), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
 
                         if len(listTemp) == 1:
-                            print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = '0000'
                         elif len(listTemp) == 2:
-                            print(GetLogDef.lineno(__file__), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = re.sub(r'[^0-9]', '', listTemp[1]).zfill(4)
 
                         elif len(listTemp) > 2:
-                            print(GetLogDef.lineno(__file__), "listTemp =====> ", listTemp)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp =====> ", listTemp)
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = re.sub(r'[^0-9]', '', listTemp[1]).zfill(4)
 
@@ -306,25 +356,30 @@ def main():
                         CNTL_YMD = "20" + CNTL_YMD
 
 
-                    print(GetLogDef.lineno(__file__),"BJDONG_NM" , "["+BJDONG_NM+"]")
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
                     sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
                     sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                    print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
                     if intGovCodeCount < 1:
                         BJDONG_NM = BJDONG_NM[0:-1]
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
                         sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
                         sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                         cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                         intGovCodeCount = cursorRealEstate.rowcount
 
                     if intGovCodeCount < 1:
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
                         raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     elif intGovCodeCount > 1:
 
@@ -346,7 +401,8 @@ def main():
 
 
                     if len(BJDONG_CD) < 5:
-                        print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BJDONG_CD =====> ", BJDONG_CD)
                         raise Exception("BJDONG_CD => " + str(BJDONG_CD))
 
 
@@ -359,15 +415,20 @@ def main():
                                    FLOOR+ "_" +\
                                    DEAL_YMD+ "_" +OBJ_AMT
 
-                    print(GetLogDef.lineno(__file__), "strUniqueKey" , strUniqueKey)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strUniqueKey" , strUniqueKey)
 
 
                     sqlSelectMOLIT = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitRealTradeMasterTable+" WHERE unique_key = %s "
                     cursorRealEstate.execute(sqlSelectMOLIT , (strUniqueKey) )
                     intMolitCount = cursorRealEstate.rowcount
-                    print(GetLogDef.lineno(__file__), "intMolitCount", intMolitCount)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intMolitCount", intMolitCount)
 
                     if intMolitCount < 1:
+
+                        strNaverLongitude = str(0)
+                        strNaverLatitude = str(0)
 
                         strDOROJUSO = SIDO_NM + " "
                         strDOROJUSO += SGG_NM + " "
@@ -376,9 +437,25 @@ def main():
                         if len(str(BUBEON).lstrip("0")) > 0:
                             strDOROJUSO += "-"+str(BUBEON).lstrip("0")
 
-                        strNaverLongitude = str(0)
-                        strNaverLatitude = str(0)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno), "strDOROJUSO",
+                              strDOROJUSO)
 
+                        resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
+                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict),
+                              isinstance(resultsDict, dict),
+                              resultsDict)
+                        if isinstance(resultsDict, dict) == True:
+                            print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
+                            strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
+
+                        resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
+                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
+
+                        if isinstance(resultsDict, dict) != False:
+                            strNaverLongitude = str(resultsDict['x'])  # 127
+                            strNaverLatitude = str(resultsDict['y'])  # 37
 
                         #INSERT
                         sqlInsertMOLIT  = " INSERT INTO "+ConstRealEstateTable_GOV.MolitRealTradeMasterTable+" SET "
@@ -409,80 +486,107 @@ def main():
                         sqlInsertMOLIT += " , lat= '" + strNaverLatitude + "' "
                         sqlInsertMOLIT += " , geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat') "
                         sqlInsertMOLIT += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                        sqlInsertMOLIT += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                         sqlInsertMOLIT += " , state = '"+state+"'"
 
-                        print(GetLogDef.lineno(__file__), "sqlInsertMOLIT ", sqlInsertMOLIT)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlInsertMOLIT ", sqlInsertMOLIT)
 
                         cursorRealEstate.execute(sqlInsertMOLIT , (strUniqueKey) )
                         ResRealEstateConnection.commit()
                         nInsertedCount = nInsertedCount + 1
+
                     else:
 
                         rstSelectMOLIT = cursorRealEstate.fetchone()
                         DBstate = rstSelectMOLIT.get('state')
+                        DBREGISTER_YMD = rstSelectMOLIT.get('REGISTER_YMD')
 
-                        print(GetLogDef.lineno(__file__), "UPDATE SET ", strUniqueKey)
-                        print(GetLogDef.lineno(__file__), DBstate, type(DBstate), " != ", state, type(state))
 
-                        if DBstate != '00':
-                            print(GetLogDef.lineno(__file__), "-----------------------------------------")
-                            continue
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "UPDATE SET ", strUniqueKey)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), DBstate, type(DBstate), " != ", state, type(state))
 
-                        print(GetLogDef.lineno(__file__), "-----------------------------------------")
+                        # DB는 정상이고, 조회는 정상이 아닌경우 취소 처리
+                        if DBstate == '00' and DBstate != state:
 
-                        if DBstate == state:
-                            print(GetLogDef.lineno(__file__), DBstate, " == ", state)
-                            continue
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "state=>" , state)
+                            sqlSelectMOLITCancel = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitRealTradeCancelTable+" WHERE unique_key = %s "
+                            cursorRealEstate.execute(sqlSelectMOLITCancel, (strUniqueKey))
+                            intMolitCancelCount = cursorRealEstate.rowcount
+                            if intMolitCancelCount < 0:
+                                sqlInsertMOLITCancel = " INSERT INTO "+ConstRealEstateTable_GOV.MolitRealTradeCancelTable+" SET "
+                                sqlInsertMOLITCancel += " unique_key = %s"
+                                sqlInsertMOLITCancel += " , ACC_YEAR = '" + strTradeYYYY + "'"
+                                sqlInsertMOLITCancel += " , SIDO_CD = '" + sido_code + "'"
+                                sqlInsertMOLITCancel += " , SIDO_NM = '" + SIDO_NM + "'"
+                                sqlInsertMOLITCancel += " , SGG_CD = '" + sigu_code + "'"
+                                sqlInsertMOLITCancel += " , SGG_NM = '" + SGG_NM + "'"
+                                sqlInsertMOLITCancel += " , BJDONG_CD = '" + BJDONG_CD + "'"
+                                sqlInsertMOLITCancel += " , BJDONG_NM = '" + BJDONG_NM + "'"
+                                sqlInsertMOLITCancel += " , BONBEON = '" + BONBEON + "'"
+                                sqlInsertMOLITCancel += " , BUBEON = '" + BUBEON + "'"
+                                sqlInsertMOLITCancel += " , BLDG_NM = '" + BLDG_NM + "'"
+                                sqlInsertMOLITCancel += " , BLDG_DONG = '" + BLDG_DONG + "'"
+                                sqlInsertMOLITCancel += " , HOUSE_TYPE = '" + HOUSE_TYPE + "'"
+                                sqlInsertMOLITCancel += " , DEAL_YMD = '" + DEAL_YMD + "'"
+                                sqlInsertMOLITCancel += " , OBJ_AMT = '" + OBJ_AMT + "'"
+                                sqlInsertMOLITCancel += " , TOT_AREA = '" + TOT_AREA + "'"
+                                sqlInsertMOLITCancel += " , FLOOR = '" + FLOOR + "'"
+                                sqlInsertMOLITCancel += " , CNTL_YMD = '" + CNTL_YMD + "'"
+                                sqlInsertMOLITCancel += " , REGISTER_YMD = '" + REGISTER_YMD + "'"
+                                sqlInsertMOLITCancel += " , BUILD_YEAR = '" + BUILD_YEAR + "'"
+                                sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
+                                sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
+                                sqlInsertMOLITCancel += " , REQ_GBN = '" + REQ_GBN + "'"
+                                sqlInsertMOLITCancel += " , lng= '0' "
+                                sqlInsertMOLITCancel += " , lat= '0' "
+                                sqlInsertMOLITCancel += " , geo_point = ST_GeomFromText('POINT( 0 0 )', 4326,'axis-order=long-lat') "
+                                sqlInsertMOLITCancel += " , AGENT_ADDR = '" + AGENT_ADDR + "'"
+                                sqlInsertMOLITCancel += " , state = '" + state + "'"
+                                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
+                                cursorRealEstate.execute(sqlInsertMOLITCancel, (strUniqueKey))
 
-                        sqlSelectMOLITCancel = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitRealTradeCancelTable+" WHERE unique_key = %s "
-                        cursorRealEstate.execute(sqlSelectMOLIT, (strUniqueKey))
-                        intMolitCancelCount = cursorRealEstate.rowcount
-                        if intMolitCancelCount < 0:
-                            sqlInsertMOLITCancel = " INSERT INTO "+ConstRealEstateTable_GOV.MolitRealTradeCancelTable+" SET "
-                            sqlInsertMOLITCancel += " unique_key = %s"
-                            sqlInsertMOLITCancel += " , ACC_YEAR = '" + strTradeYYYY + "'"
-                            sqlInsertMOLITCancel += " , SIDO_CD = '" + sido_code + "'"
-                            sqlInsertMOLITCancel += " , SIDO_NM = '" + SIDO_NM + "'"
-                            sqlInsertMOLITCancel += " , SGG_CD = '" + sigu_code + "'"
-                            sqlInsertMOLITCancel += " , SGG_NM = '" + SGG_NM + "'"
-                            sqlInsertMOLITCancel += " , BJDONG_CD = '" + BJDONG_CD + "'"
-                            sqlInsertMOLITCancel += " , BJDONG_NM = '" + BJDONG_NM + "'"
-                            sqlInsertMOLITCancel += " , BONBEON = '" + BONBEON + "'"
-                            sqlInsertMOLITCancel += " , BUBEON = '" + BUBEON + "'"
-                            sqlInsertMOLITCancel += " , BLDG_NM = '" + BLDG_NM + "'"
-                            sqlInsertMOLITCancel += " , BLDG_DONG = '" + BLDG_DONG + "'"
-                            sqlInsertMOLITCancel += " , HOUSE_TYPE = '" + HOUSE_TYPE + "'"
-                            sqlInsertMOLITCancel += " , DEAL_YMD = '" + DEAL_YMD + "'"
-                            sqlInsertMOLITCancel += " , OBJ_AMT = '" + OBJ_AMT + "'"
-                            sqlInsertMOLITCancel += " , TOT_AREA = '" + TOT_AREA + "'"
-                            sqlInsertMOLITCancel += " , FLOOR = '" + FLOOR + "'"
-                            sqlInsertMOLITCancel += " , CNTL_YMD = '" + CNTL_YMD + "'"
-                            sqlInsertMOLITCancel += " , REGISTER_YMD = '" + REGISTER_YMD + "'"
-                            sqlInsertMOLITCancel += " , BUILD_YEAR = '" + BUILD_YEAR + "'"
-                            sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
-                            sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
-                            sqlInsertMOLITCancel += " , REQ_GBN = '" + REQ_GBN + "'"
-                            sqlInsertMOLITCancel += " , lng= '0' "
-                            sqlInsertMOLITCancel += " , lat= '0' "
-                            sqlInsertMOLITCancel += " , geo_point = ST_GeomFromText('POINT( 0 0 )', 4326,'axis-order=long-lat') "
-                            sqlInsertMOLITCancel += " , AGENT_ADDR = '" + AGENT_ADDR + "'"
-                            sqlInsertMOLITCancel += " , state = '" + state + "'"
-                            print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
-                            cursorRealEstate.execute(sqlInsertMOLITCancel, (strUniqueKey))
+                            sqlUpdateMOLIT = " UPDATE " + ConstRealEstateTable_GOV.MolitRealTradeMasterTable + " SET "
+                            sqlUpdateMOLIT += " CNTL_YMD = '" + CNTL_YMD + "'"
+                            sqlUpdateMOLIT += " , state = '" + state + "'"
+                            sqlUpdateMOLIT += " , modify_date = NOW() "
+                            sqlUpdateMOLIT += " WHERE unique_key = %s"
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
+                            cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey))
+                            ResRealEstateConnection.commit()
+                            nUpdateCount = nUpdateCount + 1
 
-                        sqlUpdateMOLIT = " UPDATE "+ConstRealEstateTable_GOV.MolitRealTradeMasterTable+" SET "
-                        sqlUpdateMOLIT += " CNTL_YMD = '"+CNTL_YMD+"'"
-                        sqlUpdateMOLIT += " , state = '"+state+"'"
-                        sqlUpdateMOLIT += " , modify_date = NOW() "
-                        sqlUpdateMOLIT += " WHERE unique_key = %s"
-                        print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
-                        cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey) )
-                        ResRealEstateConnection.commit()
-                        nUpdateCount = nUpdateCount + 1
 
-                    print(GetLogDef.lineno(__file__), "END strUniqueKey > ",strUniqueKey)
-                    print(GetLogDef.lineno(__file__), "nInsertedCount ", nInsertedCount)
-                    print(GetLogDef.lineno(__file__), "nUpdateCount ", nUpdateCount)
+                        #DB에 이미 등기 되었거나,  등기 된 내역이 아니면
+                        if len(DBREGISTER_YMD) > 1 and len(REGISTER_YMD) < 0:
+
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "DBREGISTER_YMD=>" , DBREGISTER_YMD)
+                            sqlUpdateMOLIT = " UPDATE " + ConstRealEstateTable_GOV.MolitRealTradeMasterTable + " SET "
+                            sqlUpdateMOLIT += " REGISTER_YMD = '" + REGISTER_YMD + "'"
+                            sqlUpdateMOLIT += " , modify_date = NOW() "
+                            sqlUpdateMOLIT += " WHERE unique_key = %s"
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
+                            cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey))
+                            ResRealEstateConnection.commit()
+                            nUpdateCount = nUpdateCount + 1
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "END strUniqueKey > ", strUniqueKey)
+
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "END strUniqueKey > ",strUniqueKey)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "nInsertedCount ", nInsertedCount)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "nUpdateCount ", nUpdateCount)
 
                     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
                     dictSwitchData = dict()
@@ -495,14 +599,20 @@ def main():
                     dictSwitchData['data_6'] = nInsertedCount
                     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-                print(GetLogDef.lineno(__file__), "[strAdminName]================== ", strAdminName)
-                print(GetLogDef.lineno(__file__), "[dtProcessDay]================== ", dtProcessDay)
-                print(GetLogDef.lineno(__file__), "[END LOOP]]================== ", nLoop)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[strAdminName]================== ", strAdminName)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[dtProcessDay]================== ", dtProcessDay)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END LOOP]]================== ", nLoop)
 
-            print(GetLogDef.lineno(__file__), "[END intRangeStart]]================== ", intRangeStart)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END intRangeStart]]================== ", intRangeStart)
             intRangeStart = 0
-            print(GetLogDef.lineno(__file__), "[END strAdminSection]]================== ", strAdminSection)
-            print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminSection]]================== ", strAdminSection)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -512,29 +622,39 @@ def main():
         dictSwitchData['data_3'] = strGOVMoltyAddressSequence
         dictSwitchData['data_4'] = nLoop
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
 
     except Exception as e:
 
-        print(GetLogDef.lineno(__file__), "Error Exception")
-        print(GetLogDef.lineno(__file__), e)
-        print(GetLogDef.lineno(__file__), type(e))
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "Error Exception")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), e)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), type(e))
         err_msg = traceback.format_exc()
-        print(GetLogDef.lineno(__file__), err_msg)
-        print(GetLogDef.lineno(__file__), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), err_msg)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '20'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
     else:
-        print(GetLogDef.lineno(__file__), 'Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
-        print(GetLogDef.lineno(__file__), "========================= SUCCESS END")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), 'Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "========================= SUCCESS END")
     finally:
-        print(GetLogDef.lineno(__file__), "Finally END")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "Finally END")
 
 
