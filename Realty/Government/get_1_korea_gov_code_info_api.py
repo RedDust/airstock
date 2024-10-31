@@ -45,6 +45,7 @@ from Lib.CustomException import QuitException
 
 
 def main():
+
     try:
         #사용변수 초기화
         nSequence = 0
@@ -97,10 +98,11 @@ def main():
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            QuitException(GetLogDef.lineno(__file__)+ 'strResult => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.lineno(__file__)+ 'strResult => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '10':
-            QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+            print("strResult > " , strResult)
+            # QuitException.QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
@@ -143,10 +145,24 @@ def main():
 
         # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
         response = urllib.request.urlopen(url)
+
+        if response.getcode() != 200:
+            # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
+            url = "http://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList?serviceKey=" + init_conf.MolitEncodedAuthorizationKey
+            url += "&pageNo=" + str(nStartNumber) + "&numOfRows=1&type=json"
+            # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
+            response = urllib.request.urlopen(url)
+
+
+
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(response),
+              response)
+
         json_str = response.read().decode("utf-8")
 
         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), "json_str===> ", type(json_str),
+                                inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(json_str),
               json_str)
 
         if len(json_str) < 1:
@@ -202,16 +218,20 @@ def main():
             if (intMaxPage > 0) and (nStartNumber > intMaxPage):
                 break
 
-
-
             # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
             url  = "http://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList?serviceKey="+init_conf.MolitEncodedAuthorizationKey
             url += "&pageNo="+str(nStartNumber)+"&numOfRows="+str(nProcessedCount)+"&type=json"
 
             print(GetLogDef.lineno(__file__), "url > ", url)
-
             # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
-            response = urllib.request.urlopen(url)
+            while True:
+                response = urllib.request.urlopen(url)
+                if response.getcode() == 200:
+                    # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
+                    break
+
+                time.sleep(2)
+
             json_str = response.read().decode("utf-8")
 
             # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -322,6 +342,17 @@ def main():
                                             inspect.getframeinfo(inspect.currentframe()).lineno), "UPDATE => ", strUrlRegionCd)
 
                 ResRealEstateConnection.commit()
+
+                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                dictSwitchData = dict()
+                dictSwitchData['result'] = '10'
+                dictSwitchData['data_1'] = strUrlRegionCd
+                dictSwitchData['data_2'] = nStartNumber
+                dictSwitchData['data_3'] = nProcessedCount
+                dictSwitchData['data_4'] = strUrlRegionCd
+                dictSwitchData['data_5'] = strUrlLocataddNm
+                dictSwitchData['data_6'] = strUrlLocallowNm
+                LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
             nStartNumber += 1
             time.sleep(2)
