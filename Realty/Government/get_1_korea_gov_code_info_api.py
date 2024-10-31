@@ -368,7 +368,7 @@ def main():
         dictSwitchData['data_5'] = strUrlLocataddNm
         dictSwitchData['data_6'] = strUrlLocallowNm
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", jsonIssueNumber)
+        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", dictSwitchData)
 
 
     except Exception as e:
