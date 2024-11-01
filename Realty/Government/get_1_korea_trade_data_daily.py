@@ -171,7 +171,7 @@ def main():
                 # if response.status_code != 200:
                 while True:
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "============================time.sleep(1) ")
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "============================time.sleep(2) ")
                     time.sleep(2)
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", strAdminSection, dtProcessDay, url)
@@ -188,9 +188,15 @@ def main():
                         responseContents = response.text  # page_source 얻기
                         print("responseContents===> ", type(responseContents), len(responseContents), responseContents)
                         ElementResponseRoot = ET.fromstring(responseContents)
+
+                        if len(responseContents) <= 229:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "responseContents ===> ", type(responseContents), responseContents)
+                            continue
+
                         strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
                         strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
-
                         print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
                         print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
 
