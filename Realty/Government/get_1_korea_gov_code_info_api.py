@@ -102,7 +102,7 @@ def main():
 
         if strResult == '10':
             print("strResult > " , strResult)
-            # QuitException.QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
@@ -139,6 +139,7 @@ def main():
         # 최종번호
         nEndNumber = nProcessedCount
 
+
         # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
         url = "http://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList?serviceKey=" + init_conf.MolitEncodedAuthorizationKey
         url += "&pageNo=" + str(nStartNumber) + "&numOfRows=1&type=json"
@@ -146,11 +147,11 @@ def main():
         # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
         response = urllib.request.urlopen(url)
 
+
         if response.getcode() != 200:
             # url 변수에 최종 완성본 url을 넣자   1  부터 10번까지 ORDER 는 뒷 쪽부터 ( 최근부터) 5/10 하면 5,6,7,8,9,10 6개 나옮
             url = "http://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList?serviceKey=" + init_conf.MolitEncodedAuthorizationKey
             url += "&pageNo=" + str(nStartNumber) + "&numOfRows=1&type=json"
-            # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
             response = urllib.request.urlopen(url)
 
 
@@ -202,6 +203,8 @@ def main():
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
 
+        #수집전에 테이블을 모두 사용 불가능으로 바꿔 놓는다.
+        # 없어진 시군구 코드를 체크 하기 위해서
 
         sqlUpdateGovCode = " UPDATE " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
         sqlUpdateGovCode += " state = '01'  "
@@ -230,7 +233,7 @@ def main():
                     # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
                     break
 
-                time.sleep(2)
+                time.sleep(1)
 
             json_str = response.read().decode("utf-8")
 
@@ -266,9 +269,10 @@ def main():
             nLoop = 0
             strUniqueKey = ''
 
-
-
             for jsonRowData in jsonRowDatas:
+
+                print("nLoop", "================================================================================================================================")
+
                 print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                         inspect.getframeinfo(inspect.currentframe()).lineno), "jsonRowData===> ",
                       type(jsonRowData), jsonRowData)
@@ -278,6 +282,62 @@ def main():
                 strUrlSggCd = jsonRowData.get('sgg_cd')
                 strUrlUmdCd = jsonRowData.get('umd_cd')
                 strUrlRiCd = jsonRowData.get('ri_cd')
+
+                strSiguName = str(jsonRowData.get('locatadd_nm'))
+                listSiGuName = strSiguName.split(" ")
+                listSiGuNameTemp = strSiguName.split(" ")
+
+                strSiGuName = strUmdName = strRiName = ''
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "listSiGuName===> ",
+                      type(listSiGuName), listSiGuName)
+
+
+                strSiDoName = str(listSiGuName[0])
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strSiDoName===> ",
+                      type(strSiDoName), strSiDoName)
+
+                listSiGuNameTemp.pop(0)
+
+                if strUrlSggCd != "000" and len(listSiGuName) > 1:
+                    strSiGuName = str(listSiGuName[1])
+                    strLastPop = listSiGuNameTemp.pop(0)
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno), "strLastPop===> ",
+                          type(strLastPop), strLastPop)
+
+                    strLastWord = strLastPop[-1]
+                    if strLastWord.find('시') < 0 and strLastWord.find('군') < 0 and strLastWord.find('구') < 0 :
+                        listSiGuNameTemp.insert(0, strLastPop )
+                        strSiGuName = ''
+
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strSiGuName===> ",
+                      type(strSiGuName), strSiGuName)
+
+
+                if strUrlRiCd != "00" and len(listSiGuName) > 2:
+                    strRiName = listSiGuNameTemp.pop()
+
+
+                if strUrlUmdCd != "000" and len(listSiGuName) > 1:
+                    strUmdName = str(" ".join(listSiGuNameTemp))
+
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strUmdName===> ",
+                      type(strUmdName), strUmdName)
+
+
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strRiName===> ",
+                      type(strRiName), strRiName)
+
 
                 strUrlLocatjuminCd = jsonRowData.get('locatjumin_cd')
                 strUrlLocatjijukCd = jsonRowData.get('locatjijuk_cd')
@@ -307,13 +367,42 @@ def main():
                 #이미 저장 되어 있으면 더이상 저장 하지 않는다.
                 if row_result < 1:
 
+                    strDOROJUSO = strSiguName
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(inspect.currentframe()).lineno), "strDOROJUSO",
+                          strDOROJUSO)
+
+                    resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
+                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict),
+                          isinstance(resultsDict, dict),
+                          resultsDict)
+
+                    if isinstance(resultsDict, dict) == True:
+                        print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
+                        strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
+
+                    resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
+                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
+
+                    if isinstance(resultsDict, dict) != False:
+                        strNaverLongitude = str(resultsDict['x'])  # 127
+                        strNaverLatitude = str(resultsDict['y'])  # 37
+
+                    time.sleep(0.3)
+
                     # INSERT
                     sqlInsertGovCode = " INSERT INTO " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
                     sqlInsertGovCode += " region_cd = %s ,  "
                     sqlInsertGovCode += " sido_cd = %s ,  "
+                    sqlInsertGovCode += " sido_nm = %s ,  "
                     sqlInsertGovCode += " sgg_cd = %s ,  "
+                    sqlInsertGovCode += " sgg_nm = %s ,  "
                     sqlInsertGovCode += " umd_cd = %s ,  "
+                    sqlInsertGovCode += " umd_nm = %s ,  "
                     sqlInsertGovCode += " ri_cd = %s ,  "
+                    sqlInsertGovCode += " ri_nm = %s ,  "
                     sqlInsertGovCode += " locatjumin_cd = %s ,  "
                     sqlInsertGovCode += " locatjijuk_cd = %s ,  "
                     sqlInsertGovCode += " locatadd_nm = %s ,  "
@@ -322,14 +411,21 @@ def main():
                     sqlInsertGovCode += " locathigh_cd = %s ,  "
                     sqlInsertGovCode += " locallow_nm = %s ,  "
                     sqlInsertGovCode += " adpt_de = %s ,  "
+                    sqlInsertGovCode += " nlongitude = %s ,  "
+                    sqlInsertGovCode += " nlatitude = %s ,  "
+                    sqlInsertGovCode += " geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat'), "
                     sqlInsertGovCode += " modify_date = NOW() ,  "
                     sqlInsertGovCode += " reg_date = NOW()   "
-                    cursorRealEstate.execute(sqlInsertGovCode, (strUrlRegionCd, strUrlSidoCd, strUrlSggCd, strUrlUmdCd, strUrlRiCd,
-                                                                strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm, strUrlLocatOrder,strUrlLocatRm,
-                                                                strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe))
-
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "INSERT => ", strUrlRegionCd, strUrlSidoCd, strUrlSggCd, strUrlUmdCd, strUrlRiCd, strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm, strUrlLocatOrder,strUrlLocatRm,strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe)
+                                            inspect.getframeinfo(inspect.currentframe()).lineno), "INSERT => ", strUrlRegionCd, strUrlSidoCd, strSiDoName,
+                          strUrlSggCd, strSiGuName, strUrlUmdCd, strUmdName, strUrlRiCd, strRiName, strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm,
+                          strUrlLocatOrder,strUrlLocatRm,strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe ,strNaverLongitude , strNaverLatitude)
+
+                    cursorRealEstate.execute(sqlInsertGovCode, (strUrlRegionCd, strUrlSidoCd,strSiDoName, strUrlSggCd, strSiGuName, strUrlUmdCd, strUmdName, strUrlRiCd, strRiName,
+                                                                strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm, strUrlLocatOrder,strUrlLocatRm,
+                                                                strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe, strNaverLongitude, strNaverLatitude))
+
+
 
                 else:
                     # UPDATE
