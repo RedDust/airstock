@@ -53,11 +53,15 @@ def main():
         strAdminName = ''
         targetRow = '00'
         nProcessCount=0
+
         HOUSE_TYPE = '단독'
         strSwitchSidoCode=''
         strSwitchYYYYMM=''
         GOVMoltyAddressSequence='0'
 
+        dtToday = DateTime.now()
+        dtProcessDay = str(int(dtToday.strftime("%Y%m%d")))
+        nLoop = 0
         # # DB 연결
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
