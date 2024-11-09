@@ -95,13 +95,6 @@ def main():
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-        # qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
-        # qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
-        # qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
-        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # # qrySelectSeoulTradeMaster += " LIMIT 1 "
-
-
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
         qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
         qrySelectSeoulTradeMaster += " AND seq >= "+strGOVMoltyAddressSequence+" "
@@ -141,7 +134,7 @@ def main():
             #시작월 마지막 월 (12개월 * 30년)
             intRangeStart = int(intLoopStart)
             # intRangeEnd = 12 * 25
-            intRangeEnd = 2
+            intRangeEnd = 3
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
@@ -152,7 +145,7 @@ def main():
 
                 print(GetLogDef.lineno(__file__), "dtProcessDay >> ", dtProcessDay)
 
-                url = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcOffiTrade'
+                # url = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcOffiTrade'
                 url = 'http://apis.data.go.kr/1613000/RTMSDataSvcOffiTrade/getRTMSDataSvcOffiTrade'
                 params = {'serviceKey': init_conf.MolitDecodedAuthorizationKey, 'LAWD_CD': strAdminSection,'DEAL_YMD': str(dtProcessDay)}
 
@@ -320,43 +313,25 @@ def main():
 
                     print(GetLogDef.lineno(__file__),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
-                    sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                    sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
+                    sqlSelectGOVCodeinfo  = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                    sqlSelectGOVCodeinfo += " WHERE sido_cd='"+sido_code+"' AND sgg_cd='"+sigu_code+"' "
+                    sqlSelectGOVCodeinfo += " AND locatadd_nm LIKE '% " + BJDONG_NM + "' "
                     print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
-                    if intGovCodeCount < 1:
-                        BJDONG_NM = BJDONG_NM[0:-1]
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
-                        sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                        sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
-                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
-                        intGovCodeCount = cursorRealEstate.rowcount
-
-                    if intGovCodeCount < 1:
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
+                    if intGovCodeCount != 1:
+                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
                         raise Exception("intGovCodeCount => " + str(intGovCodeCount))
-                    elif intGovCodeCount > 1:
-
-                        rstSelectDatas = cursorRealEstate.fetchall()
-                        for rstSelectData in rstSelectDatas:
-                            strGovInfoState = rstSelectData.get('state')
-                            if strGovInfoState == '00':
-                                BJDONG_CD = rstSelectData.get('dongmyun_code')
-                                BJDONG_NM = rstSelectData.get('dongmyun_name')
-                                SIDO_NM = rstSelectData.get('sido_name')
-                                SGG_NM = rstSelectData.get('sigu_name')
-                                break
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
-                        BJDONG_CD = rstSelectDatas.get('dongmyun_code')
-                        BJDONG_NM = rstSelectDatas.get('dongmyun_name')
-                        SIDO_NM = rstSelectDatas.get('sido_name')
-                        SGG_NM = rstSelectDatas.get('sigu_name')
+                        BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
+                        BJDONG_NM = rstSelectDatas.get('umd_nm') + " " + rstSelectDatas.get('ri_nm')
+                        SIDO_NM = rstSelectDatas.get('sido_nm')
+                        SGG_NM = rstSelectDatas.get('sgg_nm')
 
-                    if len(BJDONG_CD) < 5:
+
+                    if len(BJDONG_CD) != 5:
                         print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
                         raise Exception("BJDONG_CD => " + str(BJDONG_CD))
 
@@ -386,7 +361,8 @@ def main():
                         sqlInsertMOLIT += " , SGG_NM = '"+SGG_NM+"'"
                         sqlInsertMOLIT += " , BJDONG_CD = '"+BJDONG_CD+"'"
                         sqlInsertMOLIT += " , BJDONG_NM = '"+BJDONG_NM+"'"
-                        sqlInsertMOLIT += " , BONBEON = '"+BJD_JIUN+"'"
+                        sqlInsertMOLIT += " , BONBEON = '"+BONBEON+"'"
+                        sqlInsertMOLIT += " , BUBEON = '" + BUBEON + "'"
                         sqlInsertMOLIT += " , BUILD_YEAR = '"+BUILD_YEAR+"'"
                         sqlInsertMOLIT += " , HOUSE_TYPE = '"+HOUSE_TYPE+"'"
                         sqlInsertMOLIT += " , DEAL_YMD = '"+DEAL_YMD+"'"
@@ -396,6 +372,7 @@ def main():
                         sqlInsertMOLIT += " , SELLER = '" + SELLER + "'"
                         sqlInsertMOLIT += " , BUYER = '" + BUYER + "'"
                         sqlInsertMOLIT += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                        sqlInsertMOLIT += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                         sqlInsertMOLIT += " , CNTL_YMD = '"+CNTL_YMD+"'"
                         sqlInsertMOLIT += " , state = '"+state+"'"
                         print(GetLogDef.lineno(__file__), "sqlInsertMOLIT ", sqlInsertMOLIT)
@@ -420,7 +397,7 @@ def main():
                             continue
 
                         sqlSelectMOLITCancel = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitOfficetelRealTradeCancelTable+" WHERE unique_key = %s "
-                        cursorRealEstate.execute(sqlSelectMOLIT, (strUniqueKey))
+                        cursorRealEstate.execute(sqlSelectMOLITCancel, (strUniqueKey))
                         intMolitCancelCount = cursorRealEstate.rowcount
                         if intMolitCancelCount < 0:
                             sqlInsertMOLITCancel  = " INSERT INTO "+ConstRealEstateTable_GOV.MolitOfficetelRealTradeCancelTable+" SET "
@@ -441,6 +418,7 @@ def main():
                             sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
                             sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
                             sqlInsertMOLITCancel += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                            sqlInsertMOLITCancel += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                             sqlInsertMOLITCancel += " , CNTL_YMD = '"+CNTL_YMD+"'"
                             sqlInsertMOLITCancel += " , state = '"+state+"'"
                             print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
