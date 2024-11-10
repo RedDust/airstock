@@ -85,8 +85,6 @@ def main():
             QuitException.QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
-        
-
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
             GOVMoltyAddressSequence = str(rstResult.get('data_3'))
@@ -123,7 +121,7 @@ def main():
 
         intRangeStart = int(intLoopStart)
         intRangeEnd = 12 * 25
-        intRangeEnd = 2
+        intRangeEnd = 3
         for rstSelectData in rstSelectDatas:
 
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
@@ -205,11 +203,9 @@ def main():
                             print("params===> ", type(params), params)
                             break
                         elif strHeaderResultCode == '99':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
-
-                            if strHeaderResultMessage.count('LIMITED') > 0:
-                                raise Exception("strHeaderResultCode => " + str(strHeaderResultCode))
+                            print("ELSE url===> ", type(url), url)
+                            print("ELSE params===> ", type(params), params)
+                            time.sleep(10)
 
 
 
@@ -365,45 +361,24 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
-                    sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                    sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
+                    sqlSelectGOVCodeinfo  = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                    sqlSelectGOVCodeinfo += " WHERE sido_cd='"+sido_code+"' AND sgg_cd='"+sigu_code+"' "
+                    sqlSelectGOVCodeinfo += " AND locatadd_nm LIKE '% " + BJDONG_NM + "' "
+                    print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
-                    if intGovCodeCount < 1:
-                        BJDONG_NM = BJDONG_NM[0:-1]
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
-                        sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                        sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
-                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
-                        intGovCodeCount = cursorRealEstate.rowcount
+                    print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
 
-                    if intGovCodeCount < 1:
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
+                    if intGovCodeCount != 1:
+                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
                         raise Exception("intGovCodeCount => " + str(intGovCodeCount))
-                    elif intGovCodeCount > 1:
-
-                        rstSelectDatas = cursorRealEstate.fetchall()
-                        for rstSelectData in rstSelectDatas:
-                            strGovInfoState = rstSelectData.get('state')
-                            if strGovInfoState =='00':
-                                BJDONG_CD = rstSelectData.get('dongmyun_code')
-                                BJDONG_NM = rstSelectData.get('dongmyun_name')
-                                SIDO_NM = rstSelectData.get('sido_name')
-                                SGG_NM = rstSelectData.get('sigu_name')
-                                break
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
-                        BJDONG_CD = rstSelectDatas.get('dongmyun_code')
-                        BJDONG_NM = rstSelectDatas.get('dongmyun_name')
-                        SIDO_NM = rstSelectDatas.get('sido_name')
-                        SGG_NM = rstSelectDatas.get('sigu_name')
+                        BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
+                        BJDONG_NM = rstSelectDatas.get('umd_nm') + " " + rstSelectDatas.get('ri_nm')
+                        SIDO_NM = rstSelectDatas.get('sido_nm')
+                        SGG_NM = rstSelectDatas.get('sgg_nm')
 
 
                     if len(BJDONG_CD) < 5:
@@ -436,32 +411,32 @@ def main():
                         strNaverLongitude = str(0)
                         strNaverLatitude = str(0)
 
-                        strDOROJUSO = SIDO_NM + " "
-                        strDOROJUSO += SGG_NM + " "
-                        strDOROJUSO += BJDONG_NM + " "
-                        strDOROJUSO += str(BONBEON).lstrip("0")
-                        if len(str(BUBEON).lstrip("0")) > 0:
-                            strDOROJUSO += "-"+str(BUBEON).lstrip("0")
-
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                inspect.getframeinfo(inspect.currentframe()).lineno), "strDOROJUSO",
-                              strDOROJUSO)
-
-                        resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
-                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict),
-                              isinstance(resultsDict, dict),
-                              resultsDict)
-                        if isinstance(resultsDict, dict) == True:
-                            print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
-                            strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
-
-                        resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
-                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
-                        print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
-
-                        if isinstance(resultsDict, dict) != False:
-                            strNaverLongitude = str(resultsDict['x'])  # 127
-                            strNaverLatitude = str(resultsDict['y'])  # 37
+                        # strDOROJUSO = SIDO_NM + " "
+                        # strDOROJUSO += SGG_NM + " "
+                        # strDOROJUSO += BJDONG_NM + " "
+                        # strDOROJUSO += str(BONBEON).lstrip("0")
+                        # if len(str(BUBEON).lstrip("0")) > 0:
+                        #     strDOROJUSO += "-"+str(BUBEON).lstrip("0")
+                        #
+                        # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                        #                         inspect.getframeinfo(inspect.currentframe()).lineno), "strDOROJUSO",
+                        #       strDOROJUSO)
+                        #
+                        # resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
+                        # print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict),
+                        #       isinstance(resultsDict, dict),
+                        #       resultsDict)
+                        # if isinstance(resultsDict, dict) == True:
+                        #     print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
+                        #     strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
+                        #
+                        # resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
+                        # print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
+                        # print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
+                        #
+                        # if isinstance(resultsDict, dict) != False:
+                        #     strNaverLongitude = str(resultsDict['x'])  # 127
+                        #     strNaverLatitude = str(resultsDict['y'])  # 37
 
                         #INSERT
                         sqlInsertMOLIT  = " INSERT INTO "+ConstRealEstateTable_GOV.MolitRealTradeMasterTable+" SET "

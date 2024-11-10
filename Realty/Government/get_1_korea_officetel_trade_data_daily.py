@@ -175,11 +175,10 @@ def main():
                             print("url===> ", type(url), url)
                             print("params===> ", type(params), params)
                             break
-                        elif strHeaderResultCode == '99':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
-                            if strHeaderResultMessage.count('LIMITED') > 0:
-                                raise Exception("strHeaderResultCode => " + str(strHeaderResultCode))
+                        else:
+                            print("ELSE url===> ", type(url), url)
+                            print("ELSE params===> ", type(params), params)
+                            time.sleep(10)
 
 
                 responseContents = response.text  # page_source 얻기
