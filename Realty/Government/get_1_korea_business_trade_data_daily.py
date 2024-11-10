@@ -155,7 +155,6 @@ def main():
                     print(GetLogDef.lineno(__file__), "============================time.sleep(1) ")
                     time.sleep(1)
                     try:
-
                         response = requests.get(url, params=params)
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                 inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ",

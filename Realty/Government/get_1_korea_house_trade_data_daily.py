@@ -164,42 +164,57 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "============================time.sleep(1) ")
                     time.sleep(1)
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", strAdminSection, dtProcessDay, url)
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "params===> ", strAdminSection, dtProcessDay, params)
-
-                    response = requests.get(url, params=params)
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ",
-                          type(response), response)
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno),
-                          "response.status_code===> ", type(response.status_code), response.status_code)
-
-                    if response.status_code == int(200):
+                    try:
+                        response = requests.get(url, params=params)
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                inspect.getframeinfo(inspect.currentframe()).lineno), "break ",
-                              type(response.raise_for_status()), response.raise_for_status())
-                        responseContents = response.text  # page_source 얻기
-                        print("responseContents===> ", type(responseContents), len(responseContents), responseContents)
-                        ElementResponseRoot = ET.fromstring(responseContents)
-                        strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
-                        strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
+                                                inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ",
+                              type(response), response)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno),
+                              "response.status_code===> ", type(response.status_code), response.status_code)
+                        if response.status_code == int(200):
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno), "break ",
+                                  type(response.raise_for_status()), response.raise_for_status())
+                            responseContents = response.text  # page_source 얻기
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(
+                                                        inspect.currentframe()).lineno) + "responseContents===> ",
+                                  type(responseContents), responseContents)
+                            ElementResponseRoot = ET.fromstring(responseContents)
+                            # print("ElementResponseRoot===> ", type(ElementResponseRoot),  ElementResponseRoot, )
+                            strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
+                            strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(
+                                                        inspect.currentframe()).lineno) + "strHeaderResultCode===> ",
+                                  type(strHeaderResultCode), strHeaderResultCode)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(
+                                                        inspect.currentframe()).lineno) + "strHeaderResultMessage===> ",
+                                  type(strHeaderResultMessage), strHeaderResultMessage)
+                            if strHeaderResultCode == '000':
+                                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                        inspect.getframeinfo(
+                                                            inspect.currentframe()).lineno) + "url===> ", type(url),
+                                      url)
+                                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                        inspect.getframeinfo(
+                                                            inspect.currentframe()).lineno) + "params===> ",
+                                      type(params), params)
+                                break
 
-                        print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
-                        print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
+                    except requests.exceptions.Timeout as e:
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
+                              type(params), params)
+                        time.sleep(10)
 
-                        if strHeaderResultCode == '000':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
-                            break
-                        elif strHeaderResultCode == '99':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
-
-                            if strHeaderResultMessage.count('LIMITED') > 0:
-                                raise Exception("strHeaderResultCode => " + str(strHeaderResultCode))
 
                 responseContents = response.text  # page_source 얻기
 
