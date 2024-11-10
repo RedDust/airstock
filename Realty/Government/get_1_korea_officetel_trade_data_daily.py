@@ -19,6 +19,9 @@ import re
 import pandas as pd
 import requests
 import inspect
+import logging
+import logging.handlers
+
 from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
@@ -72,15 +75,20 @@ def main():
         strSwitchYYYYMM=''
         GOVMoltyAddressSequence='0'
         intLoopStart=0
+        
+        
+        
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            QuitException(GetLogDef.lineno(__file__)+ 'strResult => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+ 'strResult => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '10':
-            QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
@@ -107,13 +115,15 @@ def main():
         # 등록되어 있는 물건이면 패스
 
 
-        print(GetLogDef.lineno(__file__), "row_result >> " , row_result)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "row_result >> " , row_result)
         rstSelectDatas = cursorRealEstate.fetchall()
 
         nInsertedCount = 0
         for rstSelectData in rstSelectDatas:
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
-            print(GetLogDef.lineno(__file__), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
 
             sido_code = str(rstSelectData.get('sido_cd')).zfill(2)
             sigu_code = rstSelectData.get('sgg_cd').zfill(3)
@@ -138,12 +148,14 @@ def main():
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
-                print(GetLogDef.lineno(__file__), "[START LOOP]]================== ", nLoop)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[START LOOP]]================== ", nLoop)
 
                 nbaseDate = dtToday - relativedelta(months=nLoop)
                 dtProcessDay = str(int(nbaseDate.strftime("%Y%m")))
 
-                print(GetLogDef.lineno(__file__), "dtProcessDay >> ", dtProcessDay)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "dtProcessDay >> ", dtProcessDay)
 
                 # url = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcOffiTrade'
                 url = 'http://apis.data.go.kr/1613000/RTMSDataSvcOffiTrade/getRTMSDataSvcOffiTrade'
@@ -154,30 +166,43 @@ def main():
 
 
                 while True:
-                    print(GetLogDef.lineno(__file__), "url===> ", strAdminSection, dtProcessDay, url)
-                    print(GetLogDef.lineno(__file__), "params===> ", strAdminSection, dtProcessDay, params)
-                    print(GetLogDef.lineno(__file__), "============================time.sleep(1) ")
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", strAdminSection, dtProcessDay, url)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "params===> ", strAdminSection, dtProcessDay, params)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "============================time.sleep(1) ")
                     time.sleep(1)
                     response = requests.get(url, params=params)
-                    print(GetLogDef.lineno(__file__), "response===> ", type(response), response)
-                    print(GetLogDef.lineno(__file__), "response.status_code===> ", type(response.status_code), response.status_code)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(response), response)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "response.status_code===> ", type(response.status_code), response.status_code)
                     if response.status_code == int(200):
-                        print(GetLogDef.lineno(__file__), "break ", type(response.raise_for_status()), response.raise_for_status())
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "break ", type(response.raise_for_status()), response.raise_for_status())
                         responseContents = response.text  # page_source 얻기
-                        print("responseContents===> ", type(responseContents), responseContents)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "responseContents===> ", type(responseContents), responseContents)
                         ElementResponseRoot = ET.fromstring(responseContents)
                         # print("ElementResponseRoot===> ", type(ElementResponseRoot),  ElementResponseRoot, )
                         strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
                         strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
-                        print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
-                        print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
                         if strHeaderResultCode == '000':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "url===> ", type(url), url)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "params===> ", type(params), params)
                             break
                         else:
-                            print("ELSE url===> ", type(url), url)
-                            print("ELSE params===> ", type(params), params)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "ELSE url===> ", type(url), url)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "ELSE params===> ", type(params), params)
                             time.sleep(10)
 
 
@@ -187,14 +212,18 @@ def main():
                 # print("ElementResponseRoot===> ", type(ElementResponseRoot),  ElementResponseRoot, )
 
                 objectBodyItemAll = ElementResponseRoot.find('body').find('items')
-                print(GetLogDef.lineno(__file__), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
                 # intGetCount = len(objectBodyItemAll)
                 for objectBodyItem in objectBodyItemAll:
-                    print(GetLogDef.lineno(__file__), "================objectBodyItem >> ", len(objectBodyItem) , objectBodyItem.tag)
-                    print(GetLogDef.lineno(__file__), "================Text >> ", type( objectBodyItemAll.iter()) ,  objectBodyItemAll.iter())
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "================objectBodyItem >> ", len(objectBodyItem) , objectBodyItem.tag)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "================Text >> ", type( objectBodyItemAll.iter()) ,  objectBodyItemAll.iter())
 
                     for objectBodyItemITR in objectBodyItem.iter():
-                        print(GetLogDef.lineno(__file__), "objectBodyItem.iter() >> ", objectBodyItemITR.tag ," =>" , objectBodyItemITR.text)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "objectBodyItem.iter() >> ", objectBodyItemITR.tag ," =>" , objectBodyItemITR.text)
 
 
                     # print(objectBodyItem.find('거래금액').text)
@@ -256,46 +285,56 @@ def main():
 
                     DEAL_YMD = strTradeYYYY + strTradeMM + strTradeDD
 
-                    print(GetLogDef.lineno(__file__), "BJD_JIUN =====> ", BJD_JIUN)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BJD_JIUN =====> ", BJD_JIUN)
 
 
                     listBJD_JIUN = BJD_JIUN.split("-")
-                    print(GetLogDef.lineno(__file__), "listBJD_JIUN =====> ", listBJD_JIUN , len(listBJD_JIUN) , type(listBJD_JIUN))
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listBJD_JIUN =====> ", listBJD_JIUN , len(listBJD_JIUN) , type(listBJD_JIUN))
 
                     if len(listBJD_JIUN) == 1:
                         BONBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[0]).zfill(4)
                         BUBEON = '0000'
-                        print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON),type(BONBEON))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON),type(BONBEON))
 
                     elif len(listBJD_JIUN) == 2:
                         BONBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[0]).zfill(4)
                         BUBEON = re.sub(r'[^0-9]', '', listBJD_JIUN[1]).zfill(4)
-                        print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
 
                     elif len(listBJD_JIUN) > 2:
                         listTemp = []
                         for intTempLoop in range(len(listBJD_JIUN)):
-                            print(GetLogDef.lineno(__file__), "intTempLoop=====> ", intTempLoop, type(intTempLoop))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intTempLoop=====> ", intTempLoop, type(intTempLoop))
                             strTemp = re.sub(r'[^0-9]', '', listBJD_JIUN[intTempLoop])
 
-                            print(GetLogDef.lineno(__file__), "strTemp=====> ", strTemp, type(strTemp))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strTemp=====> ", strTemp, type(strTemp))
 
                             if len(strTemp) > 0:
                                 listTemp.append(strTemp)
 
-                        print(GetLogDef.lineno(__file__), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
 
                         if len(listTemp) == 1:
-                            print(GetLogDef.lineno(__file__), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BONBEON=====> ", BONBEON, len(BONBEON), type(BONBEON))
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = '0000'
                         elif len(listTemp) == 2:
-                            print(GetLogDef.lineno(__file__), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp=====> ", listTemp, len(listTemp), type(listTemp))
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = re.sub(r'[^0-9]', '', listTemp[1]).zfill(4)
 
                         elif len(listTemp) > 2:
-                            print(GetLogDef.lineno(__file__), "listTemp =====> ", listTemp)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "listTemp =====> ", listTemp)
                             BONBEON = re.sub(r'[^0-9]', '', listTemp[0]).zfill(4)
                             BUBEON = re.sub(r'[^0-9]', '', listTemp[1]).zfill(4)
 
@@ -310,17 +349,20 @@ def main():
                         CNTL_YMD = "20" + CNTL_YMD
 
 
-                    print(GetLogDef.lineno(__file__),"BJDONG_NM" , "["+BJDONG_NM+"]")
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
                     sqlSelectGOVCodeinfo  = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
                     sqlSelectGOVCodeinfo += " WHERE sido_cd='"+sido_code+"' AND sgg_cd='"+sigu_code+"' "
                     sqlSelectGOVCodeinfo += " AND locatadd_nm LIKE '% " + BJDONG_NM + "' "
-                    print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
+                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                   inspect.getframeinfo(inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> "+ sqlSelectGOVCodeinfo +sido_code + sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
                     if intGovCodeCount != 1:
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
                         raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
@@ -331,7 +373,8 @@ def main():
 
 
                     if len(BJDONG_CD) != 5:
-                        print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "BJDONG_CD =====> ", BJDONG_CD)
                         raise Exception("BJDONG_CD => " + str(BJDONG_CD))
 
 
@@ -343,12 +386,14 @@ def main():
                                    DEAL_YMD + "_" + \
                                    BUILD_YEAR + "_" +OBJ_AMT
 
-                    print(GetLogDef.lineno(__file__), "strUniqueKey" , strUniqueKey)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strUniqueKey" , strUniqueKey)
 
                     sqlSelectMOLIT = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitOfficetelRealTradeMasterTable+" WHERE unique_key = %s "
                     cursorRealEstate.execute(sqlSelectMOLIT , (strUniqueKey) )
                     intMolitCount = cursorRealEstate.rowcount
-                    print(GetLogDef.lineno(__file__), "intMolitCount", intMolitCount)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intMolitCount", intMolitCount)
                     if intMolitCount < 1:
 
                         #INSERT
@@ -374,7 +419,8 @@ def main():
                         sqlInsertMOLIT += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                         sqlInsertMOLIT += " , CNTL_YMD = '"+CNTL_YMD+"'"
                         sqlInsertMOLIT += " , state = '"+state+"'"
-                        print(GetLogDef.lineno(__file__), "sqlInsertMOLIT ", sqlInsertMOLIT)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlInsertMOLIT ", sqlInsertMOLIT)
                         cursorRealEstate.execute(sqlInsertMOLIT , (strUniqueKey) )
                         ResRealEstateConnection.commit()
                         nInsertedCount = nInsertedCount + 1
@@ -382,17 +428,22 @@ def main():
                         rstSelectMOLIT = cursorRealEstate.fetchone()
                         DBstate = rstSelectMOLIT.get('state')
 
-                        print(GetLogDef.lineno(__file__), "UPDATE SET ", strUniqueKey)
-                        print(GetLogDef.lineno(__file__), DBstate, type(DBstate), " != ", state, type(state))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "UPDATE SET ", strUniqueKey)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), DBstate, type(DBstate), " != ", state, type(state))
 
                         if DBstate != '00':
-                            print(GetLogDef.lineno(__file__), "-----------------------------------------")
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "-----------------------------------------")
                             continue
 
-                        print(GetLogDef.lineno(__file__), "-----------------------------------------")
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "-----------------------------------------")
 
                         if DBstate == state:
-                            print(GetLogDef.lineno(__file__), DBstate, " == ", state)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), DBstate, " == ", state)
                             continue
 
                         sqlSelectMOLITCancel = "SELECT * FROM "+ConstRealEstateTable_GOV.MolitOfficetelRealTradeCancelTable+" WHERE unique_key = %s "
@@ -420,7 +471,8 @@ def main():
                             sqlInsertMOLITCancel += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                             sqlInsertMOLITCancel += " , CNTL_YMD = '"+CNTL_YMD+"'"
                             sqlInsertMOLITCancel += " , state = '"+state+"'"
-                            print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
                             cursorRealEstate.execute(sqlInsertMOLITCancel, (strUniqueKey))
 
 
@@ -429,14 +481,18 @@ def main():
                         sqlUpdateMOLIT += " , state = '"+state+"'"
                         sqlUpdateMOLIT += " , modify_date = NOW() "
                         sqlUpdateMOLIT += " WHERE unique_key = %s"
-                        print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
                         cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey) )
                         ResRealEstateConnection.commit()
                         nUpdateCount = nUpdateCount + 1
 
-                        print(GetLogDef.lineno(__file__), "END strUniqueKey > ",strUniqueKey)
-                        print(GetLogDef.lineno(__file__), "nInsertedCount ", nInsertedCount)
-                        print(GetLogDef.lineno(__file__), "nUpdateCount ", nUpdateCount)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "END strUniqueKey > ",strUniqueKey)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "nInsertedCount ", nInsertedCount)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "nUpdateCount ", nUpdateCount)
 
 
                     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -450,14 +506,20 @@ def main():
                     dictSwitchData['data_6'] = nInsertedCount
                     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
-                print(GetLogDef.lineno(__file__), "[strAdminName]================== ", strAdminName)
-                print(GetLogDef.lineno(__file__), "[dtProcessDay]================== ", dtProcessDay)
-                print(GetLogDef.lineno(__file__), "[END LOOP]]================== ", nLoop)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[strAdminName]================== ", strAdminName)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[dtProcessDay]================== ", dtProcessDay)
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END LOOP]]================== ", nLoop)
 
-            print(GetLogDef.lineno(__file__), "[END intRangeStart]]================== ", intRangeStart)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END intRangeStart]]================== ", intRangeStart)
             intRangeStart = 0
-            print(GetLogDef.lineno(__file__), "[END strAdminSection]]================== ", strAdminSection)
-            print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminSection]]================== ", strAdminSection)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -468,27 +530,37 @@ def main():
         dictSwitchData['data_3'] = strGOVMoltyAddressSequence
         dictSwitchData['data_4'] = nLoop
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
 
     except Exception as e:
 
-        print(GetLogDef.lineno(__file__), "Error Exception")
-        print(GetLogDef.lineno(__file__), e)
-        print(GetLogDef.lineno(__file__), type(e))
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "Error Exception")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), e)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), type(e))
         err_msg = traceback.format_exc()
-        print(GetLogDef.lineno(__file__), err_msg)
-        print(GetLogDef.lineno(__file__), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), err_msg)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '20'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", strAdminName)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminName]]================== ", strAdminName)
 
     else:
-        print(GetLogDef.lineno(__file__), 'Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
-        print(GetLogDef.lineno(__file__), "========================= SUCCESS END")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), 'Inserted => ', nInsertedCount, ' , Updated => ', nUpdateCount)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "========================= SUCCESS END")
     finally:
-        print(GetLogDef.lineno(__file__), "Finally END")
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "Finally END")

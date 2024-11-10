@@ -199,12 +199,16 @@ def main():
                         print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
 
                         if strHeaderResultCode == '000':
-                            print("url===> ", type(url), url)
-                            print("params===> ", type(params), params)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "url===> ", type(url), url)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "params===> ", type(params), params)
                             break
-                        elif strHeaderResultCode == '99':
-                            print("ELSE url===> ", type(url), url)
-                            print("ELSE params===> ", type(params), params)
+                        else:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "ELSE url===> ", type(url), url)
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "ELSE params===> ", type(params), params)
                             time.sleep(10)
 
 
