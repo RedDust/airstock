@@ -16,6 +16,8 @@ import traceback
 import time
 import re
 import requests
+import inspect
+
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
 from dateutil.relativedelta import relativedelta
@@ -23,6 +25,8 @@ from dateutil.relativedelta import relativedelta
 from Init.Functions.Logs import GetLogDef
 
 from Realty.Government.Const import ConstRealEstateTable_GOV
+from Init.DefConstant import ConstRealEstateTable
+
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
@@ -87,11 +91,17 @@ def main():
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-        qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
-        qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
-        qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
+        # qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
+        # qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
+        # qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
+        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
+        # # qrySelectSeoulTradeMaster += " LIMIT 1 "
+
+
+        qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+        qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
+        qrySelectSeoulTradeMaster += " AND seq >= "+strGOVMoltyAddressSequence+" "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 1 "
 
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         row_result = cursorRealEstate.rowcount
@@ -106,17 +116,19 @@ def main():
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
             print(GetLogDef.lineno(__file__), "strGOVMoltyAddressSequence >> ", strGOVMoltyAddressSequence)
 
-            sido_code = str(rstSelectData.get('sido_code')).zfill(2)
-            sigu_code = rstSelectData.get('sigu_code').zfill(3)
+            sido_code = str(rstSelectData.get('sido_cd')).zfill(2)
+            sigu_code = rstSelectData.get('sgg_cd').zfill(3)
 
-            sido_name = str(rstSelectData.get('sido_name'))
-            sigu_name = rstSelectData.get('sigu_name')
+            strAdminName = str(rstSelectData.get('locatadd_nm'))
 
             strAdminSection =  sido_code+sigu_code
-            strAdminName = sido_name + " " + sigu_name
 
-            print(GetLogDef.lineno(__file__), "strAdminName >> ", strAdminName)
-            print(GetLogDef.lineno(__file__), "strAdminSection >> ", strAdminSection)
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strAdminName >> ", strAdminName)
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "strAdminSection >> ", strAdminSection)
+
 
             dtToday = DateTime.now()
 
@@ -134,12 +146,8 @@ def main():
 
                 print(GetLogDef.lineno(__file__), "dtProcessDay >> ", dtProcessDay)
 
-                url = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcNrgTrade'
+                url = 'https://apis.data.go.kr/1613000/RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade'
                 params = {'serviceKey': init_conf.MolitDecodedAuthorizationKey, 'LAWD_CD': strAdminSection,'DEAL_YMD': str(dtProcessDay)}
-
-                # url = 'http://openapi.molit.go.kr/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTradeDev'
-                # params = {'serviceKey':  init_conf.MolitDecodedAuthorizationKey , 'LAWD_CD': strAdminSection, 'DEAL_YMD': strDealYMD, 'pageNo': '2', 'numOfRows': '1000'}
-
 
                 while True:
                     print(GetLogDef.lineno(__file__), "url===> ", strAdminSection, dtProcessDay, url)
@@ -152,17 +160,28 @@ def main():
                     if response.status_code == int(200):
                         print(GetLogDef.lineno(__file__), "break ", type(response.raise_for_status()), response.raise_for_status())
                         responseContents = response.text  # page_source 얻기
+                        print("responseContents===> ", type(responseContents), responseContents)
                         ElementResponseRoot = ET.fromstring(responseContents)
+                        # print("ElementResponseRoot===> ", type(ElementResponseRoot),  ElementResponseRoot, )
                         strHeaderResultCode = ElementResponseRoot.find('header').find('resultCode').text
                         strHeaderResultMessage = ElementResponseRoot.find('header').find('resultMsg').text
                         print("strHeaderResultCode===> ", type(strHeaderResultCode), strHeaderResultCode)
                         print("strHeaderResultMessage===> ", type(strHeaderResultMessage), strHeaderResultMessage)
-
-                        if strHeaderResultCode == '00':
+                        if strHeaderResultCode == '000':
                             print("url===> ", type(url), url)
                             print("params===> ", type(params), params)
                             break
+                        elif strHeaderResultCode == '99':
+                            print("url===> ", type(url), url)
+                            print("params===> ", type(params), params)
+                            if strHeaderResultMessage.count('LIMITED') > 0:
+                                raise Exception("strHeaderResultCode => " + str(strHeaderResultCode))
 
+
+                responseContents = response.text  # page_source 얻기
+                print("responseContents===> ", type(responseContents), responseContents)
+                ElementResponseRoot = ET.fromstring(responseContents)
+                # print("ElementResponseRoot===> ", type(ElementResponseRoot),  ElementResponseRoot, )
 
                 objectBodyItemAll = ElementResponseRoot.find('body').find('items')
                 print(GetLogDef.lineno(__file__), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
@@ -183,8 +202,7 @@ def main():
                     strTradeYYYY=''
                     strTradeMM=''
                     strTradeDD=''
-                    BLDG_DONG=''
-                    REGISTER_YMD=''
+                    FLOOR='00'
                     SELLER=''
                     BUYER=''
                     BJDONG_NM=''
@@ -197,46 +215,50 @@ def main():
                     BONBEON=''
                     BUBEON = ''
 
-                    if objectBodyItem.find('거래금액') != None:
-                        OBJ_AMT = str(objectBodyItem.find('거래금액').text).strip().replace(",", "")
-                    if objectBodyItem.find('거래유형') != None:
-                        REQ_GBN = str(objectBodyItem.find('거래유형').text).strip()
-                    if objectBodyItem.find('대지면적') != None:
-                        TOT_AREA = str(objectBodyItem.find('대지면적').text).strip()
-                    if objectBodyItem.find('건물면적') != None:
-                        BLDG_AREA = str(objectBodyItem.find('건물면적').text).strip()
-                    if objectBodyItem.find('건축년도') != None:
-                        BUILD_YEAR = str(objectBodyItem.find('건축년도').text).strip()
-                    if objectBodyItem.find('년') != None:
-                        strTradeYYYY = str(objectBodyItem.find('년').text).strip().zfill(4)
-                    if objectBodyItem.find('월') != None:
-                        strTradeMM = str(objectBodyItem.find('월').text).strip().zfill(2)
-                    if objectBodyItem.find('일') != None:
-                        strTradeDD = str(objectBodyItem.find('일').text).strip().zfill(2)
-                    if objectBodyItem.find('매도자') != None:
-                        SELLER = str(objectBodyItem.find('매도자').text).strip()
-                    if objectBodyItem.find('매수자') != None:
-                        BUYER = str(objectBodyItem.find('매수자').text).strip()
-                    if objectBodyItem.find('법정동') != None:
-                        BJDONG_NM = str(objectBodyItem.find('법정동').text).strip()
-                    if objectBodyItem.find('중개사소재지') != None:
-                        AGENT_ADDR = str(objectBodyItem.find('중개사소재지').text).strip()
-                    if objectBodyItem.find('지번') != None:
-                        BJD_JIUN = str(objectBodyItem.find('지번').text).strip()
-                    if objectBodyItem.find('지역코드') != None:
-                        SGG_CD = str(objectBodyItem.find('지역코드').text).strip()
-                    if objectBodyItem.find('해제여부') != None:
-                        CANCEL_YN = str(objectBodyItem.find('해제여부').text).strip()
-                    if objectBodyItem.find('해제사유발생일') != None:
-                        CNTL_YMD = str(objectBodyItem.find('해제사유발생일').text).replace(".", "")
-                    if objectBodyItem.find('층') != None:
-                        FLOOR = str(objectBodyItem.find('층').text).strip()
-                    if objectBodyItem.find('유형') != None:
-                        HOUSE_TYPE = str(objectBodyItem.find('유형').text).strip().replace('\'',"")
-                    if objectBodyItem.find('건물주용도') != None:
-                        BLDG_NM = str(objectBodyItem.find('건물주용도').text).strip().replace('\'',"")
-                    if objectBodyItem.find('용도지역') != None:
-                        BLDG_DONG = str(objectBodyItem.find('용도지역').text).strip()
+                    if objectBodyItem.find('dealAmount') != None:
+                        OBJ_AMT = str(objectBodyItem.find('dealAmount').text).strip().replace(",", "")
+                    if objectBodyItem.find('dealingGbn') != None:
+                        REQ_GBN = str(objectBodyItem.find('dealingGbn').text).strip()
+                    if objectBodyItem.find('buildingAr') != None:
+                        BLDG_AREA = str(objectBodyItem.find('buildingAr').text).strip()
+                    if objectBodyItem.find('plottageAr') != None:
+                        TOT_AREA = str(objectBodyItem.find('plottageAr').text).strip()
+                    if objectBodyItem.find('buildYear') != None:
+                        BUILD_YEAR = str(objectBodyItem.find('buildYear').text).strip()
+                    if objectBodyItem.find('dealYear') != None:
+                        strTradeYYYY = str(objectBodyItem.find('dealYear').text).strip().zfill(4)
+                    if objectBodyItem.find('dealMonth') != None:
+                        strTradeMM = str(objectBodyItem.find('dealMonth').text).strip().zfill(2)
+                    if objectBodyItem.find('dealDay') != None:
+                        strTradeDD = str(objectBodyItem.find('dealDay').text).strip().zfill(2)
+                    if objectBodyItem.find('slerGbn') != None:
+                        SELLER = str(objectBodyItem.find('slerGbn').text).strip()
+                    if objectBodyItem.find('buyerGbn') != None:
+                        BUYER = str(objectBodyItem.find('buyerGbn').text).strip()
+                    if objectBodyItem.find('umdNm') != None:
+                        BJDONG_NM = str(objectBodyItem.find('umdNm').text).strip()
+                    if objectBodyItem.find('estateAgentSggNm') != None:
+                        AGENT_ADDR = str(objectBodyItem.find('estateAgentSggNm').text).strip()
+                    if objectBodyItem.find('plottageAr') != None:
+                        TOT_AREA = str(objectBodyItem.find('plottageAr').text).strip()
+                    if objectBodyItem.find('buildingAr') != None:
+                        BLDG_AREA = str(objectBodyItem.find('buildingAr').text).strip()
+                    if objectBodyItem.find('floor') != None:
+                        FLOOR = str(objectBodyItem.find('floor').text).strip().zfill(2)
+                    if objectBodyItem.find('shareDealingType') != None:
+                        SHARE_DEALING_TYPE = str(objectBodyItem.find('shareDealingType').text).strip()
+                    if objectBodyItem.find('jibun') != None:
+                        BJD_JIUN = str(objectBodyItem.find('jibun').text).strip()
+                    if objectBodyItem.find('sggCd') != None:
+                        SGG_CD = str(objectBodyItem.find('sggCd').text).strip()
+                    if objectBodyItem.find('cdealType') != None:
+                        CANCEL_YN = str(objectBodyItem.find('cdealType').text).strip()
+                    if objectBodyItem.find('cdealDay') != None:
+                        CNTL_YMD = str(objectBodyItem.find('cdealDay').text).replace(".", "")
+                    if objectBodyItem.find('buildingType') != None:
+                        HOUSE_TYPE = str(objectBodyItem.find('buildingType').text).strip().replace('\'',"")
+                    if objectBodyItem.find('landUse') != None:
+                        LAND_USE = str(objectBodyItem.find('landUse').text).strip()
 
 
                     DEAL_YMD = strTradeYYYY + strTradeMM + strTradeDD
@@ -290,54 +312,45 @@ def main():
 
 
                     state = '00'
-                    CNTL_YMD=''
                     if len(CANCEL_YN) > 0:
                         state = '10'
                         CNTL_YMD = "20" + CNTL_YMD
 
 
                     print(GetLogDef.lineno(__file__),"BJDONG_NM" , "["+BJDONG_NM+"]")
+                    print(GetLogDef.lineno(__file__), "SGG_CD", "[" + SGG_CD + "]")
 
-                    sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                    sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
+                    sido_code = SGG_CD[0:2].zfill(2)
+                    print(GetLogDef.lineno(__file__), "SGG_CD", "[" + SGG_CD + "]")
+                    print(GetLogDef.lineno(__file__), "sido_code", "[" + sido_code + "]")
+
+                    sigu_code = SGG_CD[2:5].zfill(3)
+                    print(GetLogDef.lineno(__file__), "SGG_CD", "[" + SGG_CD + "]")
+                    print(GetLogDef.lineno(__file__), "sigu_code", "[" + sigu_code + "]")
+
+                    print(GetLogDef.lineno(__file__),"BJDONG_NM" , "["+BJDONG_NM+"]")
+
+                    sqlSelectGOVCodeinfo  = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                    sqlSelectGOVCodeinfo += " WHERE sido_cd='"+sido_code+"' AND sgg_cd='"+sigu_code+"' "
+                    sqlSelectGOVCodeinfo += " AND locatadd_nm LIKE '% " + BJDONG_NM + "' "
                     print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
-                    if intGovCodeCount < 1:
-                        BJDONG_NM = BJDONG_NM[0:-1]
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
-                        sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                        sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
-                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
-                        intGovCodeCount = cursorRealEstate.rowcount
-
-                    if intGovCodeCount < 1:
-                        print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
+                    if intGovCodeCount != 1:
+                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
                         raise Exception("intGovCodeCount => " + str(intGovCodeCount))
-                    elif intGovCodeCount > 1:
-
-                        rstSelectDatas = cursorRealEstate.fetchall()
-                        for rstSelectData in rstSelectDatas:
-                            strGovInfoState = rstSelectData.get('state')
-                            if strGovInfoState == '00':
-                                BJDONG_CD = rstSelectData.get('dongmyun_code')
-                                BJDONG_NM = rstSelectData.get('dongmyun_name')
-                                SIDO_NM = rstSelectData.get('sido_name')
-                                SGG_NM = rstSelectData.get('sigu_name')
-                                break
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
-                        BJDONG_CD = rstSelectDatas.get('dongmyun_code')
-                        BJDONG_NM = rstSelectDatas.get('dongmyun_name')
-                        SIDO_NM = rstSelectDatas.get('sido_name')
-                        SGG_NM = rstSelectDatas.get('sigu_name')
+                        BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
+                        BJDONG_NM = rstSelectDatas.get('umd_nm') + " " + rstSelectDatas.get('ri_nm')
+                        SIDO_NM = rstSelectDatas.get('sido_nm')
+                        SGG_NM = rstSelectDatas.get('sgg_nm')
+
 
                     if len(BJDONG_CD) < 5:
                         print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
                         raise Exception("BJDONG_CD => " + str(BJDONG_CD))
-
 
                     strUniqueKey = strTradeYYYY + "_" +\
                                    sido_code + "_" +\
@@ -364,7 +377,8 @@ def main():
                         sqlInsertMOLIT += " , SGG_NM = '"+SGG_NM+"'"
                         sqlInsertMOLIT += " , BJDONG_CD = '"+BJDONG_CD+"'"
                         sqlInsertMOLIT += " , BJDONG_NM = '"+BJDONG_NM+"'"
-                        sqlInsertMOLIT += " , BONBEON = '"+BJD_JIUN+"'"
+                        sqlInsertMOLIT += " , BONBEON = '"+BONBEON+"'"
+                        sqlInsertMOLIT += " , BUBEON = '" + BUBEON + "'"
                         sqlInsertMOLIT += " , lng= '0' "
                         sqlInsertMOLIT += " , lat= '0' "
                         sqlInsertMOLIT += " , geo_point = ST_GeomFromText('POINT(0 0)', 4326,'axis-order=long-lat') "
@@ -373,10 +387,15 @@ def main():
                         sqlInsertMOLIT += " , DEAL_YMD = '"+DEAL_YMD+"'"
                         sqlInsertMOLIT += " , OBJ_AMT = '"+OBJ_AMT+"'"
                         sqlInsertMOLIT += " , TOT_AREA = '" + TOT_AREA + "'"
+                        sqlInsertMOLIT += " , BLDG_AREA = '" + BLDG_AREA + "'"
+                        sqlInsertMOLIT += " , floor = '" + FLOOR + "'"
+                        sqlInsertMOLIT += " , landuse = '" + LAND_USE + "'"
+                        sqlInsertMOLIT += " , SHARE_DEALING_TYPE = '" + SHARE_DEALING_TYPE + "'"
                         sqlInsertMOLIT += " , REQ_GBN = '"+REQ_GBN+"'"
                         sqlInsertMOLIT += " , SELLER = '" + SELLER + "'"
                         sqlInsertMOLIT += " , BUYER = '" + BUYER + "'"
                         sqlInsertMOLIT += " , AGENT_ADDR = '"+AGENT_ADDR+"'"
+                        sqlInsertMOLIT += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                         sqlInsertMOLIT += " , CNTL_YMD = '"+CNTL_YMD+"'"
                         sqlInsertMOLIT += " , state = '"+state+"'"
                         print(GetLogDef.lineno(__file__), "sqlInsertMOLIT ", sqlInsertMOLIT)
@@ -386,7 +405,6 @@ def main():
                     else:
                         rstSelectMOLIT = cursorRealEstate.fetchone()
                         DBstate = rstSelectMOLIT.get('state')
-                        DBREGISTER_YMD = rstSelectMOLIT.get('REGISTER_YMD')
 
                         print(GetLogDef.lineno(__file__), "UPDATE SET ", strUniqueKey)
                         print(GetLogDef.lineno(__file__), DBstate, type(DBstate), " != ", state, type(state))
@@ -422,6 +440,7 @@ def main():
                                 sqlInsertMOLITCancel += " , SELLER = '" + SELLER + "'"
                                 sqlInsertMOLITCancel += " , BUYER = '" + BUYER + "'"
                                 sqlInsertMOLITCancel += " , AGENT_ADDR = '" + AGENT_ADDR + "'"
+                                sqlInsertMOLITCancel += " , ADDRESS_CODE = '" + sido_code + sigu_code + BJDONG_CD + "'"
                                 sqlInsertMOLITCancel += " , CNTL_YMD = '" + CNTL_YMD + "'"
                                 sqlInsertMOLITCancel += " , state = '" + state + "'"
                                 print(GetLogDef.lineno(__file__), "sqlInsertMOLITCancel ", sqlInsertMOLITCancel)
@@ -437,18 +456,6 @@ def main():
                             ResRealEstateConnection.commit()
                             nUpdateCount = nUpdateCount + 1
 
-                        #DB에 이미 등기 되었거나,  등기 된 내역이 아니면
-                        if len(DBREGISTER_YMD) > 1 and len(REGISTER_YMD) < 0:
-
-                            print(GetLogDef.lineno(__file__), "DBREGISTER_YMD=>" , DBREGISTER_YMD)
-                            sqlUpdateMOLIT = " UPDATE " + ConstRealEstateTable_GOV.MolitRealTradeMasterTable + " SET "
-                            sqlUpdateMOLIT += " REGISTER_YMD = '" + REGISTER_YMD + "'"
-                            sqlUpdateMOLIT += " , modify_date = NOW() "
-                            sqlUpdateMOLIT += " WHERE unique_key = %s"
-                            print(GetLogDef.lineno(__file__), "sqlUpdateMOLIT ", sqlUpdateMOLIT)
-                            cursorRealEstate.execute(sqlUpdateMOLIT, (strUniqueKey))
-                            ResRealEstateConnection.commit()
-                            nUpdateCount = nUpdateCount + 1
 
                         print(GetLogDef.lineno(__file__), "END strUniqueKey > ", strUniqueKey)
 
