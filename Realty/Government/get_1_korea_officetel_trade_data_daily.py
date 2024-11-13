@@ -91,8 +91,7 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
-            intLoopStart = str(rstResult.get('data_4'))
-            GOVMoltyAddressSequence = str(rstResult.get('data_3'))
+            strGOVMoltyAddressSequence = str(rstResult.get('data_3'))
             strSwitchSidoCode = str(rstResult.get('data_2'))
             strSwitchYYYYMM = str(rstResult.get('data_1'))
 
@@ -144,7 +143,7 @@ def main():
             #시작월 마지막 월 (12개월 * 30년)
             intRangeStart = int(intLoopStart)
             # intRangeEnd = 12 * 25
-            intRangeEnd = 3
+            intRangeEnd = 2
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
@@ -223,6 +222,18 @@ def main():
                                                 inspect.getframeinfo(
                                                     inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
                               type(params), params)
+                        time.sleep(10)
+
+                    except Exception as e:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Exception  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(
+                                                inspect.currentframe()).lineno) + "requests.exceptions.Exception params===> ",
+                          type(params), params)
                         time.sleep(10)
 
 
@@ -384,7 +395,21 @@ def main():
                     if intGovCodeCount != 1:
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
-                        raise Exception("intGovCodeCount => " + str(intGovCodeCount))
+
+                        sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                        sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ","") + "' "
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(
+                                                           inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
+                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
+                        intGovCodeCount = cursorRealEstate.rowcount
+
+                        if intGovCodeCount != 1:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                            raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
                         BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
@@ -516,26 +541,26 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "nUpdateCount ", nUpdateCount)
 
 
-                    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-                    dictSwitchData = dict()
-                    dictSwitchData['result'] = '10'
-                    dictSwitchData['data_1'] = dtProcessDay
-                    dictSwitchData['data_2'] = strAdminSection
-                    dictSwitchData['data_3'] = strGOVMoltyAddressSequence
-                    dictSwitchData['data_4'] = nLoop
-                    dictSwitchData['data_5'] = nUpdateCount
-                    dictSwitchData['data_6'] = nInsertedCount
-                    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+                        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                        dictSwitchData = dict()
+                        dictSwitchData['result'] = '10'
+                        dictSwitchData['data_1'] = dtProcessDay
+                        dictSwitchData['data_2'] = strAdminSection
+                        dictSwitchData['data_3'] = strGOVMoltyAddressSequence
+                        dictSwitchData['data_4'] = nLoop
+                        dictSwitchData['data_5'] = nUpdateCount
+                        dictSwitchData['data_6'] = nInsertedCount
+                        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                           inspect.getframeinfo(inspect.currentframe()).lineno), "[strAdminName]================== ", strAdminName)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                           inspect.getframeinfo(inspect.currentframe()).lineno), "[dtProcessDay]================== ", dtProcessDay)
+                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                           inspect.getframeinfo(inspect.currentframe()).lineno), "[END LOOP]]================== ", nLoop)
 
                 print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[strAdminName]================== ", strAdminName)
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[dtProcessDay]================== ", dtProcessDay)
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END LOOP]]================== ", nLoop)
-
-            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "[END intRangeStart]]================== ", intRangeStart)
+                                           inspect.getframeinfo(inspect.currentframe()).lineno), "[END intRangeStart]]================== ", intRangeStart)
             intRangeStart = 0
             print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "[END strAdminSection]]================== ", strAdminSection)

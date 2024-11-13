@@ -16,7 +16,7 @@ import traceback
 import time
 import re
 import requests
-import inspect
+import inspect , logging
 
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
@@ -66,7 +66,7 @@ def main():
 
         strSwitchSidoCode=''
         strSwitchYYYYMM=''
-        GOVMoltyAddressSequence='0'
+        strGOVMoltyAddressSequence='0'
         intLoopStart=0
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
@@ -79,8 +79,7 @@ def main():
             QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
-            intLoopStart = str(rstResult.get('data_4'))
-            GOVMoltyAddressSequence = str(rstResult.get('data_3'))
+            strGOVMoltyAddressSequence = str(rstResult.get('data_3'))
             strSwitchSidoCode = str(rstResult.get('data_2'))
             strSwitchYYYYMM = str(rstResult.get('data_1'))
 
@@ -205,6 +204,17 @@ def main():
                               type(params), params)
                         time.sleep(10)
 
+                    except Exception as e:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Exception  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(
+                                                inspect.currentframe()).lineno) + "requests.exceptions.Exception params===> ",
+                          type(params), params)
+                        time.sleep(10)
 
                 responseContents = response.text  # page_source 얻기
                 print("responseContents===> ", type(responseContents), responseContents)
@@ -366,8 +376,21 @@ def main():
                     intGovCodeCount = cursorRealEstate.rowcount
 
                     if intGovCodeCount != 1:
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
-                        raise Exception("intGovCodeCount => " + str(intGovCodeCount))
+                        sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                        sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ",
+                                                                                                                "") + "' "
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(
+                                                           inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
+                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
+                        intGovCodeCount = cursorRealEstate.rowcount
+
+                        if intGovCodeCount != 1:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                            raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
                         BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
@@ -377,8 +400,10 @@ def main():
 
 
                     if len(BJDONG_CD) < 5:
-                        print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
-                        raise Exception("BJDONG_CD => " + str(BJDONG_CD))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+
+
 
                     strUniqueKey = strTradeYYYY + "_" +\
                                    sido_code + "_" +\

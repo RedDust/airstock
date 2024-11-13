@@ -84,7 +84,6 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
-            intLoopStart = str(rstResult.get('data_4'))
             strGOVMoltyAddressSequence = str(rstResult.get('data_3'))
             strSwitchSidoCode = str(rstResult.get('data_2'))
             strSwitchYYYYMM = str(rstResult.get('data_1'))
@@ -216,6 +215,18 @@ def main():
                         time.sleep(10)
 
 
+                    except Exception as e:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Exception  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(
+                                                inspect.currentframe()).lineno) + "requests.exceptions.Exception params===> ",
+                          type(params), params)
+                        time.sleep(10)
+
                 responseContents = response.text  # page_source 얻기
 
                 objectBodyItemAll = ElementResponseRoot.find('body').find('items')
@@ -302,39 +313,32 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
-                    sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                    sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
+                    sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                    sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                    sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ", "") + "' "
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
-                    if intGovCodeCount < 1:
-                        BJDONG_NM = BJDONG_NM[0:-1]
+                    if intGovCodeCount != 1:
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
-                        sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable+" WHERE sido_code='"+sido_code+"' AND  sigu_code='"+sigu_code+"' "
-                        sqlSelectGOVCodeinfo += " AND dongmyun_name LIKE '%"+BJDONG_NM+"%'"
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+
+                        sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                        sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ","") + "' "
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
+                                                       inspect.getframeinfo(
+                                                           inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
                         cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                         intGovCodeCount = cursorRealEstate.rowcount
 
-                    if intGovCodeCount < 1:
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "intGovCodeCount =====> ", intGovCodeCount)
-                        raise Exception("intGovCodeCount => " + str(intGovCodeCount))
-                    elif intGovCodeCount > 1:
-
-                        rstSelectDatas = cursorRealEstate.fetchall()
-                        for rstSelectData in rstSelectDatas:
-                            strGovInfoState = rstSelectData.get('state')
-                            if strGovInfoState =='00':
-                                BJDONG_CD = rstSelectData.get('dongmyun_code')
-                                BJDONG_NM = rstSelectData.get('dongmyun_name')
-                                SIDO_NM = rstSelectData.get('sido_name')
-                                SGG_NM = rstSelectData.get('sigu_name')
-                                break
+                        if intGovCodeCount != 1:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                            raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
                         BJDONG_CD = rstSelectDatas.get('dongmyun_code')

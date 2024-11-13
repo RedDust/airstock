@@ -83,8 +83,7 @@ def main():
             QuitException.QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
-            intLoopStart = str(rstResult.get('data_4'))
-            GOVMoltyAddressSequence = str(rstResult.get('data_3'))
+            strGOVMoltyAddressSequence = str(rstResult.get('data_3'))
             strSwitchSidoCode = str(rstResult.get('data_2'))
             strSwitchYYYYMM = str(rstResult.get('data_1'))
 
@@ -145,7 +144,7 @@ def main():
             #시작월 마지막 월 (12개월 * 30년)
             intRangeStart = int(intLoopStart)
             # intRangeEnd = 12 * 25
-            intRangeEnd = 3
+            intRangeEnd = 2
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
@@ -221,6 +220,20 @@ def main():
                                                     inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
                               type(params), params)
                         time.sleep(10)
+
+                    except Exception as e:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Exception  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(
+                                                inspect.currentframe()).lineno) + "requests.exceptions.Exception params===> ",
+                          type(params), params)
+                        time.sleep(10)
+
+
 
                 objectBodyItemAll = ElementResponseRoot.find('body').find('items')
                 print(GetLogDef.lineno(__file__), "objectBodyItemAllCount >> ", len(objectBodyItemAll))
@@ -366,32 +379,26 @@ def main():
                     print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
-                    #
-                    # if intGovCodeCount < 1:
-                    #     BJDONG_NM = BJDONG_NM[0:-1]
-                    #     print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
-                    #     sqlSelectGOVCodeinfo  = " SELECT * FROM "+ConstRealEstateTable_GOV.GovAddressAPIInfoTable+" WHERE sido_cd='"+sido_code+"' AND  sgg_cd='"+sigu_code+"' "
-                    #     sqlSelectGOVCodeinfo += " AND locallow_nm LIKE '%"+BJDONG_NM+"%'"
-                    #     print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
-                    #     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
-                    #     intGovCodeCount = cursorRealEstate.rowcount
 
-                    print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
+                    print(GetLogDef.lineno(__file__), "intGovCodeCoun 383 =====> ", intGovCodeCount)
 
                     if intGovCodeCount != 1:
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
-                        raise Exception("intGovCodeCount => " + str(intGovCodeCount))
-                    # elif intGovCodeCount > 1:
-                    #
-                    #     rstSelectDatas = cursorRealEstate.fetchall()
-                    #     for rstSelectData in rstSelectDatas:
-                    #         strGovInfoState = rstSelectData.get('state')
-                    #         if strGovInfoState == '00':
-                    #             BJDONG_CD = rstSelectData.get('umd_cd') + rstSelectData.get('ri_cd')
-                    #             BJDONG_NM = rstSelectData.get('locallow_nm')
-                    #             SIDO_NM = rstSelectData.get('sido_name')
-                    #             SGG_NM = rstSelectData.get('sigu_name')
-                    #             break
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+
+                        sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                        sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ","") + "' "
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(
+                                                           inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
+                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
+                        intGovCodeCount = cursorRealEstate.rowcount
+                        if intGovCodeCount != 1:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                            raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
                         BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')

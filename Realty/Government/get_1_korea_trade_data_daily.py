@@ -72,7 +72,7 @@ def main():
 
         strSwitchSidoCode=''
         strSwitchYYYYMM=''
-        GOVMoltyAddressSequence='0'
+        strGOVMoltyAddressSequence='0'
         intLoopStart=0
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
@@ -86,8 +86,7 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
 
         if strResult == '20':
-            intLoopStart = str(rstResult.get('data_4'))
-            GOVMoltyAddressSequence = str(rstResult.get('data_3'))
+            strGOVMoltyAddressSequence = str(rstResult.get('data_3'))
             strSwitchSidoCode = str(rstResult.get('data_2'))
             strSwitchYYYYMM = str(rstResult.get('data_1'))
 
@@ -102,6 +101,7 @@ def main():
 
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
         qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
+        qrySelectSeoulTradeMaster += " AND seq >= "+strGOVMoltyAddressSequence+" "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
         # qrySelectSeoulTradeMaster += " LIMIT 1 "
 
@@ -212,6 +212,7 @@ def main():
                                 break
 
                     except requests.exceptions.Timeout as e:
+
                         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                 inspect.getframeinfo(
                                                     inspect.currentframe()).lineno) + "requests.exceptions.Timeout  url===> ",
@@ -220,9 +221,46 @@ def main():
                                                 inspect.getframeinfo(
                                                     inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
                               type(params), params)
+
                         time.sleep(10)
 
 
+                    except requests.exceptions.ConnectionError as errc:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
+                              type(params), params)
+
+                        time.sleep(10)
+
+                    except requests.exceptions.HTTPError as errb:
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Timeout params===> ",
+                              type(params), params)
+
+                        time.sleep(10)
+
+                    except Exception as e:
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(
+                                                    inspect.currentframe()).lineno) + "requests.exceptions.Exception  url===> ",
+                              type(url), url)
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                            inspect.getframeinfo(
+                                                inspect.currentframe()).lineno) + "requests.exceptions.Exception params===> ",
+                          type(params), params)
+                        time.sleep(10)
 
 
 
@@ -386,8 +424,23 @@ def main():
                     print(GetLogDef.lineno(__file__), "intGovCodeCount =====> ", intGovCodeCount)
 
                     if intGovCodeCount != 1:
-                        print(GetLogDef.lineno(__file__), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
-                        raise Exception("intGovCodeCount => " + str(intGovCodeCount))
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+
+                        sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                        sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ","") + "' "
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(
+                                                           inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
+                        cursorRealEstate.execute(sqlSelectGOVCodeinfo)
+                        intGovCodeCount = cursorRealEstate.rowcount
+
+                        if intGovCodeCount != 1:
+                            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                    inspect.getframeinfo(inspect.currentframe()).lineno),
+                                  "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
+                            raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
                         BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
