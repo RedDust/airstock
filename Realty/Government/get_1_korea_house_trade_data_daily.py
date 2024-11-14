@@ -18,7 +18,6 @@ import time
 import re
 import pandas as pd
 import requests
-import inspect
 from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
@@ -26,8 +25,11 @@ from dateutil.relativedelta import relativedelta
 
 from Init.Functions.Logs import GetLogDef
 
+from Init.Functions.Logs import GetLogDef
 from Realty.Government.Const import ConstRealEstateTable_GOV
 from Init.DefConstant import ConstRealEstateTable
+import requests
+import inspect , logging
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
@@ -138,7 +140,7 @@ def main():
 
             #시작월 마지막 월 (12개월 * 30년)
             intRangeStart = int(intLoopStart)
-            intRangeEnd = 2
+            intRangeEnd = 3
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
@@ -313,22 +315,20 @@ def main():
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno),"BJDONG_NM" , "["+BJDONG_NM+"]")
 
-                    sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
-                    sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
-                    sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ", "") + "' "
+                    sqlSelectGOVCodeinfo  = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+                    sqlSelectGOVCodeinfo += " WHERE sido_cd='"+sido_code+"' AND sgg_cd='"+sigu_code+"' "
+                    sqlSelectGOVCodeinfo += " AND locatadd_nm LIKE '% " + BJDONG_NM + "' "
                     print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo ,sido_code , sigu_code )
                     cursorRealEstate.execute(sqlSelectGOVCodeinfo)
                     intGovCodeCount = cursorRealEstate.rowcount
 
                     if intGovCodeCount != 1:
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno), "sqlSelectGOVCodeinfo =====> ", sqlSelectGOVCodeinfo)
-
                         sqlSelectGOVCodeinfo = " SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
                         sqlSelectGOVCodeinfo += " WHERE sido_cd='" + sido_code + "' AND sgg_cd='" + sigu_code + "' "
-                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ","") + "' "
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                        sqlSelectGOVCodeinfo += " AND replace(locatadd_nm,' ' ,'') LIKE '%" + BJDONG_NM.replace(" ",
+                                                                                                                "") + "' "
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(
                                                            inspect.currentframe()).lineno) + "sqlSelectGOVCodeinfo =====> " + sqlSelectGOVCodeinfo + sido_code + sigu_code)
                         cursorRealEstate.execute(sqlSelectGOVCodeinfo)
@@ -341,10 +341,10 @@ def main():
                             raise Exception("intGovCodeCount => " + str(intGovCodeCount))
                     else:
                         rstSelectDatas = cursorRealEstate.fetchone()
-                        BJDONG_CD = rstSelectDatas.get('dongmyun_code')
-                        BJDONG_NM = rstSelectDatas.get('dongmyun_name')
-                        SIDO_NM = rstSelectDatas.get('sido_name')
-                        SGG_NM = rstSelectDatas.get('sigu_name')
+                        BJDONG_CD = rstSelectDatas.get('umd_cd') + rstSelectDatas.get('ri_cd')
+                        BJDONG_NM = rstSelectDatas.get('umd_nm') + " " + rstSelectDatas.get('ri_nm')
+                        SIDO_NM = rstSelectDatas.get('sido_nm')
+                        SGG_NM = rstSelectDatas.get('sgg_nm')
 
 
                     if len(BJDONG_CD) < 5:
