@@ -104,7 +104,7 @@ def main():
         rstSelectDatas = cursorRealEstate.fetchall()
 
         intRangeStart = int(intLoopStart)
-        intRangeEnd = 2
+        intRangeEnd = 3
         for rstSelectData in rstSelectDatas:
 
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
