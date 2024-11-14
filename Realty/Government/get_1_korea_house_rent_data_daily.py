@@ -104,7 +104,7 @@ def main():
         rstSelectDatas = cursorRealEstate.fetchall()
 
         intRangeStart = int(intLoopStart)
-        intRangeEnd = 5
+        intRangeEnd = 2
         for rstSelectData in rstSelectDatas:
 
             strGOVMoltyAddressSequence = str(rstSelectData.get('seq'))
@@ -440,15 +440,6 @@ def main():
                     if len(BJDONG_CD) < 5:
                         print(GetLogDef.lineno(__file__), "BJDONG_CD =====> ", BJDONG_CD)
                         raise Exception("BJDONG_CD => " + str(BJDONG_CD))
-
-                    if len(DEPOSIT_AMT) < 1 or DEPOSIT_AMT == None:
-                        DEPOSIT_AMT = '0'
-                    if len(RENT_AMT) < 1 or RENT_AMT == None:
-                        RENT_AMT = '0'
-                    if len(PREVIOUS_DEPOSIT_AMT) < 1 or PREVIOUS_DEPOSIT_AMT == None:
-                        PREVIOUS_DEPOSIT_AMT = '0'
-                    if len(PREVIOUS_RENT_AMT) < 1  or PREVIOUS_RENT_AMT == None:
-                        PREVIOUS_RENT_AMT = '0'
 
 
                     strUniqueKey = strTradeYYYY + "_" +\
