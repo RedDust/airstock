@@ -26,7 +26,8 @@ from Init.Functions.Logs import GetLogDef
 
 from Realty.Government.Const import ConstRealEstateTable_GOV
 from Init.DefConstant import ConstRealEstateTable
-
+import requests
+import inspect , logging
 
 from datetime import datetime as DateTime, timedelta as TimeDelta
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
@@ -90,13 +91,6 @@ def main():
         dictSwitchData['data_6'] = nInsertedCount
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
-        # qrySelectSeoulTradeMaster  = "SELECT * FROM " + ConstRealEstateTable_GOV.GOVMoltyAddressInfoTable
-        # qrySelectSeoulTradeMaster += " WHERE state='00' AND dongmyun_code='00000' AND sigu_code!='000'"
-        # qrySelectSeoulTradeMaster += " AND seq >= "+GOVMoltyAddressSequence+" "
-        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # # qrySelectSeoulTradeMaster += " LIMIT 1 "
-
-
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
         qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
         qrySelectSeoulTradeMaster += " AND seq >= "+strGOVMoltyAddressSequence+" "
@@ -134,7 +128,7 @@ def main():
             #시작월 마지막 월 (12개월 * 30년)
             intRangeStart = int(intLoopStart)
             intRangeEnd = 12 * 2
-            intRangeEnd = 2
+            intRangeEnd = 3
             for nLoop in range(intRangeStart, intRangeEnd):
                 # for nLoop in range(0, 730):
 
