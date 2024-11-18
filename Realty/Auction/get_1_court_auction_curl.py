@@ -35,6 +35,7 @@ from Init.DefConstant import ConstRealEstateTable
 from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.CryptoModule import AesCrypto
 from Realty.Auction.AuctionLib import MakeAuctionUniqueKey
+import Realty.Auction.AuctionLib.AuctionDataDecode as AuctionDataDecode
 import Realty.Government.MolitLib.GetRoadNameJuso as GetRoadNameJuso
 
 def main():
@@ -58,13 +59,13 @@ def main():
         KuIndex = '00'
         CityKey = '00'
         targetRow = '00'
-
+        nAddressSiguSequence = '0'
         dtNow = DateTime.today()
         # print(dtNow.hour)
         # print(dtNow.minute)
         # print(dtNow)
 
-        logFileName = str(dtNow.year) + str(dtNow.month) + str(dtNow.day).zfill(2) + ".log"
+        logFileName = str(dtNow.year).zfill(4)  + str(dtNow.month).zfill(2)  + str(dtNow.day).zfill(2) + ".log"
 
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
@@ -119,6 +120,9 @@ def main():
         if strResult == '10':
             quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
 
+        # if strResult == '20':
+        #     nAddressSiguSequence = rstResult.get('data_2')
+
         if strResult == '40':
             quit(GetLogDef.lineno(__file__), '경매 서비스 점검 ', strResult)  # 예외를 발생시킴
 
@@ -127,7 +131,7 @@ def main():
         dictSwitchData = dict()
         dictSwitchData['result'] = '10'
         dictSwitchData['data_1'] = KuIndex
-        dictSwitchData['data_2'] = CityKey
+        dictSwitchData['data_2'] = nAddressSiguSequence
         dictSwitchData['data_3'] = targetRow
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
 
@@ -171,12 +175,8 @@ def main():
 
         # 초기 값
         paging = 40
-
         # quit(GetLogDef.lineno(__file__))  # 예외를 발생시킴
-
         #
-
-
 
         for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
 
@@ -197,14 +197,21 @@ def main():
 
             qrySelectRoad = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionAddressSiguTable
 
-            cursorRealEstate.execute(qrySelectRoad)
+            qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
+            qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
+            qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
+
+            cursorRealEstate.execute(qrySelectSeoulTradeMaster)
             rstSiDoLists = cursorRealEstate.fetchall()
 
 
             # for CityKey, CityValue in AuctionCourtInfo.dictCityPlace.items():
             for rstSiDoList in rstSiDoLists:
-                CityKey = str(rstSiDoList.get('sido_code'))
-                strSiGuCode = str(rstSiDoList.get('sigu_code'))
+                # CityKey = str(rstSiDoList.get('sido_code'))
+                # strSiGuCode = str(rstSiDoList.get('sigu_code'))
+                nAddressSiguSequence = str(rstSiDoList.get('seq'))
+                CityKey = str(rstSiDoList.get('sido_cd'))
+                strSiGuCode = str(rstSiDoList.get('sgg_cd'))
 
                 print(GetLogDef.lineno(__file__), "==================================================================")
                 print(CityKey, strSiGuCode)
@@ -322,13 +329,7 @@ def main():
                     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                    inspect.getframeinfo(inspect.currentframe()).lineno) + "data = ["+ str(data) + "] 수집")
 
-                    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-                    dictSwitchData = dict()
-                    dictSwitchData['result'] = '10'
-                    dictSwitchData['data_1'] = KuIndex
-                    dictSwitchData['data_2'] = CityKey
-                    dictSwitchData['data_3'] = targetRow
-                    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
 
                     response = requests.post(
                         strCourtAuctionUrl,
@@ -337,9 +338,19 @@ def main():
                         data=data,
                     )
 
+                    if response is None:
+                        time.sleep(2)
+                        continue
+
                     html = response.text  # page_source 얻기
                     soup = BeautifulSoup(html, "html.parser")  # get html
+
+                    print("soup >> " , soup)
+
+
                     rstMainElements = soup.select_one('#contents > div.table_contents > form:nth-child(1) > table > tbody')
+
+                    print("rstMainElements >> " , rstMainElements)
 
                     nLoopTrElements = 0
                     rstTrElements = rstMainElements.select('tr')
@@ -628,12 +639,29 @@ def main():
                         # # 도로명 주소 없으면
                         # if len(strRoadName) < 2:
                         #
-                        #     strIssueNumber = AuctionDataDecode.DecodeIssueNumber(issue_number_text)
+
                         #
                         #
                         #     strRoadName = GetRoadNameJuso.GetJusoApiForAddress(strJiBunAddress)
 
+                        strIssueNumber = AuctionDataDecode.DecodeIssueNumber(jsonIssueNumber)
 
+                        dictConversionAddress = GetRoadNameJuso.GetDictConversionAddress(logger, strIssueNumber,jSonAddressInfo)
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno),
+                              "dictConversionAddress => ", dictConversionAddress)
+
+                        admCd = dictConversionAddress['admCd']
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno), "admCd => ",
+                              admCd)
+
+                        strDongmyunCode = admCd[5:10]
+
+                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                inspect.getframeinfo(inspect.currentframe()).lineno),
+                              "strDongmyunCode => ", strDongmyunCode)
 
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -701,7 +729,9 @@ def main():
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
                                      "[dtBackupRegDate: (" + str(len(dtBackupRegDate)) + ")" + str(dtBackupRegDate))
-
+                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                                     "[strDongmyunCode: ("+str(len(strDongmyunCode))+")" + str(strDongmyunCode))
 
 
 
@@ -718,6 +748,7 @@ def main():
                         sqlCourtAuctionInsert += " build_type_code= '" + strBuildTypeCode + "', "
                         sqlCourtAuctionInsert += " sido_code= '" + CityKey + "', "
                         sqlCourtAuctionInsert += " sigu_code= '" + strSiGuCode + "', "
+                        sqlCourtAuctionInsert += " dongmyun_code= '" + strDongmyunCode + "', "
                         sqlCourtAuctionInsert += " address_data= '" + jSonAddressInfo + "', "
                         sqlCourtAuctionInsert += " address_data_text= '" + jSonAddressInfo + "', "
                         sqlCourtAuctionInsert += " simple_info= '" + strTempContents + "', "
@@ -747,8 +778,20 @@ def main():
 
                         ResRealEstateConnection.commit()
 
+
+                    # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                    dictSwitchData = dict()
+                    dictSwitchData['result'] = '10'
+                    dictSwitchData['data_1'] = KuIndex
+                    dictSwitchData['data_2'] = nAddressSiguSequence
+                    dictSwitchData['data_3'] = targetRow
+                    dictSwitchData['data_4'] = CityKey
+                    dictSwitchData['data_5'] = strAuctionSeq
+                    dictSwitchData['data_6'] = jsonIssueNumber
+                    LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
                     # 테스트 딜레이 추가
-                    nRandomSec = random.randint(1, 2)
+                    nRandomSec = random.randint(2, 3)
                     # print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
                     time.sleep(nRandomSec)
 
@@ -771,9 +814,9 @@ def main():
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
         dictSwitchData['data_1'] = KuIndex
-        dictSwitchData['data_2'] = CityKey
+        dictSwitchData['data_2'] = nAddressSiguSequence
         dictSwitchData['data_3'] = targetRow
-        dictSwitchData['data_4'] = strAuctionUniqueNumber
+        dictSwitchData['data_4'] = CityKey
         dictSwitchData['data_5'] = strAuctionSeq
         dictSwitchData['data_6'] = jsonIssueNumber
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
@@ -783,13 +826,13 @@ def main():
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
-        dictSwitchData['result'] = '30'
+        dictSwitchData['result'] = '20'
 
         if KuIndex is not None:
             dictSwitchData['data_1'] = KuIndex
 
         if CityKey is not None:
-            dictSwitchData['data_2'] = CityKey
+            dictSwitchData['data_2'] = nAddressSiguSequence
 
         if targetRow is not None:
             dictSwitchData['data_3'] = targetRow
