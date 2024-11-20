@@ -68,7 +68,7 @@ def main():
         # print(dtNow.minute)
         # print(dtNow)
 
-        LogPath = 'CourtAuction/' + strProcessType
+        LogPath = 'Common/' + strProcessType
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
 
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()),
