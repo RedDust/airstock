@@ -69,7 +69,7 @@ def main():
         # print(dtNow.minute)
         # print(dtNow)
 
-        LogPath = 'CronLog_' + strProcessType
+        LogPath = 'CourtAuction/' + strProcessType
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
 
