@@ -25,6 +25,8 @@ import traceback
 import re
 import urllib.request
 
+
+
 import datetime, time, inspect, math
 
 from Realty.Government.Init import init_conf
@@ -41,7 +43,9 @@ from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.GeoDataModule import GeoDataModule
 from Lib.CustomException import QuitException
 
-
+import inspect as Isp, logging, logging.handlers
+from Init.Functions.Logs import GetLogDef as SLog
+from Stock.LIB.Logging import UnifiedLogDeclarationFunction as ULF
 
 
 def main():
@@ -49,9 +53,6 @@ def main():
     try:
         #사용변수 초기화
         nSequence = 0
-
-        print(GetLogDef.lineno(__file__), "============================================================")
-        print(GetLogDef.lineno(__file__), "법정동 API 수집 프로그램")
 
         strProcessType = '042101'
         KuIndex = DBKuIndex = '00'
@@ -67,42 +68,21 @@ def main():
         # print(dtNow.minute)
         # print(dtNow)
 
-        logFileName = str(dtNow.year) + str(dtNow.month) + str(dtNow.day).zfill(2) + ".log"
+        LogPath = 'CourtAuction/' + strProcessType
+        setLogger = ULF.setLogFile(dtNow, logging, LogPath)
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter(u'%(asctime)s [%(levelname)8s] %(message)s')
-
-        streamingHandler = logging.StreamHandler()
-        streamingHandler.setFormatter(formatter)
-
-        # RotatingFileHandler
-        log_max_size = 10 * 1024 * 1024  ## 10MB
-        log_file_count = 20
-
-        # RotatingFileHandler
-        timeFileHandler = logging.handlers.TimedRotatingFileHandler(
-            filename='D:/PythonProjects/airstock/Shell/logs/'+strProcessType+ '_get_bjdong_api' + logFileName,
-            when='midnight',
-            interval=1,
-            encoding='utf-8'
-        )
-        timeFileHandler.setFormatter(formatter)
-        logger.addHandler(streamingHandler)
-        logger.addHandler(timeFileHandler)
-
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()),
+                     "============================================================")
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            QuitException.QuitException(GetLogDef.lineno(__file__)+ 'strResult => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '[strResult =>'+ strResult+"]" )# 예외를 발생시킴
 
         if strResult == '10':
-            print("strResult > " , strResult)
-            QuitException.QuitException(GetLogDef.lineno(__file__)+ 'It is currently in operation. => '+ strResult)  # 예외를 발생시킴
+            QuitException.QuitException(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '[It is currently in operation. => =>' + strResult + "]")  # 예외를 발생시킴
+
 
         if strResult == '20':
             intLoopStart = str(rstResult.get('data_4'))
@@ -122,9 +102,7 @@ def main():
         #
         # nbaseDate = dtToday - relativedelta(months=nLoop)
         dtProcessDay = str(int(dtNow.strftime("%Y%m")))
-
-        print(GetLogDef.lineno(__file__), "dtProcessDay >> ", dtProcessDay)
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[dtProcessDay >>" + dtProcessDay + "]")
         # 한번에 처리할 건수
         nProcessedCount = 1000
 
@@ -154,34 +132,22 @@ def main():
             url += "&pageNo=" + str(nStartNumber) + "&numOfRows=1&type=json"
             response = urllib.request.urlopen(url)
 
-
-
-        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(response),
-              response)
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[response >>" + str(response) + "]")
         json_str = response.read().decode("utf-8")
-
-        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(json_str),
-              json_str)
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[json_str >>" + str(json_str) + "]")
 
         if len(json_str) < 1:
-            Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), 'json_str => ', json_str)  # 예외를 발생시킴
+            Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[json_str >>" + str(json_str) + "]")  # 예외를 발생시킴
 
 
         json_object = json.loads(json_str)
-
-        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), "json_str=> ", len(json_str), type(json_str), json_str)
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[json_object >>" + str(json_object) + "]")
 
         bMore = json_object.get('StanReginCd')
         if bMore is None:
-            Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), 'bMore => ', bMore)  # 예외를 발생시킴
+            Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[bMore >>" + str(bMore) + "]")  # 예외를 발생시킴
 
-        print("bMore > ", bMore)
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[bMore >>" + str(bMore) + "]")
         jsonResultHead = bMore[0].get('head')
 
         jsonResultDatasResult = bMore[1]
@@ -191,14 +157,12 @@ def main():
         # print("jsonResultHeads > ", jsonResultHead[0].get('totalCount'))
         nTotalCount = int(jsonResultHead[0].get('totalCount'))
 
-        print("jsonResultDatasResult > ", jsonResultDatasResult)
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[jsonResultDatasResult >>" + str(jsonResultDatasResult) + "]")
         intMaxPage = math.ceil(nTotalCount / nProcessedCount)
 
         # intMaxPage = 1
 
-        print("intMaxPage > ", intMaxPage)
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[intMaxPage >>" + str(intMaxPage) + "]")
         # DB 연결
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
@@ -211,8 +175,7 @@ def main():
         cursorRealEstate.execute(sqlUpdateGovCode)
         row_result = cursorRealEstate.rowcount
         if row_result < 1:
-            Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                inspect.getframeinfo(inspect.currentframe()).lineno), 'row_result => ', row_result)  # 예외를 발생시킴
+            Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[row_result >>" + str(row_result) + "]")  # 예외를 발생시킴
 
 
         while True:
@@ -225,7 +188,8 @@ def main():
             url  = "http://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList?serviceKey="+init_conf.MolitEncodedAuthorizationKey
             url += "&pageNo="+str(nStartNumber)+"&numOfRows="+str(nProcessedCount)+"&type=json"
 
-            print(GetLogDef.lineno(__file__), "url > ", url)
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[url >>" + str(url) + "]")
+
             # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
             while True:
                 response = urllib.request.urlopen(url)
@@ -236,46 +200,21 @@ def main():
                 time.sleep(1)
 
             json_str = response.read().decode("utf-8")
-
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", dtProcessDay, url)
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "url===> ", dtProcessDay, url)
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "response===> ", type(response), response)
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "json_str===> ", type(json_str),
-            #       json_str)
-            #
-
             json_object = json.loads(json_str)
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "json_str===> ", type(json_object),
-            #       json_object)
             jsonResultDatas = json_object.get('StanReginCd')[1]
-
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "jsonResultDatas===> ", type(jsonResultDatas),
-            #       jsonResultDatas)
-
             jsonRowDatas = jsonResultDatas.get('row')
-
-            # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-            #                                    inspect.getframeinfo(inspect.currentframe()).lineno), "jsonRowDatas===> ", type(jsonRowDatas),
-            #       jsonRowDatas)
-
             # 3. 건별 처리
-            print("Processing", "====================================================")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()),
+                         "Processing============================================================")
+
             nLoop = 0
             strUniqueKey = ''
 
             for jsonRowData in jsonRowDatas:
 
-                print("nLoop", "================================================================================================================================")
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "nLoop============================================================")
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[jsonRowData >>" + str(jsonRowData) + "]")
 
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "jsonRowData===> ",
-                      type(jsonRowData), jsonRowData)
 
                 strUrlRegionCd = jsonRowData.get('region_cd')
                 strUrlSidoCd = jsonRowData.get('sido_cd')
@@ -288,37 +227,26 @@ def main():
                 listSiGuNameTemp = strSiguName.split(" ")
 
                 strSiGuName = strUmdName = strRiName = ''
-
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "listSiGuName===> ",
-                      type(listSiGuName), listSiGuName)
-
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[listSiGuName >>" + str(listSiGuName) + "]")
 
                 strSiDoName = str(listSiGuName[0])
-
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strSiDoName===> ",
-                      type(strSiDoName), strSiDoName)
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strSiDoName >>" + str(strSiDoName) + "]")
 
                 listSiGuNameTemp.pop(0)
 
                 if strUrlSggCd != "000" and len(listSiGuName) > 1:
                     strSiGuName = str(listSiGuName[1])
                     strLastPop = listSiGuNameTemp.pop(0)
-
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "strLastPop===> ",
-                          type(strLastPop), strLastPop)
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strLastPop >>" + str(strLastPop) + "]")
 
                     strLastWord = strLastPop[-1]
                     if strLastWord.find('시') < 0 and strLastWord.find('군') < 0 and strLastWord.find('구') < 0 :
                         listSiGuNameTemp.insert(0, strLastPop )
                         strSiGuName = ''
 
-
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strSiGuName===> ",
-                      type(strSiGuName), strSiGuName)
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strSiGuName >>" + str(strSiGuName) + "]")
 
 
                 if strUrlRiCd != "00" and len(listSiGuName) > 2:
@@ -329,14 +257,11 @@ def main():
                     strUmdName = str(" ".join(listSiGuNameTemp))
 
 
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strUmdName===> ",
-                      type(strUmdName), strUmdName)
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUmdName >>" + str(strUmdName) + "]")
 
-
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strRiName===> ",
-                      type(strRiName), strRiName)
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strRiName >>" + str(strRiName) + "]")
 
 
                 strUrlLocatjuminCd = jsonRowData.get('locatjumin_cd')
@@ -350,9 +275,8 @@ def main():
                 strUrlLocallowNm = jsonRowData.get('locallow_nm')
                 strUrlAdptDe = jsonRowData.get('adpt_de')
 
-                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                        inspect.getframeinfo(inspect.currentframe()).lineno), "strUrlRegionCd===> ",
-                      type(strUrlRegionCd), strUrlRegionCd)
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlRegionCd >>" + str(strUrlRegionCd) + "]")
 
                 nLoop += 1
 
@@ -369,28 +293,78 @@ def main():
 
                     strDOROJUSO = strSiguName
 
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "strDOROJUSO",
-                          strDOROJUSO)
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strDOROJUSO >>" + str(
+                            strDOROJUSO) + "]")
+
 
                     resultsDict = GeoDataModule.getJusoData(strDOROJUSO)
-                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict),
-                          isinstance(resultsDict, dict),
-                          resultsDict)
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[resultsDict >>" + str(
+                            resultsDict) + "]")
 
                     if isinstance(resultsDict, dict) == True:
-                        print(GetLogDef.lineno(__file__), resultsDict['jibunAddr'])
+                        logging.info(
+                            SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[resultsDict['jibunAddr'] >>" + str(
+                                resultsDict['jibunAddr']) + "]")
+
                         strDOROJUSO = str(resultsDict['roadAddrPart1']).strip()
 
                     resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
-                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
-                    print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), isinstance(resultsDict, dict), resultsDict)
+
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[resultsDict['resultsDict'] >>" + str(
+                            resultsDict) + "]")
+
+
 
                     if isinstance(resultsDict, dict) != False:
                         strNaverLongitude = str(resultsDict['x'])  # 127
                         strNaverLatitude = str(resultsDict['y'])  # 37
 
                     time.sleep(0.3)
+
+
+
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlRegionCd >>" + str(strUrlRegionCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlSidoCd >>" + str(
+                        strUrlSidoCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strSiDoName >>" + str(
+                        strSiDoName) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlSggCd >>" + str(
+                        strUrlSggCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strSiGuName >>" + str(
+                        strSiGuName) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlUmdCd >>" + str(
+                        strUrlUmdCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUmdName >>" + str(
+                        strUmdName) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlRiCd >>" + str(
+                        strUrlRiCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strRiName >>" + str(
+                        strRiName) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocatjuminCd >>" + str(
+                        strUrlLocatjuminCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocatjijukCd >>" + str(
+                        strUrlLocatjijukCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocataddNm >>" + str(
+                        strUrlLocataddNm) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocatOrder >>" + str(
+                        strUrlLocatOrder) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocatRm >>" + str(
+                        strUrlLocatRm) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocathighCd >>" + str(
+                        strUrlLocathighCd) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlLocallowNm >>" + str(
+                        strUrlLocallowNm) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlAdptDe >>" + str(
+                        strUrlAdptDe) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strNaverLongitude >>" + str(
+                        strNaverLongitude) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strNaverLatitude >>" + str(
+                        strNaverLatitude) + "]")
+
+
 
                     # INSERT
                     sqlInsertGovCode = " INSERT INTO " + ConstRealEstateTable.GovAddressAPIInfoTable + " SET "
@@ -416,10 +390,10 @@ def main():
                     sqlInsertGovCode += " geo_point = ST_GeomFromText('POINT(" + strNaverLongitude + " " + strNaverLatitude + ")', 4326,'axis-order=long-lat'), "
                     sqlInsertGovCode += " modify_date = NOW() ,  "
                     sqlInsertGovCode += " reg_date = NOW()   "
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "INSERT => ", strUrlRegionCd, strUrlSidoCd, strSiDoName,
-                          strUrlSggCd, strSiGuName, strUrlUmdCd, strUmdName, strUrlRiCd, strRiName, strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm,
-                          strUrlLocatOrder,strUrlLocatRm,strUrlLocathighCd,strUrlLocallowNm,strUrlAdptDe ,strNaverLongitude , strNaverLatitude)
+
+
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[sqlInsertGovCode >>" + str(
+                        sqlInsertGovCode) + "]")
 
                     cursorRealEstate.execute(sqlInsertGovCode, (strUrlRegionCd, strUrlSidoCd,strSiDoName, strUrlSggCd, strSiGuName, strUrlUmdCd, strUmdName, strUrlRiCd, strRiName,
                                                                 strUrlLocatjuminCd, strUrlLocatjijukCd,strUrlLocataddNm, strUrlLocatOrder,strUrlLocatRm,
@@ -433,9 +407,16 @@ def main():
                     sqlUpdateGovCode += " state = '00'  "
                     sqlUpdateGovCode += " , modify_date = NOW()  "
                     sqlUpdateGovCode += " WHERE region_cd = %s  "
+
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[sqlUpdateGovCode >>" + str(
+                        sqlUpdateGovCode) + "]")
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strUrlRegionCd >>" + str(
+                        strUrlRegionCd) + "]")
+
                     cursorRealEstate.execute(sqlUpdateGovCode, (strUrlRegionCd))
-                    print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                            inspect.getframeinfo(inspect.currentframe()).lineno), "UPDATE => ", strUrlRegionCd)
+                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[UPDATE >>" + str(
+                        strUrlRegionCd) + "]")
+
 
                 ResRealEstateConnection.commit()
 
@@ -464,10 +445,13 @@ def main():
         dictSwitchData['data_5'] = strUrlLocataddNm
         dictSwitchData['data_6'] = strUrlLocallowNm
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-        print(GetLogDef.lineno(__file__), "[END strAdminName]]================== ", dictSwitchData)
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[END strAdminName]]================= >>" + str(
+            dictSwitchData) + "]")
 
 
     except Exception as e:
+
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[Error Exception]]================= >>")
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -480,32 +464,19 @@ def main():
             dictSwitchData['data_2'] = nStartNumber
 
         if targetRow is not None:
-            dictSwitchData['data_3'] =         dictSwitchData['data_3'] = nProcessedCount
+            dictSwitchData['data_3'] = nProcessedCount
 
 
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
         err_msg = traceback.format_exc()
-
         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "Error Exception")
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     str(e))
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     str(err_msg))
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) +"[dictSwitchData >> " + str(dictSwitchData) +"]")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[err_msg >>" + str(err_msg) + "]")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[e >>" + str(e) + "]")
 
     else:
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "[SUCCESS END]==================================================================")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[SUCCESS END]================= >>")
 
     finally:
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "[CRONTAB END]==================================================================")
-
-
-
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[CRONTAB END]================= >>")
