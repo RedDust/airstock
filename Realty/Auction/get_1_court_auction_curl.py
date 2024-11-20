@@ -69,30 +69,9 @@ def main():
         # print(dtNow.minute)
         # print(dtNow)
 
-        logFileName = str(dtNow.year).zfill(4)  + str(dtNow.month).zfill(2)  + str(dtNow.day).zfill(2) + ".log"
-
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-
-        formatter = logging.Formatter(u'%(asctime)s [%(levelname)8s] %(message)s')
-
-        streamingHandler = logging.StreamHandler()
-        streamingHandler.setFormatter(formatter)
-
-        # RotatingFileHandler
-        log_max_size = 10 * 1024 * 1024  ## 10MB
-        log_file_count = 20
-
-        # RotatingFileHandler
-        timeFileHandler = logging.handlers.TimedRotatingFileHandler(
-            filename='D:/PythonProjects/airstock/Shell/logs/'+strProcessType+ '_get_auction_' + logFileName,
-            when='midnight',
-            interval=1,
-            encoding='utf-8'
-        )
-        timeFileHandler.setFormatter(formatter)
-        logger.addHandler(streamingHandler)
-        logger.addHandler(timeFileHandler)
+        LogPath = 'Stock/CronLog_' + strProcessType
+        setLogger = ULF.setLogFile(dtNow, logging, LogPath)
+        intWeekDay = dtNow.weekday()
 
 
         # 스위치 데이터 조회 type(000200) result (10:정기점검)
