@@ -37,11 +37,15 @@ from Lib.CryptoModule import AesCrypto
 from Realty.Auction.AuctionLib import MakeAuctionUniqueKey
 import Realty.Auction.AuctionLib.AuctionDataDecode as AuctionDataDecode
 import Realty.Government.MolitLib.GetRoadNameJuso as GetRoadNameJuso
+import inspect as Isp, logging, logging.handlers
+from Init.Functions.Logs import GetLogDef as SLog
+from Stock.LIB.Logging import UnifiedLogDeclarationFunction as ULF
+
 
 def main():
 
     try:
-        print(GetLogDef.lineno(__file__), "============================================================")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "============================================================")
 
         #https://curlconverter.com/ <- 프로그램 컨버터
 
@@ -95,7 +99,7 @@ def main():
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2('000200')
         strResult = rstResult.get('result')
         if strResult is False:
-            quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => '+ str(strResult))  # 예외를 발생시킴
 
         if strResult == '10':
             process_start_date = rstResult.get('process_start_date').strftime('%Y-%m-%d %H:%M:%S')
@@ -105,26 +109,26 @@ def main():
             last_date_obj = DateTime.strptime(last_date, '%Y-%m-%d %H:%M:%S')
 
             if (process_start_date_obj <= dtRegNow ) and (dtRegNow <= last_date_obj):
-                print("process_start_date >> ", process_start_date)
-                print("dtRegNow >> ", dtRegNow)
-                print("last_date >> ", last_date)
-                quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "process_start_date >> "+ process_start_date)
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "dtRegNow >> "+ dtRegNow)
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "last_date >> "+ last_date)
+                quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => '+ strResult)  # 예외를 발생시킴
 
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2(strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
-            quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
 
         if strResult == '10':
-            quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'It is currently in operation. => '+ str(strResult)) # 예외를 발생시킴
 
         # if strResult == '20':
         #     nAddressSiguSequence = rstResult.get('data_2')
 
         if strResult == '40':
-            quit(GetLogDef.lineno(__file__), '경매 서비스 점검 ', strResult)  # 예외를 발생시킴
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '경매 서비스 점검 '+ str(strResult)) # 예외를 발생시킴
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -175,14 +179,14 @@ def main():
 
         # 초기 값
         paging = 40
-        # quit(GetLogDef.lineno(__file__))  # 예외를 발생시킴
+        # quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()))  # 예외를 발생시킴
         #
 
         for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
 
-            print(KuIndex)
-            print(AuctionCallInfo)
-            print(GetLogDef.lineno(__file__), "==================================================================")
+            logging.info(KuIndex)
+            logging.info(AuctionCallInfo)
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "==================================================================")
             # print(AuctionCourtInfo.dictAuctionTypes['1'].get('url'))
             # print(AuctionCourtInfo.dictAuctionTypes['1'].get('type'))
 
@@ -213,8 +217,8 @@ def main():
                 CityKey = str(rstSiDoList.get('sido_cd'))
                 strSiGuCode = str(rstSiDoList.get('sgg_cd'))
 
-                print(GetLogDef.lineno(__file__), "==================================================================")
-                print(CityKey, strSiGuCode)
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "==================================================================")
+                logging.info(CityKey+ strSiGuCode)
 
                 targetRow = 1
 
@@ -345,27 +349,25 @@ def main():
                     html = response.text  # page_source 얻기
                     soup = BeautifulSoup(html, "html.parser")  # get html
 
-                    print("soup >> " , soup)
+                    logging.info("soup >> " + str(soup))
 
 
                     rstMainElements = soup.select_one('#contents > div.table_contents > form:nth-child(1) > table > tbody')
 
-                    print("rstMainElements >> " , rstMainElements)
+                    logging.info("rstMainElements >> "+ str(rstMainElements))
 
                     nLoopTrElements = 0
                     rstTrElements = rstMainElements.select('tr')
-                    # print(GetLogDef.lineno(__file__), "-------------------------------------------------------------------------------")
+                    # print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "-------------------------------------------------------------------------------")
                     strErrorMessage = rstMainElements.select_one('tr').select_one('td').text
 
                     if strErrorMessage == '검색결과가 없습니다.':
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      str(targetRow) + "]수집완료")
                         break
 
                     for rstTrElement in rstTrElements:
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[type : " + str(strAuctionType) + "][place:" + str(CityKey) +
                                      "][page : " + str(targetRow) + "][count :" + str(nLoopTrElements) +
                                      "]+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -384,9 +386,7 @@ def main():
                         strCheckBoxValues = (rstTdElements[0].select_one('input[type=checkbox]').get('value'))
                         arrCheckBoxValues = strCheckBoxValues.split(',')
                         if len(arrCheckBoxValues) != 3:
-                            raise Exception(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                              inspect.getframeinfo(inspect.currentframe()).lineno),
-                                            'arrCheckBoxValues => ', arrCheckBoxValues)  # 예외를 발생시킴
+                            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + ' arrCheckBoxValues => ' + str(arrCheckBoxValues))  # 예외를 발생시킴
 
                         # print(arrCheckBoxValues)
                         strCourtName = arrCheckBoxValues[0]
@@ -398,8 +398,7 @@ def main():
                         rstIssueNumber = rstTdElements[1]
                         rstIssueNumber.find('input').decompose()
                         strIssueNumber = rstIssueNumber.text
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[rstIssueNumber:" + str(rstIssueNumber))
 
                         nLoopTempIssueNumber = 0
@@ -424,11 +423,12 @@ def main():
 
                         # 법원 정보가 존재 하지 않으면 오류 처리
                         if arrTempIssueNumber[0] not in AuctionCourtInfo.arrCourtName:
-                            raise Exception(GetLogDef.lineno(__file__), 'arrTempIssueNumber[0] => ', arrTempIssueNumber[0])  # 예외를 발생시킴
+                            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'arrTempIssueNumber[0] => '+ str(arrTempIssueNumber[0]))  # 예외를 발생시킴
 
                         # 사건 번호 정보가 없으면 오류
                         if len(arrTempIssueNumber) < 2:
-                            raise Exception(GetLogDef.lineno(__file__), 'len(arrTempIssueNumber) => ', len(arrTempIssueNumber))  # 예외를 발생시킴
+                            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'len(arrTempIssueNumber) => ' + str(arrTempIssueNumber[0]))  # 예외를 발생시킴
+
 
                         # #중복 물건 또는 병합물건 존재함
                         # if len(arrTempIssueNumber) > 2:
@@ -463,7 +463,7 @@ def main():
 
                         # 사건 번호 정보가 없으면 오류
                         if len(arrTempUsageInfo) < 2:
-                            raise Exception(GetLogDef.lineno(__file__), 'len(arrTempIssueNumber) => ', len(arrTempUsageInfo))  # 예외를 발생시킴
+                            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'len(arrTempIssueNumber) => ' + str(len(arrTempUsageInfo)))  # 예외를 발생시킴
 
                         # #중복 물건 또는 병합물건 존재함
                         # if len(arrTempUsageInfo) > 2:
@@ -473,10 +473,10 @@ def main():
 
                         strBuildTypeText = re.sub(r"[^가-힣]", "", jsonUsageInfo)
 
-                        print("AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText] > " , AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText])
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText] > " + str(AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]))
 
-                        print("AuctionCourtInfo.dictBuildTypeKeyWord[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]> ",
-                              AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]])
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " AuctionCourtInfo.dictBuildTypeKeyWord[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]> " +
+                              str(AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]))
 
                         strBuildTypeCode = AuctionCourtInfo.dictBuildTypeToCode[AuctionCourtInfo.dictBuildTypeReverseKeyWord[strBuildTypeText]]
 
@@ -492,7 +492,7 @@ def main():
                         arrTempAddressInfo = []
                         arrayAtags = rstAddressAndContents.select('a')
                         for arrayAtag in arrayAtags:
-                            # print(GetLogDef.lineno(__file__),"-------------------------------------------------------------------------------")
+                            # print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()),"-------------------------------------------------------------------------------")
                             strTempAddress = repr(arrayAtag.text)
                             strTempAddress = GetLogDef.stripSpecharsForText(strTempAddress)
                             if len(strTempAddress) < 1:
@@ -553,7 +553,7 @@ def main():
 
 
                         # 법원경매 6번째 컬럼 (담당계 / 매각기일) START
-                        # print(GetLogDef.lineno(__file__), "================================================================================")
+                        # print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "================================================================================")
                         rstShowJpDeptInfoTitleInfos = rstTdElements[6]
                         rstShowJpDeptInfoTitles = repr(rstShowJpDeptInfoTitleInfos.text)
                         rstShowJpDeptInfoTitlesArrays = rstShowJpDeptInfoTitles.split('\\n')
@@ -584,7 +584,7 @@ def main():
 
                         # ['경매21계', '2023.02.21', '유찰3회']
                         # 법원경매 6번째 컬럼 (감정평가액 / 최처매각가격) END
-                        print(GetLogDef.lineno(__file__), "################################################################")
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "################################################################")
                         sqlCourtAuctionSelect = "SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionDataTable +" WHERE unique_value2 = %s LIMIT 1 "
                         cursorRealEstate.execute(sqlCourtAuctionSelect, (strUniqueValue2Enc))
                         nResultCount = cursorRealEstate.rowcount
@@ -628,10 +628,10 @@ def main():
                             nProcessStep = str(rstBackupList.get('process_step'))
                             dtBackupRegDate = str(rstBackupList.get('reg_date'))
 
-                            print(GetLogDef.lineno(__file__), jsonBackAddressData ,'-------------------------------------------------------------')
+                            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +  str(jsonBackAddressData))
                             if len(jsonBackAddressData) > 5:
-                                print(GetLogDef.lineno(__file__), type(strAuctionUniqueNumber), len(strAuctionUniqueNumber), strAuctionUniqueNumber)
-                                print(GetLogDef.lineno(__file__), ">>", type(jsonBackAddressData), len(jsonBackAddressData), jsonBackAddressData)
+                                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + str(type(strAuctionUniqueNumber)), str(len(strAuctionUniqueNumber)) , str(strAuctionUniqueNumber))
+                                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + ">>", str(type(jsonBackAddressData)), str(len(jsonBackAddressData)), str(jsonBackAddressData))
                                 jSonAddressInfo = jsonBackAddressData
                                 break
 
@@ -648,89 +648,62 @@ def main():
 
                         dictConversionAddress = GetRoadNameJuso.GetDictConversionAddress(logger, strIssueNumber,jSonAddressInfo)
 
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                inspect.getframeinfo(inspect.currentframe()).lineno),
-                              "dictConversionAddress => ", dictConversionAddress)
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[dictConversionAddress] => " + str(dictConversionAddress))
+
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[admCd] => " + str(admCd))
 
                         admCd = dictConversionAddress['admCd']
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                inspect.getframeinfo(inspect.currentframe()).lineno), "admCd => ",
-                              admCd)
 
                         strDongmyunCode = admCd[5:10]
 
-                        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                inspect.getframeinfo(inspect.currentframe()).lineno),
-                              "strDongmyunCode => ", strDongmyunCode)
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " strDongmyunCode => " + str(strDongmyunCode))
 
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+
                                      "[strAuctionUniqueNumber: ("+str(len(strAuctionUniqueNumber))+")" + str(strAuctionUniqueNumber))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strAuctionSeq: (" + str(len(strAuctionSeq)) + ")" + str( strAuctionSeq))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strCourtName: (" + str(len(strCourtName)) + ")" + str(strCourtName))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[jsonIssueNumber: (" + str(len(jsonIssueNumber)) + ")" + str(jsonIssueNumber))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[jsonUsageInfo: (" + str(len(jsonUsageInfo)) + ")" + str( jsonUsageInfo))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[jSonAddressInfo: (" + str(len(jSonAddressInfo)) + ")" + str(jSonAddressInfo))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strTempContents: (" + str(len(strTempContents)) + ")" + str(strTempContents))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[nAppraisalPrice: (" + str(len(nAppraisalPrice)) + ")" + str(nAppraisalPrice))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[nLowerPrice: (" + str(len(nLowerPrice)) + ")" + str(nLowerPrice))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[nRatio: (" + str(len(nRatio)) + ")" + str(nRatio))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strAuctionPlace: (" + str(len(strAuctionPlace)) + ")" + str(strAuctionPlace))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strAuctionDate: (" + str(len(strAuctionDate)) + ")" + str(strAuctionDate))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strAuctionType: (" + str(len(strAuctionType)) + ")" + str(strAuctionType))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strDBState: (" + str(len(strDBState)) + ")" + str(strDBState))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strJiBunAddress: (" + str(len(strJiBunAddress)) + ")" + str(strJiBunAddress))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strLongitude: (" + str(len(strLongitude)) + ")" + str(strLongitude))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strLatitude: (" + str(len(strLatitude)) + ")" + str(strLatitude))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[nProcessStep: (" + str(len(nProcessStep)) + ")" + str(nProcessStep))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strBiddingInfo: (" + str(len(strBiddingInfo)) + ")" + str(strBiddingInfo))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[CityKey: (" + str(len(CityKey)) + ")" + str(CityKey))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strSiGuCode: (" + str(len(strSiGuCode)) + ")" + str(strSiGuCode))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[dtBackupRegDate: (" + str(len(dtBackupRegDate)) + ")" + str(dtBackupRegDate))
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[strDongmyunCode: ("+str(len(strDongmyunCode))+")" + str(strDongmyunCode))
 
 
@@ -769,8 +742,7 @@ def main():
                         sqlCourtAuctionInsert += " bidding_info= '" + strBiddingInfo + "', "
                         sqlCourtAuctionInsert += " reg_date= '" + dtBackupRegDate + "' "
 
-                        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                                      "[sqlCourtAuctionInsert: (" + str(len(sqlCourtAuctionInsert)) + ")" + str(sqlCourtAuctionInsert))
 
 
@@ -796,7 +768,7 @@ def main():
                     time.sleep(nRandomSec)
 
                     targetRow = targetRow + paging #END While
-                    print("While END")
+                    logging.info("While END")
 
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                inspect.getframeinfo(inspect.currentframe()).lineno) +
@@ -806,7 +778,7 @@ def main():
                          "[" + KuIndex + "]for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():")
 
 
-        # print("for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():=====")
+        # logging.info("for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():=====")
 
             # END While
 
@@ -862,3 +834,6 @@ def main():
                      "[CRONTAB END]==================================================================")
 
 
+
+if __name__ == '__main__':
+    main()
