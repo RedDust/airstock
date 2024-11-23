@@ -56,7 +56,7 @@ def main():
         # print(dtNow.minute)
         # print(dtNow)
 
-        LogPath = strProcessType
+        LogPath = 'Government/' + strProcessType
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
 
