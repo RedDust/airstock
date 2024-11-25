@@ -45,7 +45,7 @@ from Stock.LIB.Logging import UnifiedLogDeclarationFunction as ULF
 def main():
 
     try:
-        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "============================================================")
+
 
         #https://curlconverter.com/ <- 프로그램 컨버터
 
@@ -73,6 +73,7 @@ def main():
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
 
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "[CRONTAB START]============================================================")
 
         # 스위치 데이터 조회 type(000200) result (10:정기점검)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2('000200')
@@ -103,8 +104,8 @@ def main():
         if strResult == '10':
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'It is currently in operation. => '+ str(strResult)) # 예외를 발생시킴
 
-        # if strResult == '20':
-        #     nAddressSiguSequence = rstResult.get('data_2')
+        if strResult == '20':
+            nAddressSiguSequence = rstResult.get('data_2')
 
         if strResult == '40':
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '경매 서비스 점검 '+ str(strResult)) # 예외를 발생시킴
@@ -117,11 +118,6 @@ def main():
         dictSwitchData['data_2'] = nAddressSiguSequence
         dictSwitchData['data_3'] = targetRow
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
-
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "[CRONTAB START]==================================================================")
-
 
 
 
@@ -163,11 +159,9 @@ def main():
 
         for KuIndex, AuctionCallInfo in AuctionCourtInfo.dictAuctionTypes.items():
 
-            logging.info(KuIndex)
-            logging.info(AuctionCallInfo)
-            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "==================================================================")
-            # print(AuctionCourtInfo.dictAuctionTypes['1'].get('url'))
-            # print(AuctionCourtInfo.dictAuctionTypes['1'].get('type'))
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "AuctionCourtInfo.dictAuctionTypes.items()==================================================================")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +"[KuIndex: (" + str(KuIndex) + ")")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +"[AuctionCallInfo: (" + str(AuctionCallInfo) + ")")
 
             strCourtAuctionUrl = AuctionCourtInfo.dictAuctionTypes[KuIndex].get('url')
             strAuctionType = AuctionCourtInfo.dictAuctionTypes[KuIndex].get('type')
@@ -183,6 +177,7 @@ def main():
             qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable.GovAddressAPIInfoTable
             qrySelectSeoulTradeMaster += " WHERE state='00' AND sgg_cd<>'000' AND umd_cd='000' AND ri_cd='00'"
             qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
+            qrySelectSeoulTradeMaster += " LIMIT 1000 "
 
             cursorRealEstate.execute(qrySelectSeoulTradeMaster)
             rstSiDoLists = cursorRealEstate.fetchall()
@@ -196,8 +191,11 @@ def main():
                 CityKey = str(rstSiDoList.get('sido_cd'))
                 strSiGuCode = str(rstSiDoList.get('sgg_cd'))
 
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "==================================================================")
-                logging.info(CityKey+ strSiGuCode)
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())+ "rstSiDoList===============================================")
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[CityKey: (" + str(CityKey) + ")")
+                logging.info(
+                    SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strSiGuCode: (" + str(strSiGuCode) + ")")
 
                 targetRow = 1
 
@@ -221,49 +219,6 @@ def main():
                         'JSESSIONID': 'GaL7Ehe4mYWbEDHCagGn6L60inn16EKTWsNnMnXVnjQRRAlVbAGe1zK51jnl3BZW.amV1c19kb21haW4vYWlzMg==',
                     }
 
-
-                    # data = 'page=default'+str(paging)+'&' \
-                    #        'srnID=PNO102000&jiwonNm=&bubwLocGubun=2&jibhgwanOffMgakPlcGubun=&mvmPlaceSidoCd=&mvmPlaceSiguCd=&roadPlaceSidoCd=&' \
-                    #        'roadPlaceSiguCd=&daepyoSidoCd='+CityKey+'&daepyoSiguCd=&daepyoDongCd=&rd1Cd=&rd2Cd=&rd3Rd4Cd=&roadCode=&' \
-                    #        'notifyLoc=1&notifyRealRoad=1&notifyNewLoc=1&mvRealGbncd=1&jiwonNm1=%C0%FC%C3%BC&jiwonNm2=%BC%AD%BF%EF%C1%DF%BE%D3%C1%F6%B9%E6%B9%FD%BF%F8&' \
-                    #        'mDaepyoSidoCd='+CityKey+'&mvDaepyoSidoCd=&mDaepyoSiguCd=&mvDaepyoSiguCd=&realVowel=00000_55203&vowelSel=00000_55203&mDaepyoDongCd=&mvmPlaceDongCd=&' \
-                    #        '_NAVI_CMD=&_NAVI_SRNID=&_SRCH_SRNID=PNO102000&_CUR_CMD=RetrieveMainInfo.laf&_CUR_SRNID=PNO102000&_NEXT_CMD=&_NEXT_SRNID=PNO102002&' \
-                    #        '_PRE_SRNID=PNO102001&_LOGOUT_CHK=&_FORM_YN=Y&PNIPassMsg=%C1%A4%C3%A5%BF%A1+%C0%C7%C7%D8+%C2%F7%B4%DC%B5%C8+%C7%D8%BF%DCIP+%BB%E7%BF%EB%C0%DA%C0%D4%B4%CF%B4%D9.&' \
-                    #        'pageSpec=default'+str(paging)+'&pageSpec=default'+str(paging)+'&' \
-                    #        'targetRow='+str(targetRow)+'&lafjOrderBy='
-
-
-                    # cookies = {
-                    #     'WMONID': 'MMCPCPmrU9T',
-                    #     'daepyoSiguCd': '',
-                    #     'mvmPlaceSiguCd': '',
-                    #     'rd1Cd': '',
-                    #     'rd2Cd': '',
-                    #     'realVowel': '35207_45207',
-                    #     'roadPlaceSidoCd': '',
-                    #     'roadPlaceSiguCd': '',
-                    #     'vowelSel': '35207_45207',
-                    #     'page': 'default20',
-                    #     'realJiwonNm': '%BC%AD%BF%EF%B3%B2%BA%CE%C1%F6%B9%E6%B9%FD%BF%F8',
-                    #     'daepyoSidoCd': CityKey,
-                    #     'mvmPlaceSidoCd': '',
-                    #     'JSESSIONID': 'GaL7Ehe4mYWbEDHCagGn6L60inn16EKTWsNnMnXVnjQRRAlVbAGe1zK51jnl3BZW.amV1c19kb21haW4vYWlzMg==',
-                    # }
-                    #
-                    #
-
-
-
-                    # data = 'page=default40&srnID=PNO102000&jiwonNm=&bubwLocGubun=2&jibhgwanOffMgakPlcGubun=' \
-                    #        '&mvmPlaceSidoCd=&mvmPlaceSiguCd=&roadPlaceSidoCd=&roadPlaceSiguCd=' \
-                    #        '&daepyoSidoCd='+CityKey+'&daepyoSiguCd='+strSiGuCode+'&daepyoDongCd=103&rd1Cd=&rd2Cd=&rd3Rd4Cd=&roadCode=' \
-                    #        '&notifyLoc=1&notifyRealRoad=1&notifyNewLoc=1&mvRealGbncd=1' \
-                    #        '&mDaepyoSidoCd='+CityKey+'&mvDaepyoSidoCd=&mDaepyoSiguCd='+strSiGuCode+'' \
-                    #        '&mvDaepyoSiguCd=&realVowel=00000_55203&vowelSel=00000_55203&mDaepyoDongCd=103^%^7CA' \
-                    #        '&mvmPlaceDongCd=&_NAVI_CMD=&_NAVI_SRNID=&_SRCH_SRNID=PNO102000&_CUR_CMD=RetrieveMainInfo.laf&_CUR_SRNID=PNO102000&_NEXT_CMD=' \
-                    #        '&_NEXT_SRNID=PNO102002&_PRE_SRNID=PNO102001&_LOGOUT_CHK=&_FORM_YN=Y&page=default40' \
-                    #        '&PNIPassMsg=^%^C1^%^A4^%^C3^%^A5^%^BF^%^A1+^%^C0^%^C7^%^C7^%^D8+^%^C2^%^F7^%^B4^%^DC^%^B5^%^C8+^%^C7^%^D8^%^BF^%^DCIP+^%^BB^%^E7^%^BF^%^EB^%^C0^%^DA^%^C0^%^D4^%^B4^%^CF^%^B4^%^D9.' \
-                    #        '&pageSpec=default40&targetRow='+str(targetRow)+'&lafjOrderBy=order+by+maeGiil+asc'
 
                     cookies = {
                         'WMONID': 'sfXO0bVObsW',
@@ -309,9 +264,8 @@ def main():
                            '&pageSpec=default40&pageSpec=default40&targetRow='+str(targetRow)+'&lafjOrderBy=order+by+maeGiil+asc'
 
 
-                    logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                   inspect.getframeinfo(inspect.currentframe()).lineno) + "data = ["+ str(data) + "] 수집")
-
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[data: (" + str(data) + ")")
 
 
                     response = requests.post(
@@ -328,28 +282,26 @@ def main():
                     html = response.text  # page_source 얻기
                     soup = BeautifulSoup(html, "html.parser")  # get html
 
-                    logging.info("soup >> " + str(soup))
-
+                    # logging.info(
+                    #     SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[soup: (" + str(soup) + ")")
 
                     rstMainElements = soup.select_one('#contents > div.table_contents > form:nth-child(1) > table > tbody')
 
-                    logging.info("rstMainElements >> "+ str(rstMainElements))
+                    # logging.info(
+                    #     SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[rstMainElements: (" + str(rstMainElements) + ")")
 
                     nLoopTrElements = 0
                     rstTrElements = rstMainElements.select('tr')
                     # print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "-------------------------------------------------------------------------------")
                     strErrorMessage = rstMainElements.select_one('tr').select_one('td').text
-
+                    logging.info(
+                        SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strErrorMessage: (" + str(strErrorMessage) + ")")
                     if strErrorMessage == '검색결과가 없습니다.':
                         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
-                                     str(targetRow) + "]수집완료")
+                                     str(targetRow) + "]검색결과가 없습니다")
                         break
 
                     for rstTrElement in rstTrElements:
-                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
-                                     "[type : " + str(strAuctionType) + "][place:" + str(CityKey) +
-                                     "][page : " + str(targetRow) + "][count :" + str(nLoopTrElements) +
-                                     "]+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                         nLoopTrElements = nLoopTrElements + 1
 
                         nLoopTdElements = 0
@@ -610,7 +562,6 @@ def main():
                             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +  str(jsonBackAddressData))
                             if len(jsonBackAddressData) > 5:
                                 logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + str(type(strAuctionUniqueNumber)), str(len(strAuctionUniqueNumber)) , str(strAuctionUniqueNumber))
-                                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + ">>", str(type(jsonBackAddressData)), str(len(jsonBackAddressData)), str(jsonBackAddressData))
                                 jSonAddressInfo = jsonBackAddressData
                                 break
 
@@ -625,11 +576,11 @@ def main():
 
                         strIssueNumber = AuctionDataDecode.DecodeIssueNumber(jsonIssueNumber)
 
-                        dictConversionAddress = GetRoadNameJuso.GetDictConversionAddress(logger, strIssueNumber,jSonAddressInfo)
+                        dictConversionAddress = GetRoadNameJuso.GetDictConversionAddress(logging, strIssueNumber,jSonAddressInfo)
 
                         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[dictConversionAddress] => " + str(dictConversionAddress))
 
-                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[admCd] => " + str(admCd))
+                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[dictConversionAddress] => " + str(dictConversionAddress['admCd']))
 
                         admCd = dictConversionAddress['admCd']
 
@@ -742,19 +693,17 @@ def main():
                     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
                     # 테스트 딜레이 추가
-                    nRandomSec = random.randint(2, 3)
+                    nRandomSec = random.randint(2)
                     # print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
                     time.sleep(nRandomSec)
 
                     targetRow = targetRow + paging #END While
                     logging.info("While END")
 
-                logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                               inspect.getframeinfo(inspect.currentframe()).lineno) +
-                             "[" + "]END FOR for CityKey in AuctionCourtInfo.arrCityPlace ")
-            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                           inspect.getframeinfo(inspect.currentframe()).lineno) +
-                         "[" + KuIndex + "]for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():")
+                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
+                             "[=============END FOR for CityKey in AuctionCourtInfo.arrCityPlace ")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
+                         "[=============for KuIndex in AuctionCourtInfo.dictAuctionTypes.items(): ")
 
 
         # logging.info("for KuIndex in AuctionCourtInfo.dictAuctionTypes.items():=====")
@@ -791,28 +740,15 @@ def main():
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
         err_msg = traceback.format_exc()
-
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "Error Exception")
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     str(e))
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     str(err_msg))
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +"[=============[Error Exception]")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[e : ("+str(e)+")")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[err_msg : (" + str(err_msg) + ")")
 
     else:
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "[SUCCESS END]==================================================================")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
+                     "[=============[SUCCESS END]")
 
     finally:
-        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                       inspect.getframeinfo(inspect.currentframe()).lineno) +
-                     "[CRONTAB END]==================================================================")
+        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
+                     "[=============[CRONTAB END]")
 
-
-
-if __name__ == '__main__':
-    main()
