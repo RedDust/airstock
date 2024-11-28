@@ -1,3 +1,7 @@
+import sys,os
+sys.path.append("D:/PythonProjects/airstock")
+sys.path.append("D:/PythonProjects/airstock/Stock")
+
 import html
 import time
 import json
@@ -45,7 +49,9 @@ def main():
         strNowDate = strBaseYYYY + strBaseMM + strBaseDD
         strNowTime = strBaseHH + ":" + strBaseII + ":" + strBaseSS
 
-        LogPath = 'Stock/CronLog_' + strProcessType
+        strAddLogPath = os.path.basename(Isp.getframeinfo(Isp.currentframe()).filename).split('.')[0]
+        LogPath = 'Stock/'+strAddLogPath+'/'+ strProcessType
+
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
         strSequence='0'
@@ -54,7 +60,7 @@ def main():
                               Isp.currentframe()) + " [CRONTAB START : " + strNowTime + "]=====================================")
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
-        rstResult = StockSwitchTable.SwitchResultSelectV2(strProcessType)
+        rstResult = StockSwitchTable.SwitchResultSelectV2(logging, strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
             logging.info(SLog.Ins(Isp.getframeinfo,
@@ -80,7 +86,7 @@ def main():
         dictSwitchData['result'] = '10'
         dictSwitchData['data_1'] = strNowDate
         dictSwitchData['data_2'] = strSequence
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'a', dictSwitchData)
 
         # # DB 연결
         ResStockFriendsConnection = pyMysqlConnector.StockFriendsConnection()
@@ -185,14 +191,14 @@ def main():
             dictSwitchData['result'] = '10'
             dictSwitchData['data_1'] = strNowDate
             dictSwitchData['data_2'] = strSequence
-            StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+            StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'b', dictSwitchData)
             time.sleep(1)
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'c', dictSwitchData)
 
     except Exception as e:
 
@@ -207,7 +213,7 @@ def main():
         dictSwitchData['result'] = '20'
         dictSwitchData['data_1'] = strNowDate
         dictSwitchData['data_2'] = strSequence
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'c', dictSwitchData)
 
     else:
 
@@ -217,5 +223,5 @@ def main():
         print(SLog.Ins(Isp.getframeinfo,Isp.currentframe()), "Finally END")
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
