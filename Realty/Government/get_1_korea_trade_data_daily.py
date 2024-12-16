@@ -707,3 +707,6 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "Finally END")
 
 
+
+if __name__ == '__main__':
+    main()
