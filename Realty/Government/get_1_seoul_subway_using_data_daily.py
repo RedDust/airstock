@@ -13,7 +13,6 @@ import pymysql
 import datetime
 import traceback
 import pandas as pd
-from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Realty.Government.Const import ConstRealEstateTable_GOV
 from Lib.RDB import pyMysqlConnector

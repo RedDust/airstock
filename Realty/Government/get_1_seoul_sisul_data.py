@@ -14,7 +14,6 @@ import pymysql
 import datetime
 
 import pandas as pd
-from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Realty.Government.Const import ConstRealEstateTable_GOV
 from Lib.RDB import pyMysqlConnector
@@ -285,3 +284,7 @@ def main():
     finally:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[=============[Finally END]")
 
+
+
+if __name__ == '__main__':
+    main()
