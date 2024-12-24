@@ -18,7 +18,7 @@ import time
 import re
 import pandas as pd
 import requests
-from pandas.io.json import json_normalize
+
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
 from dateutil.relativedelta import relativedelta
@@ -516,3 +516,8 @@ def main():
         print(GetLogDef.lineno(__file__), "========================= SUCCESS END")
     finally:
         print(GetLogDef.lineno(__file__), "Finally END")
+
+
+
+if __name__ == '__main__':
+    main()

@@ -17,7 +17,6 @@ sys.path.append("D:/PythonProjects/airstock")
 
 
 
-from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
 
@@ -167,7 +166,22 @@ try:
             json_str = response.read().decode("utf-8")
 
             # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                   inspect.getframeinfo(inspect.currentframe()).lineno) , "json_str=> " ,len(json_str),type(json_str) , json_str)
+
+            if len(json_str) < 1:
+                print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                        inspect.getframeinfo(inspect.currentframe()).lineno), "json_str=> ",
+                      len(json_str), "sleep 2")
+                time.sleep(2)
+                continue
+
             json_object = json.loads(json_str)
+
+            print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                   inspect.getframeinfo(inspect.currentframe()).lineno) , "json_str=> ", len(json_str),type(json_str) ,json_str)
+
             bMore = json_object.get('tbLnOpendataRtmsV')
 
             if bMore is None:

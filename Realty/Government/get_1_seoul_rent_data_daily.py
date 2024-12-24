@@ -10,7 +10,7 @@ sys.path.append("D:/PythonProjects/airstock")
 import urllib.request
 import json
 import pymysql
-import datetime
+import datetime, time, inspect
 
 from Realty.Government.Init import init_conf
 from Realty.Government.Const import ConstRealEstateTable_GOV
@@ -114,7 +114,22 @@ try:
 
 
             # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+
+            # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+
+            # print(GetLogDef.lineno(__file__) , "json_str=> " ,len(json_str),type(json_str) , json_str)
+
+            if len(json_str) < 1:
+                # print(GetLogDef.lineno(__file__) , "json_str=> ", len(json_str), "sleep 2")
+                time.sleep(2)
+                continue
+
             json_object = json.loads(json_str)
+
+            print(GetLogDef.lineno(__file__) , "json_str=> ", len(json_str),type(json_str) ,json_str)
+
+
+
             bMore = json_object.get('tbLnOpendataRentV')
 
             if bMore is None:
@@ -243,6 +258,9 @@ try:
                         strTradeDBMasterBOBN = strTradeDBMasterBOBN
                         if strTradeDBMasterBUBEON != '':
                             strTradeDBMasterBUBEON = "-" + strTradeDBMasterBUBEON
+
+
+                        print(GetLogDef.lineno(__file__), "dictSeoulRealtyTradeDataMaster => ", dictSeoulRealtyTradeDataMaster)
 
                         strDOROJUSO = "서울특별시 "
                         strDOROJUSO += dictSeoulRealtyTradeDataMaster['CGG_NM'] + " "
