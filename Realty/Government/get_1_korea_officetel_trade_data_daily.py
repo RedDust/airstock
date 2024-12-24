@@ -22,7 +22,6 @@ import inspect
 import logging
 import logging.handlers
 
-from pandas.io.json import json_normalize
 from Realty.Government.Init import init_conf
 from Lib.RDB import pyMysqlConnector
 from dateutil.relativedelta import relativedelta
@@ -61,7 +60,7 @@ def main():
         strAdminName = ''
         targetRow = '00'
         nProcessCount=0
-        HOUSE_TYPE = '단독'
+        HOUSE_TYPE = '오피스텔'
         strSwitchSidoCode=''
         strSwitchYYYYMM=''
         GOVMoltyAddressSequence='0'
@@ -456,6 +455,7 @@ def main():
                         sqlInsertMOLIT += " , BUILD_YEAR = '"+BUILD_YEAR+"'"
                         sqlInsertMOLIT += " , HOUSE_TYPE = '"+HOUSE_TYPE+"'"
                         sqlInsertMOLIT += " , DEAL_YMD = '"+DEAL_YMD+"'"
+                        sqlInsertMOLIT += " , BLDG_AREA = '" + FLOOR + "'"
                         sqlInsertMOLIT += " , OBJ_AMT = '"+OBJ_AMT+"'"
                         sqlInsertMOLIT += " , TOT_AREA = '" + TOT_AREA + "'"
                         sqlInsertMOLIT += " , REQ_GBN = '"+REQ_GBN+"'"
@@ -610,3 +610,7 @@ def main():
     finally:
         print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                        inspect.getframeinfo(inspect.currentframe()).lineno), "Finally END")
+
+
+if __name__ == '__main__':
+    main()
