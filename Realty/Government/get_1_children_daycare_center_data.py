@@ -252,9 +252,9 @@ def main():
 
                 sqlInsertDaycareCenterBackup = " INSERT INTO " + ConstRealEstateTable_GOV.ChildrenDaycareCenterBackupTable
                 sqlInsertDaycareCenterBackup += " (SELECT * FROM " + ConstRealEstateTable_GOV.ChildrenDaycareCenterMasterTable
-                sqlInsertDaycareCenterBackup += " WHERE stcode=%s"
+                sqlInsertDaycareCenterBackup += " WHERE unique_key=%s"
                 sqlInsertDaycareCenterBackup += ")"
-                print(GetLogDef.lineno(__file__), "BACKUP =>", sqlInsertDaycareCenterBackup, (strStCode))
+                print(GetLogDef.lineno(__file__), "BACKUP =>", sqlInsertDaycareCenterBackup, (strUniqueKey))
                 cursorRealEstate.execute(sqlInsertDaycareCenterBackup, (strUniqueKey))
 
                 # sqlDeleteDaycareCenterUpdate = " DELETE FROM "  + ConstRealEstateTable_GOV.ChildrenDaycareCenterMasterTable
