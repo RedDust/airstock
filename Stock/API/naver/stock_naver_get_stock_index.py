@@ -102,118 +102,108 @@ def main():
         for listIndex in listIndexs:
 
             intNowPage = 1
-            bStopFlag = False
 
-            while True:
-                RealtyCallUrl = 'https://finance.naver.com/sise/sise_index_day.naver?code=' + listIndex
-                RealtyCallUrl += '&page=' + str(intNowPage)
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[RealtyCallUrl]" + str(RealtyCallUrl))
+            RealtyCallUrl = 'https://finance.naver.com/sise/sise_index_day.naver?code=' + listIndex
+            RealtyCallUrl += '&page=' + str(intNowPage)
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[RealtyCallUrl]" + str(RealtyCallUrl))
 
-                strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
-                htmlSource = driver.page_source  # page_source 얻기
+            strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
+            htmlSource = driver.page_source  # page_source 얻기
 
-                soup = BeautifulSoup(htmlSource, "html.parser")  # get html
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[soup][" + str(soup)+"]")
+            soup = BeautifulSoup(htmlSource, "html.parser")  # get html
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[soup][" + str(soup)+"]")
 
-                # [2. 코스피 / 코스닥 / 코넥스 조회 ]###################################################################################
-                rstTbodyElement = soup.select_one('body > div > table.type_1 > tbody')
-                rstNnaviTbodyElement = soup.select_one('body > div > table.Nnavi > tbody > tr > td.pgRR')
+            # [2. 코스피 / 코스닥 / 코넥스 조회 ]###################################################################################
+            rstTbodyElement = soup.select_one('body > div > table.type_1 > tbody')
+            rstNnaviTbodyElement = soup.select_one('body > div > table.Nnavi > tbody > tr > td.pgRR')
 
-                rstTbodyTrElements = rstTbodyElement.select('tr')
+            rstTbodyTrElements = rstTbodyElement.select('tr')
 
-                print("rstNnaviTbodyElement => " , rstNnaviTbodyElement)
+            print("rstNnaviTbodyElement => " , rstNnaviTbodyElement)
 
-                if rstNnaviTbodyElement is None:
-                    bStopFlag = True
+            for rstTbodyTrElement in rstTbodyTrElements:
+                # print("rstTbodyTrElement => ", rstTbodyTrElement)
+                rstTbodyTrTdElements = rstTbodyTrElement.select('td')
 
-                for rstTbodyTrElement in rstTbodyTrElements:
-                    # print("rstTbodyTrElement => ", rstTbodyTrElement)
-                    rstTbodyTrTdElements = rstTbodyTrElement.select('td')
+                print("==================================================================" , len(rstTbodyTrTdElements))
+                intTdLoopCnt = 0
+                if len(rstTbodyTrTdElements) != 6:
+                    continue
 
-                    print("==================================================================" , len(rstTbodyTrTdElements))
-                    intTdLoopCnt = 0
-                    if len(rstTbodyTrTdElements) != 6:
-                        continue
+                print("rstTbodyTrTdElements => ", 0, rstTbodyTrTdElements[0].getText().strip())
+                print("rstTbodyTrTdElements => ", 1, rstTbodyTrTdElements[1].getText().strip())
+                print("rstTbodyTrTdElements => ", 2, rstTbodyTrTdElements[2].getText().strip())
+                print("rstTbodyTrTdElements => ", 3, rstTbodyTrTdElements[3].getText().strip())
+                print("rstTbodyTrTdElements => ", 4, rstTbodyTrTdElements[4].getText().strip())
+                print("rstTbodyTrTdElements => ", 5, rstTbodyTrTdElements[5].getText().strip())
 
-                    print("rstTbodyTrTdElements => ", 0, rstTbodyTrTdElements[0].getText().strip())
-                    print("rstTbodyTrTdElements => ", 1, rstTbodyTrTdElements[1].getText().strip())
-                    print("rstTbodyTrTdElements => ", 2, rstTbodyTrTdElements[2].getText().strip())
-                    print("rstTbodyTrTdElements => ", 3, rstTbodyTrTdElements[3].getText().strip())
-                    print("rstTbodyTrTdElements => ", 4, rstTbodyTrTdElements[4].getText().strip())
-                    print("rstTbodyTrTdElements => ", 5, rstTbodyTrTdElements[5].getText().strip())
+                strYYYYMMDD = rstTbodyTrTdElements[0].getText().strip().replace(".","")
 
-                    strYYYYMMDD = rstTbodyTrTdElements[0].getText().strip().replace(".","")
+                if len(strYYYYMMDD) < 3:
+                    continue
 
-                    if len(strYYYYMMDD) < 3:
-                        continue
+                strHHII = "1630"
+                strIndexPoint = rstTbodyTrTdElements[1].getText().strip().replace(",", "").zfill(1)
+                strChangePoint = rstTbodyTrTdElements[2].getText().strip().replace(",", "").zfill(1)
+                strChangePersent = rstTbodyTrTdElements[3].getText().strip().replace("%", "").zfill(1)
+                strTradeVolume = rstTbodyTrTdElements[4].getText().strip().replace(",","").zfill(1)
+                strTradeAmount = rstTbodyTrTdElements[5].getText().strip().replace(",", "").zfill(1)
+                floatChangePersent = float(strChangePersent)
+                strChangeFlag = 'EVEN'
+                if floatChangePersent > 0:
+                    strChangeFlag = 'RASE'
+                elif floatChangePersent < 0:
+                    strChangeFlag = 'FALL'
 
-                    strHHII = "1630"
-                    strIndexPoint = rstTbodyTrTdElements[1].getText().strip().replace(",", "").zfill(1)
-                    strChangePoint = rstTbodyTrTdElements[2].getText().strip().replace(",", "").zfill(1)
-                    strChangePersent = rstTbodyTrTdElements[3].getText().strip().replace("%", "").zfill(1)
-                    strTradeVolume = rstTbodyTrTdElements[4].getText().strip().replace(",","").zfill(1)
-                    strTradeAmount = rstTbodyTrTdElements[5].getText().strip().replace(",", "").zfill(1)
-                    floatChangePersent = float(strChangePersent)
-                    strChangeFlag = 'EVEN'
-                    if floatChangePersent > 0:
-                        strChangeFlag = 'RASE'
-                    elif floatChangePersent < 0:
-                        strChangeFlag = 'FALL'
+                dictInsert = dict()
+                dictInsert['YYYYMMDD'] = strYYYYMMDD
+                # dictInsert['HHII'] = strHHII
+                dictInsert['country_code'] = strCountryCode
+                dictInsert['market_code'] = listIndex
+                dictInsert['change_flag'] = strChangeFlag
+                dictInsert['index_point'] = strIndexPoint
+                dictInsert['change_point'] = strChangePoint
+                dictInsert['change_rate'] = strChangePersent
+                dictInsert['trade_volume'] = strTradeVolume
+                dictInsert['trade_amount'] = strTradeAmount
 
-                    dictInsert = dict()
-                    dictInsert['YYYYMMDD'] = strYYYYMMDD
-                    # dictInsert['HHII'] = strHHII
-                    dictInsert['country_code'] = strCountryCode
-                    dictInsert['market_code'] = listIndex
-                    dictInsert['change_flag'] = strChangeFlag
-                    dictInsert['index_point'] = strIndexPoint
-                    dictInsert['change_point'] = strChangePoint
-                    dictInsert['change_rate'] = strChangePersent
-                    dictInsert['trade_volume'] = strTradeVolume
-                    dictInsert['trade_amount'] = strTradeAmount
+                sqlSelectStockIndex = "SELECT * FROM " + ConstTableName.NaverStockStockIndexTable
+                sqlSelectStockIndex += " WHERE YYYYMMDD = %s "
+                sqlSelectStockIndex += " AND market_code = %s "
 
-                    sqlSelectStockIndex = "SELECT * FROM " + ConstTableName.NaverStockStockIndexTable
-                    sqlSelectStockIndex += " WHERE YYYYMMDD = %s "
-                    sqlSelectStockIndex += " AND market_code = %s "
+                cursorStockFriends.execute(sqlSelectStockIndex, (strYYYYMMDD,listIndex))
+                intSelectedCount = cursorStockFriends.rowcount
+                print("intSelectedCount ==> ",sqlSelectStockIndex ,  strYYYYMMDD,listIndex ,  intSelectedCount)
+                if intSelectedCount > 0:
+                    continue
 
-                    cursorStockFriends.execute(sqlSelectStockIndex, (strYYYYMMDD,listIndex))
-                    intSelectedCount = cursorStockFriends.rowcount
-                    print("intSelectedCount ==> ",sqlSelectStockIndex ,  strYYYYMMDD,listIndex ,  intSelectedCount)
-                    if intSelectedCount > 0:
-                        continue
+                listFieldValues = list()
+                sqlInsertItemTable = " INSERT INTO " + ConstTableName.NaverStockStockIndexTable + " SET  "
+                sqlInsertItemTable += " HHII = '1630' "
 
-                    listFieldValues = list()
-                    sqlInsertItemTable = " INSERT INTO " + ConstTableName.NaverStockStockIndexTable + " SET  "
-                    sqlInsertItemTable += " HHII = '1630' "
+                for dictInsertKey, dictInsertValue in dictInsert.items():
+                    sqlInsertItemTable += ", " + dictInsertKey + " = %s"
+                    listFieldValues.append(dictInsertValue)
 
-                    for dictInsertKey, dictInsertValue in dictInsert.items():
-                        sqlInsertItemTable += ", " + dictInsertKey + " = %s"
-                        listFieldValues.append(dictInsertValue)
+                print("sqlInsertItemTable ==> ", sqlInsertItemTable)
+                print("listFieldValues ==> ", listFieldValues)
 
-                    print("sqlInsertItemTable ==> ", sqlInsertItemTable)
-                    print("listFieldValues ==> ", listFieldValues)
+                cursorStockFriends.execute(sqlInsertItemTable, listFieldValues)
+                ResStockFriendsConnection.commit()
+                intInsertedID = cursorStockFriends.lastrowid
+            #
+            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = listIndex
+            dictSwitchData['data_2'] = strYYYYMMDD
+            dictSwitchData['data_3'] = intNowPage
+            dictSwitchData['data_4'] = intInsertedID
+            StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'b', dictSwitchData)
+            print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "============================time.sleep(1) ")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " ============================time.sleep(1)")
 
-                    cursorStockFriends.execute(sqlInsertItemTable, listFieldValues)
-                    ResStockFriendsConnection.commit()
-                    intInsertedID = cursorStockFriends.lastrowid
-                #
-                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-                dictSwitchData = dict()
-                dictSwitchData['result'] = '10'
-                dictSwitchData['data_1'] = listIndex
-                dictSwitchData['data_2'] = strYYYYMMDD
-                dictSwitchData['data_3'] = intNowPage
-                dictSwitchData['data_4'] = intInsertedID
-                StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'b', dictSwitchData)
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "============================time.sleep(1) ")
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " ============================time.sleep(1)")
-
-
-                intNowPage += 1
-                time.sleep(5)
-
-                if bStopFlag == True:
-                    break
+            time.sleep(5)
 
 
         driver.quit()  # 크롬 브라우저 닫기
