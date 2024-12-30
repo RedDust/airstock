@@ -13,5 +13,63 @@ SeoulRealRentMasterSwitchTable = 'kt_realty_seoul_real_rent_master_swtich'
 
 SeoulSisulDataTable = 'kt_realty_seoul_sisul_master'
 
+SeoulBusDataTable = 'kt_realty_seoul_bus_using_static_master'
 
 SeoulSubwayDataTable = 'kt_realty_seoul_subway_master'
+SeoulAPTInfoTable = 'kt_realty_seoul_apt_info_master'
+
+# 날씨 데이터
+WeatherDataTable = 'kt_realty_weather_data_in_time'
+
+#
+GOVMoltyAddressInfoTable = 'kt_realty_gov_code_info'
+MolitRealTradeMasterTable = 'kt_realty_molit_real_trade_master'
+MolitRealTradeMasterTable20241031 = 'kt_realty_molit_real_trade_master_20241031'
+
+
+
+MolitRealTradeBackupTable = 'kt_realty_molit_real_trade_backup'
+MolitRealTradeCancelTable = 'kt_realty_molit_real_trade_master_cancel'
+MolitRealRentBackupTable = 'kt_realty_molit_real_rent_backup'
+MolitRealRentMasterTable = 'kt_realty_molit_real_rent_master'
+MolitRealRentCancelTable = 'kt_realty_molit_real_rent_master_cancel'
+
+MolitHouseRealTradeMasterTable = 'kt_realty_molit_house_real_trade_master'
+MolitHouseRealTradeCancelTable = 'kt_realty_molit_house_real_trade_master_cancel'
+MolitHouseRealRentMasterTable = 'kt_realty_molit_house_real_rent_master'
+
+
+
+MolitTownHouseRealTradeMasterTable = 'kt_realty_molit_townhouse_real_trade_master'
+MolitTownHouseRealTradeBackupTable = 'kt_realty_molit_townhouse_real_trade_backup'
+MolitTownHouseRealRentMasterTable = 'kt_realty_molit_townhouse_real_rent_master'
+MolitTownHouseRealRentBackupTable = 'kt_realty_molit_townhouse_real_rent_backup'
+MolitTownHouseRealTradeCancelTable = 'kt_realty_molit_townhouse_real_trade_master_cancel'
+
+
+
+MolitOfficetelRealTradeMasterTable = 'kt_realty_molit_officetel_real_trade_master'
+MolitOfficetelRealTradeCancelTable = 'kt_realty_molit_officetel_real_trade_master_cancel'
+MolitOfficetelRealRentMasterTable = 'kt_realty_molit_officetel_real_rent_master'
+
+
+
+
+MolitBusinessRealTradeMasterTable = 'kt_realty_molit_business_real_trade_master'
+MolitBusinessRealTradeCancelTable = 'kt_realty_molit_business_real_trade_master_cancel'
+
+
+MolitLandRealTradeMasterTable = 'kt_realty_molit_land_real_trade_master'
+MolitLandRealTradeCancelTable = 'kt_realty_molit_land_real_trade_master_cancel'
+
+ChildrenDaycareCenterMasterTable = 'kt_realty_children_daycare_center_master'
+ChildrenDaycareCenterBackupTable = 'kt_realty_children_daycare_center_master_backup'
+
+
+MolitRealTradeAPTStatisticsMasterTable = 'kt_realty_molit_statistics_apt_master_daily'
+MolitRealTradeBasicAPTStatisticsMasterTable = 'kt_realty_molit_basic_statistics_apt_master'
+MolitRealTradeBasicAPTRentStatisticsMasterTable = 'kt_realty_molit_rent_statistics_apt_master'
+
+
+MolitRealTradeStatisticsMasterTableYear = 'kt_realty_molit_statistics_apt_master_year'
+

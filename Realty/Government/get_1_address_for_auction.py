@@ -31,8 +31,7 @@ import pymysql
 import logging
 import logging.handlers
 from urllib import parse
-
-
+import Realty.Government.MolitLib.GetRoadNameJuso as GetRoadNameJuso
 
 def trim_msg(str_msg, int_max_len=80, encoding='euc-kr'):
     try:
@@ -52,7 +51,7 @@ def main():
         print(GetLogDef.lineno(__file__), "============================================================")
 
         # 상수 설정
-        strProcessType = '020030'
+        strProcessType = '020103'
         KuIndex = '00'
         CityKey = '00'
         targetRow = '00'
@@ -92,7 +91,6 @@ def main():
         logger.addHandler(streamingHandler)
         logger.addHandler(timeFileHandler)
 
-
         #중복방지 필터 설정
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
@@ -112,11 +110,11 @@ def main():
                          "[=============>strResult == '10']=> " + str(strResult))
             quit("101")
 
-        if strResult == '30':
-            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                           inspect.getframeinfo(inspect.currentframe()).lineno) +
-                         "[=============>strResult == '30']=> " + str(strResult))
-            quit("102")
+        # if strResult == '30':
+        #     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+        #                                    inspect.getframeinfo(inspect.currentframe()).lineno) +
+        #                  "[=============>strResult == '30']=> " + str(strResult))
+        #     quit("102")
 
         DBKuIndex = rstResult.get('data_1')
         DBCityKey = rstResult.get('data_2')
@@ -153,10 +151,18 @@ def main():
             dictSeoulColumnInfoData[strFieldName]['type'] = strColumnType
 
 
-        sqlCourtAuctionSelect = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE text_address != '' "
+        sqlCourtAuctionSelect  = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable
+        # sqlCourtAuctionSelect  = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable
+        sqlCourtAuctionSelect += " WHERE text_address != '' "
+        # sqlCourtAuctionSelect += " AND road_name ='' "
         # sqlCourtAuctionSelect += " AND build_type_text NOT LIKE '%대지%' "
         # sqlCourtAuctionSelect += " AND seq > " + DBKuIndex
-        # sqlCourtAuctionSelect += " AND seq=2103704 "
+        # sqlCourtAuctionSelect += " AND seq=2652792 "
+
+        sqlCourtAuctionSelect +=  " AND text_address != '' AND road_name='' AND address_keyword='' AND build_type_text LIKE '%아파트%'"
+
+
+        sqlCourtAuctionSelect += " ORDER BY seq ASC "
         # sqlCourtAuctionSelect += " LIMIT 1 "
 
         cursorRealEstate.execute(sqlCourtAuctionSelect)
@@ -170,7 +176,6 @@ def main():
         for rstAddressList in rstAddressLists:
 
             # 키워드 설정 영역 START
-
             intMasterProcessCount += 1
             strTextAddress = str(rstAddressList.get('address_data_text'))
             strTextAddressField = str(rstAddressList.get('text_address'))
@@ -209,6 +214,8 @@ def main():
                 strAddressConversionroadAddrPart1 = str(rstAddressConversionData.get('roadAddrPart1'))
 
                 sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
+                # sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " SET "
+
                 sqlCourtAuctionUpdate += " address_keyword = %s "
                 sqlCourtAuctionUpdate += " , road_name = %s "
                 sqlCourtAuctionUpdate += " WHERE seq = %s"
@@ -488,6 +495,7 @@ def main():
 
 
             sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " SET "
+            # sqlCourtAuctionUpdate = " UPDATE " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " SET "
             sqlCourtAuctionUpdate += " address_keyword = %s "
             sqlCourtAuctionUpdate += ",  road_name = %s "
             sqlCourtAuctionUpdate += " WHERE seq = %s"
@@ -501,9 +509,8 @@ def main():
             ResRealEstateConnection.commit()
 
             # 테스트 딜레이 추가
-            if int(strAuctionMasterSecquence) % 1000 == 0:
-                nRandomSec = random.randint(1, 1)
-                time.sleep(nRandomSec)
+            if int(strAuctionMasterSecquence) % 100 == 0:
+                time.sleep(1)
 
 
             # print(GetLogDef.lineno(__file__), "===================================================")

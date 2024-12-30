@@ -11,6 +11,7 @@ import urllib.request
 import json
 import pymysql
 import datetime
+import time
 
 from Realty.Government.Init import init_conf
 from Realty.Government.Const import ConstRealEstateTable_GOV
@@ -66,7 +67,7 @@ def main():
         # 최종번호
         nEndNumber = nProcessedCount
 
-        logFileName = str(stToday.year) + str(stToday.month).zfill(2)  + str(stToday.day).zfill(2) + ".log"
+        logFileName = str(stToday.year).zfill(4)  + str(stToday.month).zfill(2)  + str(stToday.day).zfill(2) + ".log"
 
 
 
@@ -84,7 +85,7 @@ def main():
 
         # RotatingFileHandler
         timeFileHandler = logging.handlers.TimedRotatingFileHandler(
-            filename='D:/PythonProjects/airstock/Shell/logs/' + strProcessType + '/' + logFileName,
+            filename='D:/PythonProjects/airstock/Shell/logs/' + strProcessType + '_' + logFileName,
             when='midnight',
             interval=1,
             encoding='utf-8'
@@ -104,8 +105,8 @@ def main():
         if strResult is False:
             quit(GetLogDef.lineno(__file__), 'strResult => ', strResult)  # 예외를 발생시킴
 
-        # if strResult == '10':
-        #     quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
+        if strResult == '10':
+            quit(GetLogDef.lineno(__file__), 'It is currently in operation. => ', strResult)  # 예외를 발생시킴
 
         # if strResult == '30':
         #     quit(GetLogDef.lineno(__file__), 'It is Operation Error => ', strResult)  # 예외를 발생시킴
@@ -142,6 +143,10 @@ def main():
 
             # url을 불러오고 이것을 인코딩을 utf-8로 전환하여 결과를 받자.
             response = urllib.request.urlopen(url)
+            logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + " response>>>" + str(response))
+
+
             json_str = response.read().decode("utf-8")
 
             # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
@@ -172,7 +177,8 @@ def main():
 
             jsonRowDatas = bMore.get('row')
 
-            # print(jsonRowDatas)
+            print("================================[jsonRowDatas]=============================")
+            print(jsonRowDatas)
 
             SeoulSN = 1
 
@@ -222,7 +228,7 @@ def main():
                 logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) +"SeoulSN > " + str(SeoulSN))
 
-                APT_CODE = dictSeoulRealtyTradeDataMaster['APT_CODE']
+                APT_CODE = dictSeoulRealtyTradeDataMaster['APT_CD']
                 APT_NM = dictSeoulRealtyTradeDataMaster['APT_NM']
 
                 qrySelectSeoulSwitch = "SELECT * FROM " + ConstRealEstateTable_GOV.SeoulAPTInfoTable + " WHERE SN=%s Limit 1 "
@@ -245,8 +251,8 @@ def main():
                     nSequence   = str(SwitchDataList.get('seq'))
                     strStateCode = str(SwitchDataList.get('state'))
 
-                    strDBX_CODE = str(SwitchDataList.get('X_CODE'))
-                    strDBY_CODE = str(SwitchDataList.get('Y_CODE'))
+                    strDBX_CODE = str(SwitchDataList.get('XCRD'))
+                    strDBY_CODE = str(SwitchDataList.get('YCRD'))
 
                     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                             inspect.getframeinfo(inspect.currentframe()).lineno) +  " > strDBX_CODE " + strDBX_CODE)
@@ -254,21 +260,21 @@ def main():
                                             inspect.getframeinfo(inspect.currentframe()).lineno) +  " > strDBY_CODE" + strDBY_CODE)
 
                     if len(strDBX_CODE) < 4 or len(strDBY_CODE) < 3:
-                        strDBADRES_DORO = str(SwitchDataList.get('ADRES_DORO'))
+                        strDBADRES_DORO = str(SwitchDataList.get('APT_RDN_ADDR'))
                         strDBADRES_RMNDR = str(SwitchDataList.get('ADRES_RMNDR'))
 
-                        strDOROJUSO  = str(SwitchDataList.get('ADRES_CITY')) + " "
-                        strDOROJUSO += str(SwitchDataList.get('ADRES_GU')) + " "
+                        strDOROJUSO  = str(SwitchDataList.get('CTPV_ADDR')) + " "
+                        strDOROJUSO += str(SwitchDataList.get('SGG_ADDR')) + " "
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) + " > " + strDBADRES_DORO)
                         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename, inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_CITY + ADRES_GU ]" + strDOROJUSO)
 
                         if len(strDBADRES_DORO) > 2:
-                            strDOROJUSO += str(SwitchDataList.get('ADRES_DORO')) + " " + str(SwitchDataList.get('ADRES_DORO_RMNDR'))
+                            strDOROJUSO += str(SwitchDataList.get('DADDR')) + " " + str(SwitchDataList.get('ROAD_DADDR'))
                             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_DORO + ADRES_DORO_RMNDR ]" + strDOROJUSO)
                         else:
-                            strDOROJUSO += str(SwitchDataList.get('ADRES_DONG')) + " "
+                            strDOROJUSO += str(SwitchDataList.get('EMD_ADDR')) + " "
                             strDOROJUSO += str(SwitchDataList.get('APT_NM'))
                             logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) + " > strDOROJUSO[ADRES_DONG + APT_NM ]" + strDOROJUSO)
@@ -361,7 +367,7 @@ def main():
                     qryInfoInsert += " modify_date=NOW()"
                     for dictSeoulAptInfoDataMaster in dictSeoulRealtyTradeDataMaster.keys():
 
-                        # print("dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster]", dictSeoulAptInfoDataMaster, dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster], type(dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster]))
+                        print("dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster]", dictSeoulAptInfoDataMaster, dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster], type(dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster]))
                         # fields 타입이 int 면 empty 인 경우 예외 처리 - 타입오류 예방
                         if dictSeoulColumnInfoData[dictSeoulAptInfoDataMaster]['type'] == 'int' and dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster] =='':
                             dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster] = '0'
@@ -372,8 +378,8 @@ def main():
                         qryInfoInsert += " ," + dictSeoulAptInfoDataMaster + "='" + dictSeoulRealtyTradeDataMaster[dictSeoulAptInfoDataMaster] + "' "
 
 
-                    strDBX_CODE = str(dictSeoulRealtyTradeDataMaster['X_CODE'])
-                    strDBY_CODE = str(dictSeoulRealtyTradeDataMaster['Y_CODE'])
+                    strDBX_CODE = str(dictSeoulRealtyTradeDataMaster['XCRD'])
+                    strDBY_CODE = str(dictSeoulRealtyTradeDataMaster['YCRD'])
 
                     resultsDict = GeoDataModule.getNaverReverseGeoData(logger, strDBX_CODE, strDBY_CODE)
                     logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
@@ -423,14 +429,36 @@ def main():
                                                        inspect.getframeinfo(inspect.currentframe()).lineno) + "dictSeoulRealtyTradeDataMaster")
             nStartNumber = nEndNumber + 1
             nEndNumber = nEndNumber + nProcessedCount
+
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = dtProcessDay
+            dictSwitchData['data_2'] = strProcessDay
+            dictSwitchData['data_3'] = SeoulSN
+            dictSwitchData['data_4'] = APT_CODE
+            dictSwitchData['data_5'] = APT_NM
+            dictSwitchData['data_6'] = nEndNumber
+            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+
         #while True:
 
     except Exception as e:
 
         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) +  "Error Exception")
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + "Error Exception")
         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-                                                       inspect.getframeinfo(inspect.currentframe()).lineno) + e)
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + str(e))
+        logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                       inspect.getframeinfo(inspect.currentframe()).lineno) + str(type(e)))
+
+        print(GetLogDef.lineno(__file__), "Error Exception")
+        print(GetLogDef.lineno(__file__), e)
+        print(GetLogDef.lineno(__file__), type(e))
+        err_msg = traceback.format_exc()
+        print(GetLogDef.lineno(__file__), err_msg)
+
+
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -451,6 +479,31 @@ def main():
             dictSwitchData['data_5'] = APT_NM
 
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+    except Exception as e:
+        print("Error Exception")
+        print(e)
+        print(type(e))
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '20'
+        if dtProcessDay is not None:
+            dictSwitchData['data_1'] = dtProcessDay
+
+        if strProcessDay is not None:
+            dictSwitchData['data_2'] = strProcessDay
+
+        if nStartNumber is not None:
+            dictSwitchData['data_3'] = nStartNumber
+
+        if nEndNumber is not None:
+            dictSwitchData['data_3'] = nEndNumber
+
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+
+
 
     else:
         logging.info(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,

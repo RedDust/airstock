@@ -40,29 +40,6 @@ def GerLine(strFileName, nFileLine_):
     finally:
         return strReturnValue
 
-def Ins(getframeinfo,currentframe):
-    """이 함수를 호출한 곳의 라인번호를 리턴한다."""
-
-    strFileName = getframeinfo(currentframe).filename
-    nFileLine_ =  getframeinfo(currentframe).lineno
-
-
-    strReturnValue = False
-
-    try:
-        strReturnValue = strFileName +"(" +str(nFileLine_)+")"
-
-    except Exception as e:
-        print(os.path.basename(__path__))
-        print(strFileName)
-        print(nFileLine_)
-
-        print(e)
-        print(type(e))
-        return False
-
-    finally:
-        return strReturnValue
 
 
 def rmEmoji(inputString):

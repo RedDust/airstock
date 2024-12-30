@@ -693,7 +693,7 @@ def main():
                     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
                     # 테스트 딜레이 추가
-                    nRandomSec = random.randint(2)
+                    nRandomSec = random.randint(2,3)
                     # print(GetLogDef.lineno(), "Sleep! " + str(nRandomSec) + " Sec!")
                     time.sleep(nRandomSec)
 
@@ -752,3 +752,6 @@ def main():
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                      "[=============[CRONTAB END]")
 
+
+if __name__ == '__main__':
+    main()

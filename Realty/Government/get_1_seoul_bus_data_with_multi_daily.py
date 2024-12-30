@@ -71,10 +71,9 @@ if __name__ == '__main__':
         #일괄 프로세스를 위한 변수 START
         # dtToday = datetime.datetime(2015, 12, 31, 00, 00, 00)
 
+
         dtToday = DateTime.today()
         dtCheckDay = dtToday - TimeDelta(days=4)
-
-
 
         # 일괄 프로세스를 위한 변수 END
 
@@ -85,7 +84,7 @@ if __name__ == '__main__':
         strInsertYear = str(dtCheckDay.year)
 
         #
-        qrySelectLastProcessDate = "SELECT USE_DT FROM kt_realty_seoul_bus_using_static_"+strInsertYear+" order by USE_DT desc limit 1 "
+        qrySelectLastProcessDate = "SELECT USE_YMD FROM kt_realty_seoul_bus_using_static_"+strInsertYear+" order by USE_YMD desc limit 1 "
 
         print(GetLogDef.lineno(__file__), qrySelectLastProcessDate)
 
@@ -95,8 +94,8 @@ if __name__ == '__main__':
         if SelectUseDT is None:
             nFinalDate = int(dtToday.strftime('%Y0101'))
         else:
-            print(GetLogDef.lineno(__file__), type(SelectUseDT['USE_DT']), SelectUseDT['USE_DT'])
-            nFinalDate = int(SelectUseDT['USE_DT'])
+            print(GetLogDef.lineno(__file__), type(SelectUseDT['USE_YMD']), SelectUseDT['USE_YMD'])
+            nFinalDate = int(SelectUseDT['USE_YMD'])
 
 
         dictSeoulColumnInfoData = {}
@@ -126,7 +125,7 @@ if __name__ == '__main__':
             end_date = dtCheckDay - TimeDelta(days=nBaseProcessDate)
             nBaseDate = int(end_date.strftime('%Y%m%d'))
 
-            if nFinalDate > nBaseDate:
+            if nFinalDate >= nBaseDate:
                 print(GetLogDef.lineno(__file__), "finalDate > ", nFinalDate, nBaseDate)
                 break
 
@@ -145,7 +144,21 @@ if __name__ == '__main__':
             json_str = response.read().decode("utf-8")
 
             # 받은 데이터가 문자열이라서 이를 json으로 변환한다.
+
+            print(GetLogDef.lineno(__file__), "json_str=> " ,len(json_str),type(json_str) , json_str)
+
+            if len(json_str) < 1:
+                print(GetLogDef.lineno(__file__), "json_str=> ",len(json_str), "sleep 2")
+                time.sleep(2)
+                continue
+
             json_object = json.loads(json_str)
+
+            print(GetLogDef.lineno(__file__) , "json_str=> ", len(json_str),type(json_str) ,json_str)
+
+
+
+
 
             print(GetLogDef.lineno(__file__), "json_object.get('RESULT')  > ", json_object.get('RESULT'))
 

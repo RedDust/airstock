@@ -33,7 +33,7 @@ from Lib.CustomException import QuitException
 def main():
 
     try:
-
+        print(SLog.Ins(Isp.getframeinfo,Isp.currentframe()))
 
         dtNow = DateTime.today()
 
@@ -55,7 +55,7 @@ def main():
         strBaseSS = str(dtNow.second).zfill(2)
 
 
-        LogPath = 'CronLog_' + strProcessType
+        LogPath = 'Government/' + strProcessType
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
         strNowTime = strBaseHH + ":" + strBaseII + ":" + strBaseSS
@@ -214,20 +214,20 @@ def main():
             LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
-    # except QuitException as e:
-    #
-    #     logging.info(SLog.Ins(Isp.getframeinfo,
-    #                           Isp.currentframe()) + " [QuitException :  ]")
-    #
-    #     # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
-    #     dictSwitchData = dict()
-    #     dictSwitchData['result'] = '30'
-    #     LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
-    #     err_msg = traceback.format_exc()
-    #     logging.info(SLog.Ins(Isp.getframeinfo,
-    #                           Isp.currentframe()) + " [err_msg : "+str(err_msg)+" ]")
-    #     logging.info(SLog.Ins(Isp.getframeinfo,
-    #                           Isp.currentframe()) + " [err_msg : "+str(e)+" ]")
+    except QuitException as e:
+
+        logging.info(SLog.Ins(Isp.getframeinfo,
+                              Isp.currentframe()) + " [QuitException :  ]")
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '30'
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+        err_msg = traceback.format_exc()
+        logging.info(SLog.Ins(Isp.getframeinfo,
+                              Isp.currentframe()) + " [err_msg : "+str(err_msg)+" ]")
+        logging.info(SLog.Ins(Isp.getframeinfo,
+                              Isp.currentframe()) + " [err_msg : "+str(e)+" ]")
 
 
 

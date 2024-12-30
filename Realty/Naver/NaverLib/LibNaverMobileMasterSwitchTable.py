@@ -287,3 +287,65 @@ def SwitchResultUpdateV2(strType,startFlag,dictUpdateData=dict()):
         return True
     finally:
         ResRealEstateConnection.close()
+
+
+
+
+
+# type 00:네이버 부동산 물건 수집 , 10:네이버 물건 테이블 분산 , 20 : 법원경매 물건 수집
+# startFlag 가 있으면 start_date 기록 True: start_data 기록 , 그외 기록하지 않음
+# dictUpdateData = 업데이트 내용
+def SwitchResultUpdateV3(strType,CStepFlag,dictUpdateData=dict()):
+
+    try:
+
+        #startFlag 가  str 이 아니면 오류 방지
+        if type(strType) is not str:
+            strType = str(strType)
+
+
+        #startFlag 가  str 이 아니면 오류 방지
+        if CStepFlag not in ['a','b','c','d']:
+            Exception(GetLogDef.lineno() + 'CStepFlag =>' + CStepFlag)  # 예외를 발생시킴
+
+        if type(dictUpdateData) is not dict:
+            Exception(GetLogDef.lineno(), 'SwitchData Dict Is Wrong')  # 예외를 발생시킴
+
+        # DB 연결
+        ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
+        cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
+
+        sqlUpdateSwitch = "UPDATE " + ConstRealEstateTable.RealSwitchTable + " SET "
+
+        if CStepFlag=='a':
+            sqlUpdateSwitch = sqlUpdateSwitch + ' process_start_date=NOW() , '
+
+        for strKey, strUpdateData in dictUpdateData.items():
+
+            if type(strUpdateData) is not str:
+                strUpdateData = str(strUpdateData)
+
+            sqlUpdateSwitch = sqlUpdateSwitch + strKey + "='"+strUpdateData+"', "
+
+        sqlUpdateSwitch = sqlUpdateSwitch + ' last_date=NOW() '
+        sqlUpdateSwitch = sqlUpdateSwitch + " WHERE  switch_type=%s"
+
+        cursorRealEstate.execute(sqlUpdateSwitch , strType)
+
+
+    except Exception as e:
+
+        print("NaverMobileMasterSwitchTable Error Exception")
+        print(sqlUpdateSwitch)
+        print(e)
+        print(type(e))
+        print("[ERROR]========================================================")
+
+        ResRealEstateConnection.rollback()
+        return False
+    else:
+        ResRealEstateConnection.commit()
+        return True
+    finally:
+        ResRealEstateConnection.close()
+

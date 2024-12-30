@@ -73,7 +73,7 @@ try:
 
     filePath = 'Realty/Government/TempFiles/Code1.txt'
 
-    filePath = "D:/PythonProjects/airstock/Realty/Government/TempFiles/Code1.txt"
+    filePath = "D:/PythonProjects/airstock/Realty/Government/TempFiles/Code2.txt"
 
     file = open(filePath,mode='r',buffering=-1,encoding='euc-kr',errors=None,newline=None)
 
@@ -112,20 +112,38 @@ try:
         strDongMyunCode = strLawFullCode[5:10]
 
         listLawFullNames = strLawFullName.split(" ")
-        # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
-        #                         inspect.getframeinfo(inspect.currentframe()).lineno), "  ====listLawFullNames >> ",
-        #       len(listLawFullNames), listLawFullNames)
+        print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
+                                inspect.getframeinfo(inspect.currentframe()).lineno), "  ====listLawFullNames >> ",
+              len(listLawFullNames), listLawFullNames)
 
         strSidoName=strSiguName=strDongMyunName=''
 
+        if len(listLawFullNames) == 0:
+            raise Exception("listLine>" + listLine)
+
+        strSidoName = listLawFullNames.pop(0)
+
         if len(listLawFullNames) > 0:
-            strSidoName = listLawFullNames[0]
-        if len(listLawFullNames) > 1:
-            strSiguName = listLawFullNames[1]
-        if len(listLawFullNames) > 2:
-            strDongMyunName = listLawFullNames[2]
+            bCheckSi = listLawFullNames[0].endswith('시')
+            bCheckGun = listLawFullNames[0].endswith('군')
+            bCheckGoo = listLawFullNames[0].endswith('구')
+
+            if bCheckSi == True or bCheckGun == True or bCheckGoo == True:
+                strSiguName = listLawFullNames.pop(0)
+            else:
+                strSiguName = ''
+                strDongMyunName = listLawFullNames.pop(0)
+
+        if len(listLawFullNames) > 0:
+            for intSidoLoop in range(0, len(listLawFullNames)):
+                strDongMyunName += " " + listLawFullNames.pop(0)
+
 
         strStateText = unicodedata.normalize('NFC', strStateText)
+
+        strSidoName = strSidoName.strip()
+        strSiguName = strSiguName.strip()
+        strDongMyunName = strDongMyunName.strip()
 
         # print(GetLogDef.GerLine(inspect.getframeinfo(inspect.currentframe()).filename,
         #                         inspect.getframeinfo(inspect.currentframe()).lineno), "  ====strStateText >> ",
@@ -189,11 +207,15 @@ try:
 
             if strGovCodeState != strStateCode:
                 sqlUpdateGovCode  = " UPDATE "+ConstRealEstateTable.GovAddressInfoTable+" SET "
-                sqlUpdateGovCode += " state = %s "
+                sqlUpdateGovCode += " state = %s, "
+                sqlUpdateGovCode += " modify_date = NOW() "
                 sqlUpdateGovCode += " WHERE seq = %s "
-                cursorRealEstate.execute(sqlInsertGovCode, (strStateCode,strGovCodeSequence))
-            cursorRealEstate.execute(sqlInsertGovCode, ( strLawFullCode,strLawFullName,strSidoCode,strSidoName,strSiguCode,strSiguName,strDongMyunCode,strDongMyunName,strStateCode))
-            print(GetLogDef.lineno(__file__), "UPDATE => ", sqlInsertGovCode)
+
+                print(sqlUpdateGovCode,  strStateCode,    strGovCodeSequence )
+
+                cursorRealEstate.execute(sqlUpdateGovCode, (strStateCode,strGovCodeSequence))
+
+            print(GetLogDef.lineno(__file__), "UPDATE => ", strGovCodeSequence)
             ResRealEstateConnection.commit()
 
         else:
@@ -212,7 +234,7 @@ try:
             sqlInsertGovCode += " modify_date = NOW() ,  "
             sqlInsertGovCode += " reg_date = NOW()   "
             cursorRealEstate.execute(sqlInsertGovCode, ( strLawFullCode,strLawFullName,strSidoCode,strSidoName,strSiguCode,strSiguName,strDongMyunCode,strDongMyunName,strStateCode))
-            print(GetLogDef.lineno(__file__), "INSERT => ", sqlInsertGovCode)
+            print(GetLogDef.lineno(__file__), "INSERT => ",strLawFullCode,strLawFullName,strSidoCode,strSidoName,strSiguCode,strSiguName,strDongMyunCode,strDongMyunName,strStateCode)
             ResRealEstateConnection.commit()
 
 

@@ -99,17 +99,19 @@ def test_thread(nBaseDate, nCallStartCount, nCallEndCount, dictSeoulColumnInfoDa
 
                 # Non-strings are converted to strings.
                 if type(dictSeoulRealtyTradeDataMaster[dictSeoulMasterKeys]) is not str:
-                    dictSeoulRealtyTradeDataMaster[dictSeoulMasterKeys] = str(
-                        dictSeoulRealtyTradeDataMaster[dictSeoulMasterKeys])
+                    dictSeoulRealtyTradeDataMaster[dictSeoulMasterKeys] = str(dictSeoulRealtyTradeDataMaster[dictSeoulMasterKeys])
+
+
+
 
             # for dictSeoulMasterKeys in list.keys():
 
-            strUniqueKey = dictSeoulRealtyTradeDataMaster['USE_DT'] + "_"
-            strUniqueKey += dictSeoulRealtyTradeDataMaster['BUS_ROUTE_ID'] + "_"
-            strUniqueKey += dictSeoulRealtyTradeDataMaster['STND_BSST_ID'] + "_"
-            strUniqueKey += hash_fnc.MD5EncodeFunction(dictSeoulRealtyTradeDataMaster['BUS_STA_NM'])
+            strUniqueKey = dictSeoulRealtyTradeDataMaster['USE_YMD'] + "_"
+            strUniqueKey += dictSeoulRealtyTradeDataMaster['RTE_ID'] + "_"
+            strUniqueKey += dictSeoulRealtyTradeDataMaster['STOPS_ID'] + "_"
+            strUniqueKey += hash_fnc.MD5EncodeFunction(dictSeoulRealtyTradeDataMaster['SBWY_STNS_NM'])
 
-            strInsertYear = str(dictSeoulRealtyTradeDataMaster['USE_DT'])[0:4]
+            strInsertYear = str(dictSeoulRealtyTradeDataMaster['USE_YMD'])[0:4]
 
             # INSERT
             qryInfoInsert = " INSERT INTO kt_realty_seoul_bus_using_static_"+strInsertYear+" SET "

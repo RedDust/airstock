@@ -1,5 +1,10 @@
 SeoulAuthorizationKey = "644b72616d7265643132376d67576a6c"
 
+strJusoConsAuthKey = 'U01TX0FVVEgyMDI0MDMxNTExMTQxNzExNDYwMTU='
+
+
+MolitDecodedAuthorizationKey ='1nCBmsCNpq4YULa06T2SMM0T83tFKNUKx0GR7xBHBHCmgv+7oN6RodERpyHPeKFnSln48VRpnOUr63EeUl1XFA=='
+MolitEncodedAuthorizationKey ='1nCBmsCNpq4YULa06T2SMM0T83tFKNUKx0GR7xBHBHCmgv%2B7oN6RodERpyHPeKFnSln48VRpnOUr63EeUl1XFA%3D%3D'
 
 
 
