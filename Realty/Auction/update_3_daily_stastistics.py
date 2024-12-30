@@ -49,6 +49,9 @@ def main():
         jsonIssueNumber = '0'
 
         dtNow = DateTime.today()
+        # 전날 통계 데이터 오류인경우
+        # dtNow = dtNow - TimeDelta(days=1)
+
         print(dtNow.year, type(dtNow.year))
         print(dtNow.month, type(dtNow.month))
         print(dtNow.day, type(dtNow.day))
@@ -179,6 +182,11 @@ def main():
 
         count_B_1 = 0
         count_B_2 = 0
+
+        sqlDeleteStatistics  = " DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionDailyStatistics
+        sqlDeleteStatistics += " WHERE DATE_FORMAT(reg_date,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') "
+        cursorRealEstate.execute(sqlDeleteStatistics)
+
 
         for rstBackupList in rstBackupLists:
             CityKey = iSequence = rstBackupList.get('seq')
@@ -664,3 +672,5 @@ def main():
                                        inspect.getframeinfo(inspect.currentframe()).lineno) +
                      "[CRONTAB END]==================================================================")
 
+if __name__ == '__main__':
+    main()

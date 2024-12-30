@@ -38,7 +38,7 @@ def main():
     try:
         print(GetLogDef.lineno(__file__), "============================================================")
 
-        strProcessType = '020102'
+        strProcessType = '020201'
         KuIndex = '00'
         CityKey = '00'
         targetRow = '00'
