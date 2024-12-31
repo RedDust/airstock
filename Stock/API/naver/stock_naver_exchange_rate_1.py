@@ -114,142 +114,138 @@ def main():
             elif listIndex == 'FX_CNYKRW':
                 strFromCountryCode = 'cn'
 
+            intNowPage = 1
 
-            intNowPage = 361
-            bStopFlag = False
+            RealtyCallUrl = 'https://finance.naver.com/marketindex/exchangeDailyQuote.naver?marketindexCd=' + listIndex
+            RealtyCallUrl += '&page=' + str(intNowPage)
 
-            while True:
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[RealtyCallUrl]" + str(RealtyCallUrl))
 
-                RealtyCallUrl = 'https://finance.naver.com/marketindex/exchangeDailyQuote.naver?marketindexCd=' + listIndex
-                RealtyCallUrl += '&page=' + str(intNowPage)
+            strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
+            htmlSource = driver.page_source  # page_source 얻기
 
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[RealtyCallUrl]" + str(RealtyCallUrl))
+            soup = BeautifulSoup(htmlSource, "html.parser")  # get html
+            # logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[soup][" + str(soup)+"]")
+            #
+            # # [2. 코스피 / 코스닥 / 코넥스 조회 ]###################################################################################
+            rstTbodyElement = soup.select_one('body > div > table > tbody')
+            # rstNnaviTbodyElement = soup.select_one('body > div > table.Nnavi > tbody > tr > td.pgRR')
+            #
+            rstTbodyTrElements = rstTbodyElement.select('tr')
+            #
+            # print("rstTbodyTrElements => " , len(rstTbodyTrElements) , rstTbodyTrElements)
 
-                strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
-                htmlSource = driver.page_source  # page_source 얻기
+            if len(rstTbodyTrElements) < 1:
+                bStopFlag = True
 
-                soup = BeautifulSoup(htmlSource, "html.parser")  # get html
-                # logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[soup][" + str(soup)+"]")
-                #
-                # # [2. 코스피 / 코스닥 / 코넥스 조회 ]###################################################################################
-                rstTbodyElement = soup.select_one('body > div > table > tbody')
-                # rstNnaviTbodyElement = soup.select_one('body > div > table.Nnavi > tbody > tr > td.pgRR')
-                #
-                rstTbodyTrElements = rstTbodyElement.select('tr')
-                #
-                # print("rstTbodyTrElements => " , len(rstTbodyTrElements) , rstTbodyTrElements)
+            for rstTbodyTrElement in rstTbodyTrElements:
+                # print("rstTbodyTrElement => ", rstTbodyTrElement)
+                rstTbodyTrTdElements = rstTbodyTrElement.select('td')
+            #
+                print("==================================================================" , len(rstTbodyTrTdElements))
+                intTdLoopCnt = 0
+                if len(rstTbodyTrTdElements) != 7:
+                    continue
+                print("rstTbodyTrTdElements => ", 0, rstTbodyTrTdElements[0].getText().strip())
+                print("rstTbodyTrTdElements => ", 1, rstTbodyTrTdElements[1].getText().strip())
+                print("rstTbodyTrTdElements => ", 2, rstTbodyTrTdElements[2].getText().strip())
+                print("rstTbodyTrTdElements => ", 'img', rstTbodyTrTdElements[2].select_one('img')["alt"])
+                print("rstTbodyTrTdElements => ", 3, rstTbodyTrTdElements[3].getText().strip())
+                print("rstTbodyTrTdElements => ", 4, rstTbodyTrTdElements[4].getText().strip())
+                print("rstTbodyTrTdElements => ", 5, rstTbodyTrTdElements[5].getText().strip())
+                print("rstTbodyTrTdElements => ", 6, rstTbodyTrTdElements[6].getText().strip())
 
-                if len(rstTbodyTrElements) < 1:
-                    bStopFlag = True
+                strYYYYMMDD = rstTbodyTrTdElements[0].getText().strip().replace(".","")
 
-                for rstTbodyTrElement in rstTbodyTrElements:
-                    # print("rstTbodyTrElement => ", rstTbodyTrElement)
-                    rstTbodyTrTdElements = rstTbodyTrElement.select('td')
-                #
-                    print("==================================================================" , len(rstTbodyTrTdElements))
-                    intTdLoopCnt = 0
-                    if len(rstTbodyTrTdElements) != 7:
-                        continue
-                    print("rstTbodyTrTdElements => ", 0, rstTbodyTrTdElements[0].getText().strip())
-                    print("rstTbodyTrTdElements => ", 1, rstTbodyTrTdElements[1].getText().strip())
-                    print("rstTbodyTrTdElements => ", 2, rstTbodyTrTdElements[2].getText().strip())
-                    print("rstTbodyTrTdElements => ", 'img', rstTbodyTrTdElements[2].select_one('img')["alt"])
-                    print("rstTbodyTrTdElements => ", 3, rstTbodyTrTdElements[3].getText().strip())
-                    print("rstTbodyTrTdElements => ", 4, rstTbodyTrTdElements[4].getText().strip())
-                    print("rstTbodyTrTdElements => ", 5, rstTbodyTrTdElements[5].getText().strip())
-                    print("rstTbodyTrTdElements => ", 6, rstTbodyTrTdElements[6].getText().strip())
+                if len(strYYYYMMDD) < 3:
+                    continue
 
-                    strYYYYMMDD = rstTbodyTrTdElements[0].getText().strip().replace(".","")
+                strHHII = "1630"
+                strChangeText = (rstTbodyTrTdElements[2].select_one('img')["alt"]).strip()
+                strExchangeRate = rstTbodyTrTdElements[1].getText().strip().replace(",", "").zfill(1)
+                strChangeRate = rstTbodyTrTdElements[2].getText().strip().replace(",", "").zfill(1)
+                strCashSell = rstTbodyTrTdElements[3].getText().strip().replace(",", "").zfill(1)
+                strCashBuy = rstTbodyTrTdElements[4].getText().strip().replace(",","").zfill(1)
+                strSendMoney = rstTbodyTrTdElements[5].getText().strip().replace(",", "").replace('N/A', '').zfill(1)
+                strReceiveMoney = rstTbodyTrTdElements[6].getText().strip().replace(",", "").replace('N/A', '').zfill(1)
 
-                    if len(strYYYYMMDD) < 3:
-                        continue
-
-                    strHHII = "1630"
-                    strChangeText = (rstTbodyTrTdElements[2].select_one('img')["alt"]).strip()
-                    strExchangeRate = rstTbodyTrTdElements[1].getText().strip().replace(",", "").zfill(1)
-                    strChangeRate = rstTbodyTrTdElements[2].getText().strip().replace(",", "").zfill(1)
-                    strCashSell = rstTbodyTrTdElements[3].getText().strip().replace(",", "").zfill(1)
-                    strCashBuy = rstTbodyTrTdElements[4].getText().strip().replace(",","").zfill(1)
-                    strSendMoney = rstTbodyTrTdElements[5].getText().strip().replace(",", "").replace('N/A', '').zfill(1)
-                    strReceiveMoney = rstTbodyTrTdElements[6].getText().strip().replace(",", "").replace('N/A', '').zfill(1)
-
-                    strChangeFlag = 'EVEN'
-                    if strChangeText == '상승':
-                        strChangeFlag = 'RASE'
-                    elif strChangeText == '하락':
-                        strChangeFlag = 'FALL'
+                strChangeFlag = 'EVEN'
+                if strChangeText == '상승':
+                    strChangeFlag = 'RASE'
+                elif strChangeText == '하락':
+                    strChangeFlag = 'FALL'
 
 
-                    sqlSelectStockIndex = "SELECT * FROM " + ConstTableName.NaverStockExchangeRateTable
-                    sqlSelectStockIndex += " WHERE YYYYMMDD = %s "
-                    sqlSelectStockIndex += " AND market_code = %s "
+                sqlSelectStockIndex = "SELECT * FROM " + ConstTableName.NaverStockExchangeRateTable
+                sqlSelectStockIndex += " WHERE YYYYMMDD = %s "
+                sqlSelectStockIndex += " AND market_code = %s "
 
-                    cursorStockFriends.execute(sqlSelectStockIndex, (strYYYYMMDD,listIndex))
-                    intSelectedCount = cursorStockFriends.rowcount
-                    print("intSelectedCount ==> ",sqlSelectStockIndex ,  strYYYYMMDD,listIndex ,  intSelectedCount)
-                    if intSelectedCount > 0:
-                        rstSelectDatas = cursorStockFriends.fetchone()
-                        intInsertedID = int(rstSelectDatas.get('seq'))
-                        dictUpdate = dict()
-                        # dictUpdate['YYYYMMDD'] = strYYYYMMDD
-                        # dictUpdate['HHII'] = strHHII
-                        # dictUpdate['market_code'] = listIndex
-                        dictUpdate['change_flag'] = strChangeFlag
-                        dictUpdate['exchage_rete'] = strExchangeRate
-                        dictUpdate['change_rate'] = strChangeRate
-                        dictUpdate['cash_sell'] = strCashSell
-                        dictUpdate['cash_buy'] = strCashBuy
-                        dictUpdate['send_money'] = strSendMoney
-                        dictUpdate['receive_money'] = strReceiveMoney
+                cursorStockFriends.execute(sqlSelectStockIndex, (strYYYYMMDD,listIndex))
+                intSelectedCount = cursorStockFriends.rowcount
+                print("intSelectedCount ==> ",sqlSelectStockIndex ,  strYYYYMMDD,listIndex ,  intSelectedCount)
+                if intSelectedCount > 0:
+                    rstSelectDatas = cursorStockFriends.fetchone()
+                    intInsertedID = int(rstSelectDatas.get('seq'))
+                    dictUpdate = dict()
+                    # dictUpdate['YYYYMMDD'] = strYYYYMMDD
+                    # dictUpdate['HHII'] = strHHII
+                    # dictUpdate['market_code'] = listIndex
+                    dictUpdate['change_flag'] = strChangeFlag
+                    dictUpdate['exchage_rete'] = strExchangeRate
+                    dictUpdate['change_rate'] = strChangeRate
+                    dictUpdate['cash_sell'] = strCashSell
+                    dictUpdate['cash_buy'] = strCashBuy
+                    dictUpdate['send_money'] = strSendMoney
+                    dictUpdate['receive_money'] = strReceiveMoney
 
-                        listFieldValues = list()
+                    listFieldValues = list()
 
-                        sqlUpdateItemTable = " UPDATE " + ConstTableName.NaverStockExchangeRateTable + " SET  "
-                        sqlUpdateItemTable += " modify_date = NOW() "
+                    sqlUpdateItemTable = " UPDATE " + ConstTableName.NaverStockExchangeRateTable + " SET  "
+                    sqlUpdateItemTable += " modify_date = NOW() "
 
-                        for dictUpdatetKey, dictUpdateValue in dictUpdate.items():
-                            sqlUpdateItemTable += ", " + dictUpdatetKey + " = %s"
-                            listFieldValues.append(dictUpdateValue)
+                    for dictUpdatetKey, dictUpdateValue in dictUpdate.items():
+                        sqlUpdateItemTable += ", " + dictUpdatetKey + " = %s"
+                        listFieldValues.append(dictUpdateValue)
 
-                        sqlUpdateItemTable += " WHERE YYYYMMDD = '"+strYYYYMMDD+"' "
-                        sqlUpdateItemTable += " AND market_code = '" + listIndex + "' "
+                    sqlUpdateItemTable += " WHERE YYYYMMDD = '"+strYYYYMMDD+"' "
+                    sqlUpdateItemTable += " AND market_code = '" + listIndex + "' "
 
-                        print("sqlUpdateItemTable ==> ", sqlUpdateItemTable, listFieldValues)
+                    print("sqlUpdateItemTable ==> ", sqlUpdateItemTable, listFieldValues)
 
-                        cursorStockFriends.execute(sqlUpdateItemTable, listFieldValues)
-                        ResStockFriendsConnection.commit()
+                    cursorStockFriends.execute(sqlUpdateItemTable, listFieldValues)
+                    ResStockFriendsConnection.commit()
 
 
-                    else:
+                else:
 
-                        dictInsert = dict()
-                        dictInsert['YYYYMMDD'] = strYYYYMMDD
-                        # dictInsert['HHII'] = strHHII
-                        dictInsert['from_country_code'] = strFromCountryCode
-                        dictInsert['to_country_code'] = strToCountryCode
-                        dictInsert['market_code'] = listIndex
-                        dictInsert['change_flag'] = strChangeFlag
-                        dictInsert['exchage_rete'] = strExchangeRate
-                        dictInsert['change_rate'] = strChangeRate
-                        dictInsert['cash_sell'] = strCashSell
-                        dictInsert['cash_buy'] = strCashBuy
-                        dictInsert['send_money'] = strSendMoney
-                        dictInsert['receive_money'] = strReceiveMoney
+                    dictInsert = dict()
+                    dictInsert['YYYYMMDD'] = strYYYYMMDD
+                    # dictInsert['HHII'] = strHHII
+                    dictInsert['from_country_code'] = strFromCountryCode
+                    dictInsert['to_country_code'] = strToCountryCode
+                    dictInsert['market_code'] = listIndex
+                    dictInsert['change_flag'] = strChangeFlag
+                    dictInsert['exchage_rete'] = strExchangeRate
+                    dictInsert['change_rate'] = strChangeRate
+                    dictInsert['cash_sell'] = strCashSell
+                    dictInsert['cash_buy'] = strCashBuy
+                    dictInsert['send_money'] = strSendMoney
+                    dictInsert['receive_money'] = strReceiveMoney
 
-                        listFieldValues = list()
-                        sqlInsertItemTable = " INSERT INTO " + ConstTableName.NaverStockExchangeRateTable + " SET  "
-                        sqlInsertItemTable += " HHII = '1630' "
+                    listFieldValues = list()
+                    sqlInsertItemTable = " INSERT INTO " + ConstTableName.NaverStockExchangeRateTable + " SET  "
+                    sqlInsertItemTable += " HHII = '1630' "
 
-                        for dictInsertKey, dictInsertValue in dictInsert.items():
-                            sqlInsertItemTable += ", " + dictInsertKey + " = %s"
-                            listFieldValues.append(dictInsertValue)
+                    for dictInsertKey, dictInsertValue in dictInsert.items():
+                        sqlInsertItemTable += ", " + dictInsertKey + " = %s"
+                        listFieldValues.append(dictInsertValue)
 
-                        print("sqlInsertItemTable ==> ", sqlInsertItemTable)
-                        print("listFieldValues ==> ", listFieldValues)
+                    print("sqlInsertItemTable ==> ", sqlInsertItemTable)
+                    print("listFieldValues ==> ", listFieldValues)
 
-                        cursorStockFriends.execute(sqlInsertItemTable, listFieldValues)
-                        ResStockFriendsConnection.commit()
-                        intInsertedID = cursorStockFriends.lastrowid
+                    cursorStockFriends.execute(sqlInsertItemTable, listFieldValues)
+                    ResStockFriendsConnection.commit()
+                    intInsertedID = cursorStockFriends.lastrowid
 
 
                 # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -260,18 +256,10 @@ def main():
                 dictSwitchData['data_3'] = intNowPage
                 dictSwitchData['data_4'] = intInsertedID
                 StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'b', dictSwitchData)
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "============================time.sleep(1) ")
-                logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " ============================time.sleep(1)")
 
-                intNowPage += 1
-
-                time.sleep(3)
-                if bStopFlag == True:
-                    print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "bStopFlag Break")
-                    break
-
-
-
+            print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "============================time.sleep(1) ")
+            logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " ============================time.sleep(1)")
+            time.sleep(3)
 
         driver.quit()  # 크롬 브라우저 닫기
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[listUpdateColumn][" + str(
