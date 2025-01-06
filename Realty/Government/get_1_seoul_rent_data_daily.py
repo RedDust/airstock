@@ -281,12 +281,12 @@ try:
                         resultsDict = GeoDataModule.getNaverGeoData(strDOROJUSO)
                         print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
                         if isinstance(resultsDict, dict) == False:
+                            strNaverLongitude = str(0)
+                            strNaverLatitude = str(0)
+                        else:
                             print(GetLogDef.lineno(__file__), "resultsDict >", type(resultsDict), resultsDict)
-                            raise Exception(GetLogDef.lineno(__file__) + 'strResultCode => ' + strResultCode)  # 예외를 발생시킴
-                            break
-
-                        strNaverLongitude = str(resultsDict['x'])  # 127
-                        strNaverLatitude = str(resultsDict['y'])  # 37
+                            strNaverLongitude = str(resultsDict['x'])  # 127
+                            strNaverLatitude = str(resultsDict['y'])  # 37
 
                 else:
                     strNaverLongitude = str(0)
