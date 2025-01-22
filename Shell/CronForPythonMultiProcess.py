@@ -53,13 +53,14 @@ if strBaseMM == "01" and strBaseDD == "05":
 
 #매주 일요일
 if intWeekDay == 6:
-    if strBaseHH == "12" and strBaseII == "00":
+    if strBaseHH == "12" :
+        if strBaseII == "00":
 
-        # #[041101] 어린이집별 기본정보 조회
-        from Realty.Government import get_1_children_daycare_center_data
-        th1 = Thread(target=get_1_children_daycare_center_data.main)
-        # th1.daemon = True
-        th1.start()
+            # #[041101] 어린이집별 기본정보 조회
+            from Realty.Government import get_1_children_daycare_center_data
+            th1 = Thread(target=get_1_children_daycare_center_data.main)
+            # th1.daemon = True
+            th1.start()
 
 
     # if strBaseHH == "00":
@@ -379,7 +380,7 @@ elif strBaseHH == "08":
 
 
 
-elif strBaseHH == "12":
+elif strBaseHH == "11":
     if strBaseII == "00":
         print("[Process START : " + strNowTime + "] strBaseHH")
 
@@ -399,21 +400,9 @@ elif strBaseHH == "12":
 
 
 
-elif strBaseHH == "14":
+elif strBaseHH == "13":
     if strBaseII == "00":
         print("[Process START : " + strNowTime + "] strBaseHH")
-
-
-    if strBaseII == "50":
-
-        # [020020] 법원경매 통계 데이터 작성
-        from Realty.Auction import update_3_daily_stastistics
-        print("[Process START : " + strNowTime + "] update_3_daily_stastistics")
-        th1 = Thread(target=update_3_daily_stastistics.main)
-        # th1.daemon = True
-        th1.start()
-        print("[Process END : " + strNowTime + "] update_3_daily_stastistics")
-
 
     if strBaseII == "40":
         print("[Process START : " + strNowTime + "] strBaseHH")
@@ -424,6 +413,19 @@ elif strBaseHH == "14":
         # th1.daemon = True
         th1.start()
         print("[Process END : " + strNowTime + "] update_2_court_auction_complete_geo_data_update_daily")
+
+
+    if strBaseII == "50":
+        # [020020] 법원경매 통계 데이터 작성
+        from Realty.Auction import update_3_daily_stastistics
+        print("[Process START : " + strNowTime + "] update_3_daily_stastistics")
+        th1 = Thread(target=update_3_daily_stastistics.main)
+        # th1.daemon = True
+        th1.start()
+        print("[Process END : " + strNowTime + "] update_3_daily_stastistics")
+
+
+
 
 elif strBaseHH == "16":
     if strBaseII == "00":
