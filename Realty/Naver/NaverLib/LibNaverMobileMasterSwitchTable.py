@@ -196,7 +196,6 @@ def SwitchResultDataAuction(type,city,target,SwitchData):
 def SwitchResultSelectV2(strType):
 
     try:
-        print(GetLogDef.lineno(__file__), strType, type(strType), "==========================================")
         # DB 연결
         ResRealEstateConnection = pyMysqlConnector.ResKtRealEstateConnection()
         cursorRealEstate = ResRealEstateConnection.cursor(pymysql.cursors.DictCursor)
@@ -210,9 +209,6 @@ def SwitchResultSelectV2(strType):
 
         cursorRealEstate.execute(qrySelectNaverMobileMaster, strType)
         results = cursorRealEstate.fetchone()
-
-
-        print(GetLogDef.lineno(__file__), results, type(results))
 
         return results
 
