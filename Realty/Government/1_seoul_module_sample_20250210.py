@@ -45,7 +45,7 @@ def main():
         print("====================== TRY START")
 
 
-        strProcessType = '020000'
+        strProcessType = '999999'
         strSidoCode = '00'
         strPageNo = '0'
         strSidoName = '00'
