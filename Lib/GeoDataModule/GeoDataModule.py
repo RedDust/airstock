@@ -356,7 +356,7 @@ def getNaverReverseGeoData(logging,lng,  lat):
                 dictAddressReult['bone_bun'] = str(dictAddressesLands['number1'])#157
                 dictAddressReult['bu_bun']  = str(dictAddressesLands['number2'])#1
                 dictAddressReult['road_name'] = str(dictAddressesLands['name'])#도로명주소
-
+                dictAddressReult['dosi_code'] = str(listGeoDecodeResult['code']['id'])  # 도로명주소
 
 
     except Exception as e:
