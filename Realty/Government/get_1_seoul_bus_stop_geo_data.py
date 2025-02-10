@@ -261,12 +261,27 @@ def main():
                     rstSeoulBusGeoData = cursorRealEstate.fetchone()
                     strSequence = str(rstSeoulBusGeoData.get('seq'))
 
+                    strDBSTOPS_ARS_NO = str(rstSeoulBusGeoData.get('STOPS_ARS_NO'))
+                    strDBSBWY_STNS_NM = str(rstSeoulBusGeoData.get('SBWY_STNS_NM'))
+
+                    bChangeInfo = False
+
+                    if strDBSTOPS_ARS_NO != STOPS_ARS_NO:
+                        bChangeInfo = True
+                    if strDBSBWY_STNS_NM != SBWY_STNS_NM:
+                        bChangeInfo = True
+
+
                     sqlUpdateBusStopGeodata = " UPDATE " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable + " SET "
                     sqlUpdateBusStopGeodata += " modify_date = NOW()"
                     sqlUpdateBusStopGeodata += " , STOPS_ARS_NO = %s"
                     sqlUpdateBusStopGeodata += " , SBWY_STNS_NM = %s"
                     sqlUpdateBusStopGeodata += " , lat = %s"
                     sqlUpdateBusStopGeodata += " , lng = %s"
+
+                    if bChangeInfo == True:
+                        sqlUpdateBusStopGeodata += " ,state = '00' "
+
                     sqlUpdateBusStopGeodata += " WHERE seq = %s"
                     cursorRealEstate.execute(sqlUpdateBusStopGeodata,
                                              (STOPS_ARS_NO, SBWY_STNS_NM, lat, lng, strSequence))
