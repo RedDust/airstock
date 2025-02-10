@@ -272,6 +272,7 @@ def main():
                                              (STOPS_ARS_NO, SBWY_STNS_NM, lat, lng, strSequence))
                     intUpdateProcessCount += 1
 
+                ResRealEstateConnection.commit()
                 intNowProcessCount += 1
 
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
