@@ -46,7 +46,7 @@ def main():
         #연테이블
         dictCreateYearTables = dict()
         dictCreateYearTables[0] = dict()
-        dictCreateYearTables[0]['origin'] = 'kt_realty_seoul_bus_using_static_master'
+        dictCreateYearTables[0]['origin'] = 'kt_realty_seoul_bus_using_static_2025'
         dictCreateYearTables[0]['target'] = 'kt_realty_seoul_bus_using_static_YYYY'
 
         dictCreateYearTables[1] = dict()
