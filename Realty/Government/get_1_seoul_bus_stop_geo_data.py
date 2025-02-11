@@ -233,7 +233,7 @@ def main():
                 intSelectedCount = cursorRealEstate.rowcount
 
                 if intSelectedCount < 1:
-                    print("INSERT")
+
                     listInsertValue = []
                     listInsertValue.append(STOPS_ARS_NO)
                     listInsertValue.append(STOPS_ID)
@@ -241,8 +241,6 @@ def main():
                     listInsertValue.append(lat)
                     listInsertValue.append(lng)
                     listInsertValue.append(STOPS_TYPE)
-
-                    print("listInsertValue" , listInsertValue)
 
                     sqlInsertBusStopGeodata = " INSERT INTO " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable + " SET "
                     sqlInsertBusStopGeodata += " STOPS_ARS_NO = %s"
@@ -256,10 +254,14 @@ def main():
                     strSequence = cursorRealEstate.lastrowid
                     intInsertProcessCount += 1
 
+                    print("INSERT", strSequence)
+
                 else:
-                    print("UPDATE")
+
                     rstSeoulBusGeoData = cursorRealEstate.fetchone()
                     strSequence = str(rstSeoulBusGeoData.get('seq'))
+
+                    print("UPDATE", strSequence)
 
                     strDBSTOPS_ARS_NO = str(rstSeoulBusGeoData.get('STOPS_ARS_NO'))
                     strDBSBWY_STNS_NM = str(rstSeoulBusGeoData.get('SBWY_STNS_NM'))
@@ -276,16 +278,19 @@ def main():
                     sqlUpdateBusStopGeodata += " modify_date = NOW()"
                     sqlUpdateBusStopGeodata += " , STOPS_ARS_NO = %s"
                     sqlUpdateBusStopGeodata += " , SBWY_STNS_NM = %s"
-                    sqlUpdateBusStopGeodata += " , lat = %s"
-                    sqlUpdateBusStopGeodata += " , lng = %s"
 
                     if bChangeInfo == True:
                         sqlUpdateBusStopGeodata += " ,state = '00' "
 
                     sqlUpdateBusStopGeodata += " WHERE seq = %s"
                     cursorRealEstate.execute(sqlUpdateBusStopGeodata,
-                                             (STOPS_ARS_NO, SBWY_STNS_NM, lat, lng, strSequence))
+                                             (STOPS_ARS_NO, SBWY_STNS_NM, strSequence))
                     intUpdateProcessCount += 1
+
+
+
+
+
 
                 ResRealEstateConnection.commit()
                 intNowProcessCount += 1
