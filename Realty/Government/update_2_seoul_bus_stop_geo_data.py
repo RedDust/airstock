@@ -30,7 +30,7 @@ from Realty.Naver.NaverLib import LibNaverMobileMasterSwitchTable
 from Lib.GeoDataModule import GeoDataModule
 import inspect as Isp, logging, logging.handlers
 from Init.Functions.Logs import GetLogDef as SLog
-from Lib.Logging import UnifiedLogDeclarationFunction as ULF
+from Realty.Government.Lib.Logging import UnifiedLogDeclarationFunction as ULF
 from Lib.CustomException.QuitException import QuitException
 
 from Realty.Government.Init import init_conf
@@ -88,7 +88,6 @@ def main():
 
         sqlSelectBusStopGeodata  = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable + "  "
         sqlSelectBusStopGeodata += " WHERE state = '00' "
-        # sqlSelectBusStopGeodata += " LIMIT 100 "
         cursorRealEstate.execute(sqlSelectBusStopGeodata)
         data_3 = strSelectedCount = str(cursorRealEstate.rowcount)
 
@@ -102,8 +101,8 @@ def main():
             data_1 =strSequence
             strLatitude = str(rstSeoulBusGeoData.get('lat'))
             strLongtitude = str(rstSeoulBusGeoData.get('lng'))
-            floatNMMTLat = float(rstSeoulBusGeoData.get('lat'))
-            floatNMMTLng = float(rstSeoulBusGeoData.get('lng'))
+            floatNMMTLat = float(rstSeoulBusGeoData.get('lat')) #Y
+            floatNMMTLng = float(rstSeoulBusGeoData.get('lng')) #X
             strDBSBWY_STNS_NM = str(rstSeoulBusGeoData.get('SBWY_STNS_NM'))
 
             print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "strDBSBWY_STNS_NM => ", strDBSBWY_STNS_NM)
@@ -167,6 +166,7 @@ def main():
             ResRealEstateConnection.commit()
             intUpdateProcessCount += 1
             data_4 = intUpdateProcessCount
+
 
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
             dictSwitchData = dict()
