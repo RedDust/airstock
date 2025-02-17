@@ -93,11 +93,11 @@ def getMasterID(cursorRealEstate, strDBGeo_STOPS_ID):
     return strDBGeo_STOPS_ID
 
 
-def UpdateMasterCount():
+def UpdateMasterCount_3():
 
     try:
         print("====================== TRY START")
-        strProcessType = '034177'
+        strProcessType = '034176'
         data_1 = '00'
         data_2 = '00'
         data_3 = '00'
@@ -133,7 +133,7 @@ def UpdateMasterCount():
         print("0.전체 SELECT START  =>  ")
         sqlSelectMasterID = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable
         sqlSelectMasterID += " WHERE master_flag = '10'  "
-        sqlSelectMasterID += " ORDER BY today_rank ASC "
+        sqlSelectMasterID += " ORDER BY MASTER_GTON_TNOPE DESC "
 
         cursorRealEstate.execute(sqlSelectMasterID)
         rstSelectForGeoDatas = cursorRealEstate.fetchall()
@@ -141,14 +141,15 @@ def UpdateMasterCount():
 
         for rstSelectForGeoData in rstSelectForGeoDatas:
             strMasterSTOPS_ID = rstSelectForGeoData.get('STOPS_ID')
-            print("")
+            data_1 = strMasterSTOPS_ID
+            print("1.")
             print("1. rstSelectForGeoData ", strMasterSTOPS_ID, " ======================================================================>  ")
             print("1. rstSelectForGeoData  =>  ", rstSelectForGeoData)
 
 
             sqlSelectSlaveData = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable
             sqlSelectSlaveData += " WHERE MASTER_STOPS_ID = %s  "
-            sqlSelectSlaveData += " ORDER BY today_rank ASC "
+            sqlSelectMasterID += " ORDER BY GTON_TNOPE DESC "
             cursorRealEstate.execute(sqlSelectSlaveData , (strMasterSTOPS_ID))
             rstSelectSlaveCounts = cursorRealEstate.fetchall()
 
@@ -183,8 +184,32 @@ def UpdateMasterCount():
             sqlUpdateMasterData += " ,SLAVE_STOPS_ID = %s "
             sqlUpdateMasterData += " WHERE STOPS_ID = %s  "
             cursorRealEstate.execute(sqlUpdateMasterData,
-                                     (strMasterGTON_TNOPE, strMasterGTOFF_TNOPE, strMasterSTOPS_ID, strListSLAVE_STOPS_ID))
+                                     (strMasterGTON_TNOPE, strMasterGTOFF_TNOPE, strListSLAVE_STOPS_ID, strMasterSTOPS_ID))
             ResRealEstateConnection.commit()
+
+            data_2 = strListSLAVE_STOPS_ID
+            data_3 = strMasterGTON_TNOPE
+            data_4 = strMasterGTOFF_TNOPE
+
+            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = data_1
+            dictSwitchData['data_2'] = data_2
+            dictSwitchData['data_3'] = data_3
+            dictSwitchData['data_4'] = data_4
+            dictSwitchData['data_5'] = data_5
+            dictSwitchData['data_6'] = data_6
+            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+        print("4. 버스 정류장 근처 LOOP END ---->")
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '00'
+        dictSwitchData['today_work'] = '1'
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
 
     except Exception as e:
 
@@ -249,12 +274,12 @@ def UpdateMasterCount():
 
 
 
-def UpdateMasterID():
+def UpdateMasterID_2():
 
     try:
         print("====================== TRY START")
 
-        strProcessType = '034177'
+        strProcessType = '034176'
         data_1 = '00'
         data_2 = '00'
         data_3 = '00'
@@ -275,11 +300,11 @@ def UpdateMasterID():
         if strResult is False:
             raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
 
-        if strResult == '10':
-            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
-
-        if strResult == '20':
-            raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
+        # if strResult == '10':
+        #     raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
+        #
+        # if strResult == '20':
+        #     raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'strResult => ' + str(strResult))  # 예외를 발생시킴
 
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
@@ -316,13 +341,14 @@ def UpdateMasterID():
         print("2.전체 SELECT START  =>  ", strDBUSE_YMD)
         sqlSelectForGeoData = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable
         # sqlSelectForGeoData += " WHERE BJDONG_CD = '10500' "
-        sqlSelectForGeoData += " ORDER BY today_rank ASC "
+        sqlSelectForGeoData += " ORDER BY GTON_TNOPE DESC "
         # sqlSelectForGeoData += " LIMIT 5 "
         cursorRealEstate.execute(sqlSelectForGeoData)
         rstSelectForGeoDatas = cursorRealEstate.fetchall()
         print("2.전체 SELECT END  =>  ", strDBUSE_YMD)
 
-
+        intMasterCount = 0
+        intSlaveCount = 0
 
         for rstSelectForGeoData in rstSelectForGeoDatas:
             print("2. 버스 정류장 데이터 전체 LOOP =>  =======")
@@ -335,6 +361,10 @@ def UpdateMasterID():
             strDBMasterGeoLongtitude = str(rstSelectForGeoData.get('lng'))
             strBusMasterSBWY_STNS_NM = str(rstSelectForGeoData.get('SBWY_STNS_NM'))
             strBusMasterSTOPS_TYPE = str(rstSelectForGeoData.get('STOPS_TYPE'))
+
+            data_1 = strDBGeoMasterSTOPS_ID
+            data_3 = strDBMasterTodayRank
+            data_4 = strBusMasterSBWY_STNS_NM
             logging.info(
                 SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[2. 버스 정류장 데이터 전체 RANK : " + strDBMasterTodayRank )
 
@@ -345,8 +375,8 @@ def UpdateMasterID():
                 SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[ 3. strDBGeoMasterSTOPS_ID : "+ str(strDBGeoMasterSTOPS_ID))
 
             sqlSelectSlaveGeoData = " SELECT * FROM " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable
-            sqlSelectSlaveGeoData += " WHERE ST_Distance(geo_point, ST_GeomFromText(CONCAT('POINT(', %s, ' ', %s, ')'), 4326)) <= 100 "
-            sqlSelectSlaveGeoData += " ORDER BY today_rank ASC"
+            sqlSelectSlaveGeoData += " WHERE ST_Distance(geo_point, ST_GeomFromText(CONCAT('POINT(', %s, ' ', %s, ')'), 4326)) <= 120 "
+            sqlSelectSlaveGeoData += " ORDER BY GTON_TNOPE DESC "
             cursorRealEstate.execute(sqlSelectSlaveGeoData, (strDBMasterGeoLatitude, strDBMasterGeoLongtitude))
             rstSeoulBusSlaveGeos = cursorRealEstate.fetchall()
             print("3.근처 SELECT END  =>  ", strDBGeoMasterSTOPS_ID)
@@ -367,6 +397,8 @@ def UpdateMasterID():
                 strBusSlaveON_TNOPE = str(rstSeoulBusSlaveGeo.get('GTON_TNOPE'))
                 strBusSlaveOFF_TNOPE = str(rstSeoulBusSlaveGeo.get('GTOFF_TNOPE'))
 
+
+
                 strListSLAVE_STOPS_ID += strBusSlaveSTOPS_ID + ","
 
                 logging.info(
@@ -383,7 +415,7 @@ def UpdateMasterID():
                 rstSelectSlaveGeoDataForUpdate = cursorRealEstate.fetchone()
                 strSelectSlaveGeoDataForUpdate_master_flag = rstSelectSlaveGeoDataForUpdate.get('master_flag')
                 print("4. SLAVE 의  현재 상태 확인 END =>  ", strDBGeoMasterSTOPS_ID, strBusSlaveSTOPS_ID , strSelectSlaveGeoDataForUpdate_master_flag )
-
+                data_2 = strListSLAVE_STOPS_ID
 
                 if strSelectSlaveGeoDataForUpdate_master_flag == '10':
                     print("5.MASTER 라서 업데이트 안함 =>")
@@ -441,8 +473,13 @@ def UpdateMasterID():
 
                     if strSelectMASTER_STOPS_ID == strBusSlaveSTOPS_ID:
                         strMasterFlag = '10'
+                        intMasterCount += 1
+                        data_5 = str(intMasterCount)
                     else:
                         strMasterFlag = '01'
+                        intSlaveCount += 1
+                        data_6 = str(intSlaveCount)
+
 
                     print("7. SLAVE 업데이트 함!! START =================>")
                     print("UPDATE", strBusSlaveSTOPS_ID, strBusSlaveSBWY_STNS_NM, strBusSlaveSTOPS_TYPE , strMasterFlag , intSumOn_TNOPE , intSumOff_TNOPE)
@@ -469,6 +506,25 @@ def UpdateMasterID():
                     print("7. SLAVE 업데이트 함!! END =================>")
 
                 print("3. 버스 정류장 근처 LOOP END ---->")
+
+            # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+            dictSwitchData = dict()
+            dictSwitchData['result'] = '10'
+            dictSwitchData['data_1'] = data_1
+            dictSwitchData['data_2'] = data_2
+            dictSwitchData['data_3'] = data_3
+            dictSwitchData['data_4'] = data_4
+            dictSwitchData['data_5'] = data_5
+            dictSwitchData['data_6'] = data_6
+            LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+
+        print("4. 버스 정류장 근처 LOOP END ---->")
+
+        # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dictSwitchData = dict()
+        dictSwitchData['result'] = '00'
+        dictSwitchData['today_work'] = '1'
+        LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
 
     except Exception as e:
@@ -531,13 +587,13 @@ def UpdateMasterID():
         ResRealEstateConnection.close()
 
 
-def main():
+def UpdateGeoRanking_1():
 
 
     try:
         print("====================== TRY START")
 
-        strProcessType = '034177'
+        strProcessType = '034176'
         data_1 = '00'
         data_2 = '00'
         data_3 = '00'
@@ -618,15 +674,13 @@ def main():
 
             if intSelectedCount == 1:
 
-                rstSeoulBusGeoDatas = cursorRealEstate.fetchall()
-
                 listUpdateData = []
                 listUpdateData.append(strRank)
                 listUpdateData.append(strDBGTON_TNOPES)
                 listUpdateData.append(strDBGTOFF_TNOPES)
                 listUpdateData.append(strDBSTOPS_ID)
 
-                print("listUpdateData => " , listUpdateData)
+                print("listUpdateData => ", listUpdateData)
 
                 sqlUpdateGeoRanking  = " UPDATE " + ConstRealEstateTable_GOV.SeoulBusGeoDataTable + " SET "
                 sqlUpdateGeoRanking += " today_rank = %s"
@@ -653,9 +707,6 @@ def main():
 
             data_6 = intRank
             intRank += 1
-
-
-
 
 
 
@@ -740,8 +791,10 @@ def main():
 
 
 
+def main():
+    UpdateGeoRanking_1()
+    # UpdateMasterID_2()
+    UpdateMasterCount_3()
 
 if __name__ == '__main__':
     main()
-    UpdateMasterID()
-    UpdateMasterCount()
