@@ -85,9 +85,9 @@ def main():
         cursorStockFriends = ResStockFriendsConnection.cursor(pymysql.cursors.DictCursor)
 
         sqlSelectItems = " SELECT * FROM " +ConstTableName.NaverStockItemTable
-        sqlSelectItems += " WHERE seq > %s "
-        # sqlSelectItems += " AND item_code = '138580' "
-        sqlSelectItems += " AND state = '00' "
+        sqlSelectItems += " WHERE state != '99' "
+        sqlSelectItems += " AND seq > %s "
+        # sqlSelectItems += " AND item_code = '299910' "
         sqlSelectItems += " ORDER BY seq ASC "
         # sqlSelectItems += " LIMIT 1 "
 
