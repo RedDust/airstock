@@ -86,8 +86,8 @@ def main():
 
         sqlSelectItems = " SELECT * FROM " +ConstTableName.NaverStockItemTable
         sqlSelectItems += " WHERE seq > %s "
-        sqlSelectItems += " AND item_code = '138580' "
-        # sqlSelectItems += " AND state != '99' "
+        # sqlSelectItems += " AND item_code = '138580' "
+        sqlSelectItems += " AND state = '00' "
         sqlSelectItems += " ORDER BY seq ASC "
         # sqlSelectItems += " LIMIT 1 "
 
@@ -139,23 +139,14 @@ def main():
 
                 if rstMatgetImageElement == None:
                     rstMatgetImage= soup.select_one('body > div')
-                    listMatgetClassText = rstMatgetImage["class"]
 
-                    #상장폐지
-                    logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[rstMatgetClassText][" + str(type(
-                        listMatgetClassText)) + "][" + str(listMatgetClassText) + "]")
-                    if 'error_content' in listMatgetClassText:
-                        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[listMatgetClassText][" + str(listMatgetClassText) + "]")
-                        # 상장폐지
-
-
-                        sqlUpdateStopItems = " UPDATE " + ConstTableName.NaverStockItemTable + " SET "
-                        sqlUpdateStopItems += " state = '99' "
-                        sqlUpdateStopItems += " , stop_date = '"+strBaseYYYY +"-"+ strBaseMM +"-"+ strBaseDD+"' "
-                        sqlUpdateStopItems += " WHERE seq = %s "
-                        cursorStockFriends.execute(sqlUpdateStopItems, (strDBSequence))
-                        ResStockFriendsConnection.commit()
-                        intItemLoop += 1
+                    sqlUpdateStopItems = " UPDATE " + ConstTableName.NaverStockItemTable + " SET "
+                    sqlUpdateStopItems += " state = '99' "
+                    sqlUpdateStopItems += " , stop_date = '"+strBaseYYYY +"-"+ strBaseMM +"-"+ strBaseDD+"' "
+                    sqlUpdateStopItems += " WHERE seq = %s "
+                    cursorStockFriends.execute(sqlUpdateStopItems, (strDBSequence))
+                    ResStockFriendsConnection.commit()
+                    intItemLoop += 1
                     break
 
                 strMarketName = rstMatgetImageElement.get("alt")
@@ -294,7 +285,7 @@ def main():
                 dictSwitchData['data_3'] = strDBSectorsName
                 dictSwitchData['data_4'] = intItemLoop
                 StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'b', dictSwitchData)
-                time.sleep(2,3)
+                time.sleep(5)
 
             driver.quit()  # 크롬 브라우저 닫기
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[listUpdateColumn][" + str(
@@ -322,7 +313,7 @@ def main():
         dictSwitchData['data_2'] = strDBSequence
         dictSwitchData['data_3'] = strDBSectorsName
         dictSwitchData['data_4'] = intItemLoop
-        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, False, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'c', dictSwitchData)
         # driver.quit()  # 크롬 브라우저 닫기
     else:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())  + "[ELSE]========================================================")
