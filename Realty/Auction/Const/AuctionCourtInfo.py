@@ -64,7 +64,7 @@ dictCityPlace['41'] = '경기도'
 dictCityPlace['42'] = '강원도'
 dictCityPlace['43'] = '충청북도'
 dictCityPlace['44'] = '충청남도'
-dictCityPlace['45'] = '전라북도'
+dictCityPlace['45'] = '전북'
 dictCityPlace['46'] = '전라남도'
 dictCityPlace['47'] = '경상북도'
 dictCityPlace['48'] = '경상남도'
@@ -81,7 +81,29 @@ dictAuctionTypes['1'] = {'url': 'https://www.courtauction.go.kr/RetrieveRealEstM
 dictAuctionTypes['2'] = {'url': 'https://www.courtauction.go.kr/RetrieveMgakPlanMulSrch.laf', 'type': '20'}
 
 dictAuctionCompleteTypes = dict()
-dictAuctionCompleteTypes['1'] = {'url': 'https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf', 'type': '30'}
+dictAuctionCompleteTypes['url'] = 'https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf'
+dictAuctionCompleteTypes['type'] = '30'
+
+dictBuildType = dict()
+dictBuildType['00'] = '아파트'
+dictBuildType['01'] = '오피스텔'
+dictBuildType['02'] = '연립주택'
+dictBuildType['03'] = '상가'
+dictBuildType['04'] = '단독/다가구'
+dictBuildType['05'] = '대지'
+dictBuildType['06'] = '기타'
+dictBuildType['07'] = '자동차/중기'
+
+
+dictBuildTypeToCode = dict()
+dictBuildTypeToCode['아파트'] = '00'
+dictBuildTypeToCode['오피스텔'] = '01'
+dictBuildTypeToCode['연립주택'] = '02'
+dictBuildTypeToCode['상가'] = '03'
+dictBuildTypeToCode['단독/다가구'] = '04'
+dictBuildTypeToCode['대지'] = '05'
+dictBuildTypeToCode['기타'] = '06'
+dictBuildTypeToCode['자동차/중기'] = '07'
 
 
 dictBuildTypeKeyWord = dict()
@@ -97,7 +119,34 @@ dictBuildTypeKeyWord['기타'] = {'기타'}
 
 
 
+dictBuildTypeReverseKeyWord = dict()
+dictBuildTypeReverseKeyWord['아파트'] = '아파트'
 
+dictBuildTypeReverseKeyWord['오피스텔'] = '오피스텔'
+dictBuildTypeReverseKeyWord['연립주택'] = '연립주택'
+dictBuildTypeReverseKeyWord['빌라'] = '연립주택'
+dictBuildTypeReverseKeyWord['다세대'] = '연립주택'
+dictBuildTypeReverseKeyWord['연립주택다세대빌라'] = '연립주택'
+
+dictBuildTypeReverseKeyWord['다가구주택'] = '단독/다가구'
+dictBuildTypeReverseKeyWord['다가구'] = '단독/다가구'
+dictBuildTypeReverseKeyWord['단독주택다가구'] = '단독/다가구'
+dictBuildTypeReverseKeyWord['단독주택'] = '단독/다가구'
+
+dictBuildTypeReverseKeyWord['상가'] = '상가'
+dictBuildTypeReverseKeyWord['근린시설'] = '상가'
+dictBuildTypeReverseKeyWord['상가오피스텔근린시설'] = '상가'
+
+dictBuildTypeReverseKeyWord['대지'] = '대지'
+dictBuildTypeReverseKeyWord['임야'] = '대지'
+dictBuildTypeReverseKeyWord['전답'] = '대지'
+dictBuildTypeReverseKeyWord['대지임야전답'] = '대지'
+
+dictBuildTypeReverseKeyWord['자동차'] = '자동차/중기'
+dictBuildTypeReverseKeyWord['중기'] = '자동차/중기'
+dictBuildTypeReverseKeyWord['자동차중기'] = '자동차/중기'
+
+dictBuildTypeReverseKeyWord['기타'] = '기타'
 
 
 

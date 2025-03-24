@@ -42,7 +42,7 @@ try:
     print(GetLogDef.lineno(__file__), "============================================================")
 
     # 법원 경매 부동산 MASTER 테이블 위도경도 업데이트
-    strProcessType = '020101'
+    strProcessType = '000000'
     KuIndex = '00'
     arrCityPlace = '00'
     targetRow = '00'
@@ -70,12 +70,15 @@ try:
 
 
     qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionBackupTable + " WHERE "
-    # qrySelectCourtAuctionMaster += " seq='101804' " #데이터 없음
+    qrySelectCourtAuctionMaster += " text_address='' " #데이터 없음
+    qrySelectCourtAuctionMaster += " limit 1"
+
+
     # qrySelectCourtAuctionMaster += " seq='104781' " #데이터 있음
 
 
     # qrySelectCourtAuctionMaster = " SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionDataTable + " WHERE process_step= '11'"
-    # qrySelectCourtAuctionMaster += " limit 100"
+
 
     cursorRealEstate.execute(qrySelectCourtAuctionMaster)
     rstFieldsLists = cursorRealEstate.fetchall()

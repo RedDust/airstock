@@ -102,7 +102,6 @@ def main():
             print(GetLogDef.lineno(__file__), 'strTradTpNm => ', strTradTpNm)  # 예외를 발생시킴
 
 
-
             dBaseIssueDatetime = datetime.date(int("20"+arrAtclCfmYmd[0]), int(arrAtclCfmYmd[1]), int(arrAtclCfmYmd[2]))
             strBaseYYYY = str(dBaseIssueDatetime.year).zfill(4)
             strBaseMM = str(dBaseIssueDatetime.month).zfill(2)
@@ -192,3 +191,7 @@ def main():
         print("Finally END")
 
 
+
+
+if __name__ == '__main__':
+    main()

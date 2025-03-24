@@ -14,8 +14,13 @@ SeoulRealRentMasterSwitchTable = 'kt_realty_seoul_real_rent_master_swtich'
 SeoulSisulDataTable = 'kt_realty_seoul_sisul_master'
 
 SeoulBusDataTable = 'kt_realty_seoul_bus_using_static_master'
+SeoulBusGeoDataTable = 'kt_realty_seoul_bus_stop_geodata'
+SeoulBusGeoDataStatisticsTable = 'kt_realty_seoul_bus_stop_geodata_statistics'
 
 SeoulSubwayDataTable = 'kt_realty_seoul_subway_master'
+
+SeoulSubwayGeoDataTable = 'kt_realty_seoul_subway_station_geodata'
+
 SeoulAPTInfoTable = 'kt_realty_seoul_apt_info_master'
 
 # 날씨 데이터

@@ -233,7 +233,7 @@ def main():
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
             dictSwitchData = dict()
             dictSwitchData['result'] = '10'
-            dictSwitchData['data_1'] = intNMMTDBMasterSeq   # Naver Master 테이블의 seq
+            dictSwitchData['data_1'] = intNMMTDBMasterSeq   # naver Master 테이블의 seq
             dictSwitchData['data_2'] = strBackupTableName   # 백업 대상 테이블
             dictSwitchData['data_3'] = strNMMTDBAtclCfmYmd  # 백업 처리 일
             dictSwitchData['data_5'] = intBackupCount       # 백업 성공 건수

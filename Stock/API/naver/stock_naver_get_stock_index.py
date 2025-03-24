@@ -53,6 +53,7 @@ def main():
         strDBSectorsName = '00'
         intItemLoop = 0
         listUpdateColumn=''
+        intInsertedID=0
         strAddLogPath = os.path.basename(Isp.getframeinfo(Isp.currentframe()).filename).split('.')[0]
         LogPath = 'Stock/'+strAddLogPath+'/'+ strProcessType
 

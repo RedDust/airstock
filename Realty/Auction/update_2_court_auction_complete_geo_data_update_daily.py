@@ -408,3 +408,5 @@ def main():
         logging.info(
             SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "Finally END => ============================================================")
 
+if __name__ == '__main__':
+    main()

@@ -1,4 +1,4 @@
-import sys
+import sys, os
 sys.path.append("D:/PythonProjects/airstock")
 sys.path.append("D:/PythonProjects/airstock/Stock")
 
@@ -11,12 +11,9 @@ import pandas as pd
 import html
 import pymysql
 import traceback
-import inspect as Isp, logging, logging.handlers
-
 from urllib.parse import urlparse
 from datetime import datetime , timedelta as TimeDelta
-from Init.Functions.Logs import GetLogDef as SLog
-from Stock.LIB.Logging import UnifiedLogDeclarationFunction as ULF
+
 from Stock.CONFIG import ConstTableName
 from Stock.LIB.SeleniumModule.Windows import Chrome, Firefox
 from Stock.LIB.RDB import pyMysqlConnector
@@ -25,6 +22,11 @@ from Stock.LIB.Functions.Switch import StockSwitchTable
 
 
 def main():
+
+    import inspect as Isp, logging, logging.handlers
+    from Init.Functions.Logs import GetLogDef as SLog
+    from Stock.LIB.Logging import UnifiedLogDeclarationFunction as ULF
+
     try:
         dtNow = datetime.today()
 
@@ -37,14 +39,12 @@ def main():
 
         strProcessType = '010102'
 
-        LogPath = 'Stock/CronLog_' + strProcessType
-        setLogger = ULF.setLogFile(dtNow, logging, LogPath)
-        intWeekDay = dtNow.weekday()
-
         strNowDate = strBaseYYYY + strBaseMM + strBaseDD
         strNowTime = strBaseHH + ":" + strBaseII + ":" + strBaseSS
 
-        LogPath = 'Stock/CronLog_' + strProcessType
+        strAddLogPath = os.path.basename(Isp.getframeinfo(Isp.currentframe()).filename).split('.')[0]
+        LogPath = 'Stock/'+strAddLogPath+'/'+ strProcessType
+
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
         strSequence='0'
@@ -53,7 +53,7 @@ def main():
                               Isp.currentframe()) + " [CRONTAB START : " + strNowTime + "]=====================================")
 
         # 스위치 데이터 조회 type(20=법원경매물건 수집) result (10:처리중, 00:시작전, 20:오류 , 30:시작준비)
-        rstResult = StockSwitchTable.SwitchResultSelectV2(strProcessType)
+        rstResult = StockSwitchTable.SwitchResultSelectV2(logging, strProcessType)
         strResult = rstResult.get('result')
         if strResult is False:
             logging.info(SLog.Ins(Isp.getframeinfo,
@@ -79,7 +79,7 @@ def main():
         dictSwitchData['result'] = '10'
         dictSwitchData['data_1'] = strNowDate
         dictSwitchData['data_2'] = strSequence
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, True, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging, strProcessType, 'a', dictSwitchData)
 
         # # DB 연결
         ResStockFriendsConnection = pyMysqlConnector.StockFriendsConnection()
@@ -94,6 +94,9 @@ def main():
         rstSelectDatas = cursorStockFriends.fetchall()
         if rstSelectDatas != None:
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + " rstSelectDatas >> " + str(rstSelectDatas))
+
+        #파이어폭스 셀리니움 드라이버
+        driver = Firefox.defFireBoxDrive()
 
         for rstSelectData in rstSelectDatas:
             strSequence = str(rstSelectData.get('seq'))
@@ -112,9 +115,6 @@ def main():
 
             strDateHHIISS = str(dtNow.hour).zfill(2) + str(dtNow.minute).zfill(2) + str(dtNow.second).zfill(2)
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[strDateHHIISS]" + str(strDateHHIISS))
-
-            #파이어폭스 셀리니움 드라이버
-            driver = Firefox.defFireBoxDrive()
 
             strResult = driver.get(RealtyCallUrl)  # 크롤링할 사이트 호출
             htmlSource = driver.page_source  # page_source 얻기
@@ -239,7 +239,7 @@ def main():
                     # sqlInsertStockItem += ", processing_state = %s "
 
                     listInsertArguments = [strItemCode, strItemName, strCountryCode, strMarketCode, strSectorCode,
-                                            strSectorName, strTradingAmount, strUpDownCode,strUpDownPrice, strUpDownRate,
+                                            strSectorName, strTodayPrice, strUpDownCode,strUpDownPrice, strUpDownRate,
                                             strTradingVolume,strTradingAmount]
                     cursorStockFriends.execute(sqlInsertStockItem , listInsertArguments)
 
@@ -258,7 +258,7 @@ def main():
                     sqlInsertStockItem += ", trade_volume = %s "
                     sqlInsertStockItem += ", trade_amount = %s "
                     listInsertArguments = [strNowDate, strItemCode, strItemName, strCountryCode, strMarketCode, strSectorCode,
-                                            strSectorName, strTradingAmount, strUpDownCode,strUpDownPrice, strUpDownRate,
+                                            strSectorName, strTodayPrice, strUpDownCode,strUpDownPrice, strUpDownRate,
                                             strTradingVolume,strTradingAmount]
                     cursorStockFriends.execute(sqlInsertStockItem , listInsertArguments)
 
@@ -286,7 +286,6 @@ def main():
                     sqlUpdateStockItem += " item_code = %s "
                     sqlUpdateStockItem += ", item_name = %s "
                     sqlUpdateStockItem += ", country_code = %s "
-                    sqlUpdateStockItem += ", market_code = %s "
                     sqlUpdateStockItem += ", sectors_code = %s "
                     sqlUpdateStockItem += ", sectors_name = %s "
                     sqlUpdateStockItem += ", now_price = %s "
@@ -298,8 +297,8 @@ def main():
                     sqlUpdateStockItem += ", modify_date = NOW() "
                     sqlUpdateStockItem += " WHERE seq = %s "
 
-                    listUpdateArguments = [strItemCode, strItemName, strCountryCode, strMarketCode, strSectorCode,
-                                            strSectorName, strTradingAmount, strUpDownCode, strUpDownPrice, strUpDownRate,
+                    listUpdateArguments = [strItemCode, strItemName, strCountryCode, strSectorCode,
+                                            strSectorName, strTodayPrice, strUpDownCode, strUpDownPrice, strUpDownRate,
                                             strTradingVolume, strTradingAmount, strDBItemSeq]
                     cursorStockFriends.execute(sqlUpdateStockItem , listUpdateArguments)
 
@@ -322,7 +321,6 @@ def main():
                         sqlInsertStockItem += ", item_code = %s "
                         sqlInsertStockItem += ", item_name = %s "
                         sqlInsertStockItem += ", country_code = %s "
-                        sqlInsertStockItem += ", market_code = %s "
                         sqlInsertStockItem += ", sectors_code = %s "
                         sqlInsertStockItem += ", sectors_name = %s "
                         sqlInsertStockItem += ", now_price = %s "
@@ -331,8 +329,8 @@ def main():
                         sqlInsertStockItem += ", updown_rate = %s "
                         sqlInsertStockItem += ", trade_volume = %s "
                         sqlInsertStockItem += ", trade_amount = %s "
-                        listInsertArguments = [strNowDate, strItemCode, strItemName, strCountryCode, strMarketCode, strSectorCode,
-                                                strSectorName, strTradingAmount, strUpDownCode,strUpDownPrice, strUpDownRate,
+                        listInsertArguments = [strNowDate, strItemCode, strItemName, strCountryCode, strSectorCode,
+                                                strSectorName, strTodayPrice, strUpDownCode,strUpDownPrice, strUpDownRate,
                                                 strTradingVolume,strTradingAmount]
                         for listUpdateArgument in listUpdateArguments:
                             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +"listUpdateArgument>>"+str(listUpdateArgument))
@@ -345,9 +343,7 @@ def main():
 
                         sqlUpdateStockItemLog = " UPDATE " + ConstTableName.NaverStockItemTable + " SET "
                         sqlUpdateStockItemLog += "item_name = %s "
-                        sqlUpdateStockItemLog += ", market_code = %s "
                         sqlUpdateStockItemLog += ", sectors_code = %s "
-
                         sqlUpdateStockItemLog += ", sectors_name = %s "
                         sqlUpdateStockItemLog += ", now_price = %s "
                         sqlUpdateStockItemLog += ", updown_code = %s "
@@ -356,10 +352,11 @@ def main():
 
                         sqlUpdateStockItemLog += ", trade_volume = %s "
                         sqlUpdateStockItemLog += ", trade_amount = %s "
+                        sqlUpdateStockItemLog += ", modify_date = NOW() "
                         sqlUpdateStockItemLog += " WHERE seq = %s "
 
-                        listUpdateArguments = [ strItemName, strMarketCode, strSectorCode,
-                                                strSectorName, strTradingAmount, strUpDownCode,strUpDownPrice, strUpDownRate,
+                        listUpdateArguments = [ strItemName, strSectorCode,
+                                                strSectorName, strTodayPrice, strUpDownCode,strUpDownPrice, strUpDownRate,
                                                 strTradingVolume,strTradingAmount,strDBLogSeq]
 
                         for listUpdateArgument in listUpdateArguments:
@@ -382,16 +379,15 @@ def main():
                 dictSwitchData['result'] = '10'
                 dictSwitchData['data_1'] = strNowDate
                 dictSwitchData['data_2'] = strSequence
-                StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+                StockSwitchTable.SwitchResultUpdateV2(logging,strProcessType, 'b', dictSwitchData)
 
-            driver.quit()  # 크롬 브라우저 닫기
             time.sleep(2)
             intTrLoop+=1
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(logging,strProcessType, 'c', dictSwitchData)
 
     except Exception as e:
 
@@ -406,7 +402,7 @@ def main():
         dictSwitchData['result'] = '20'
         dictSwitchData['data_1'] = strNowDate
         dictSwitchData['data_2'] = strSequence
-        StockSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
+        StockSwitchTable.SwitchResultUpdateV2(strProcessType, 'c', dictSwitchData)
 
     else:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())  + "[SUCCESS]========================================================")
@@ -414,3 +410,7 @@ def main():
     finally:
         driver.quit()  # 크롬 브라우저 닫기
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe())  + "[Finally END]")
+
+
+if __name__ == '__main__':
+    main()

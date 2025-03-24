@@ -1,6 +1,15 @@
 #initialization of constants
 
+
+
+
 RealtyDatabase = 'kt_real_estate_auction'
+
+
+CourtAuctionSpoolTable = 'kt_realty_court_auction_spool'
+
+CourtAuctionSpoolPlannedTable = 'kt_realty_court_auction_planned_spool'
+CourtAuctionSpoolCompleteTable = 'kt_realty_court_auction_complete_spool'
 
 CourtAuctionDataTable = 'kt_realty_court_auction_master'
 

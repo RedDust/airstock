@@ -3,7 +3,8 @@
 RealtyDatabase = 'stockfriends'
 StockFriendsDatabase = 'stockfriends'
 
-
+NaverStockStockIndexTable = 'stockfriends_naver_stock_index'
+NaverStockExchangeRateTable = 'stockfriends_naver_exchange_rete'
 
 NaverIndustryCategoryTable = 'stockfriends_naver_industry_category'
 NaverIndustryCategoryLogTable = 'stockfriends_naver_industry_category_log'
