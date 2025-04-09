@@ -512,6 +512,10 @@ def main():
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                      "[=============[SUCCESS END]")
 
+
+        import backup_auction_data_spool
+        backup_auction_data_spool.main()
+
     finally:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                      "[=============[CRONTAB END]")
