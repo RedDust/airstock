@@ -379,6 +379,14 @@ def main():
             cursorRealEstate.execute(sqlSelectMasterTable, (strUniqueKey))
             intSelectedCount = cursorRealEstate.rowcount
             if intSelectedCount > 0:
+                print("DUPE =>", strUniqueKey)
+                qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
+                qryUpdateAuctionSpoolMaster += " state='10' "
+                qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
+                cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
+
+                # 변경 사항 커밋
+                ResRealEstateConnection.commit()
                 continue
 
             print("ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable => PASS ", strUniqueKey)
@@ -430,12 +438,10 @@ def main():
             # 쿼리 실행
             cursorRealEstate.execute(query, values_list)
 
-
             qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
             qryUpdateAuctionSpoolMaster += " state='10' "
             qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
             cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
-
 
             # 변경 사항 커밋
             ResRealEstateConnection.commit()
