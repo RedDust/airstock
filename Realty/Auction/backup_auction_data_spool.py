@@ -196,18 +196,7 @@ def main():
 
             print("ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable => PASS ", strUniqueKey)
 
-
-
-
-
-            #
-            # qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
-            # qryUpdateAuctionSpoolMaster += " state='10' "
-            # qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
-            # cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
-
-
-            # # 변경 사항 커밋
+            # 변경 사항 커밋
             ResRealEstateConnection.commit()
 
             intProcessLoop += 1
@@ -275,6 +264,7 @@ def main():
     else:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
                      "[=============[SUCCESS END]")
+
 
     finally:
         logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) +
