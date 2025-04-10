@@ -9,6 +9,9 @@ import pymysql
 import datetime
 sys.path.append("D:/PythonProjects/airstock")
 
+
+
+
 #from Helper import basic_fnc
 
 from Realty.Auction.Const import ConstRealEstateTable_AUC
@@ -25,10 +28,13 @@ import traceback, inspect
 
 
 def main():
+
+    return False
+
     try:
 
         #서울 부동산 실거래가 데이터 - 매매
-        strProcessType = '021000'
+        strProcessType = 'X021000'
         KuIndex = '00'
         arrCityPlace = '00'
         targetRow = '00'
