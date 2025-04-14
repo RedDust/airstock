@@ -226,6 +226,7 @@ def main():
         dictSwitchData['data_4'] = data_4
         dictSwitchData['data_5'] = data_5
         dictSwitchData['data_6'] = data_6
+        dictSwitchData['today_work'] = '1'
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     except Exception as e:
