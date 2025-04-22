@@ -177,7 +177,11 @@ def MakeDictFromString(strJsonDataRow):
             print("try ==========================================> ")
             print("try => ", type(strJsonDataRow), strJsonDataRow)
 
-
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("strJsonDataRow >> ")
+            listLogData.append(str(len(strJsonDataRow)))
+            listLogData.append(strJsonDataRow)
+            logging.info(f"%s [%s](%s)%s", *listLogData)
 
             dictDataRow = json.loads(strJsonDataRow)
             if type(dictDataRow) != dict:
@@ -206,6 +210,7 @@ def MakeDictFromString(strJsonDataRow):
             elif intDicttryCoount == 2:
                 print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================" , intDicttryCoount )
                 strJsonDataRow = replace_single_quotes_in_quotes_2(strJsonDataRowOrigin)
+
 
             elif intDicttryCoount == 3:
                 print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================",
@@ -271,7 +276,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '021000'
+        strProcessType = '021100'
 
         data_1 = '00'
         data_2 = '00'
@@ -348,7 +353,7 @@ def main():
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
         qrySelectSeoulTradeMaster += " WHERE state='00' "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 70 "
+        qrySelectSeoulTradeMaster += " LIMIT 500000 "
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         rstSpoolDatas = cursorRealEstate.fetchall()
 
@@ -365,6 +370,24 @@ def main():
             data_3 = strSrnSano = str(rstSpoolData.get('srn_sano'))
             data_4 = strSidoName = str(rstSpoolData.get('sido_name'))
             data_5 = strSiguName = str(rstSpoolData.get('sigu_name'))
+            strJsonDataRow = str(rstSpoolData.get('json_data_row'))
+            print("379 strJsonDataRow0 => ", type(strJsonDataRow), strJsonDataRow)
+
+            #
+            # strJsonDataRow = strJsonDataRow.replace("\"", "")
+            # strJsonDataRow = strJsonDataRow.replace("\'", "\"")
+            #
+            # print("380 strJsonDataRow => ["+strJsonDataRow+"]")
+
+            dictDataRow = MakeDictFromString(strJsonDataRow)
+
+            print("380 dictDataRow => [", dictDataRow,"]")
+
+            if type(dictDataRow) != dict:
+                raise Exception('dictDataRow is not Dict')
+
+            strMasterMaeGiil = dictDataRow['maeGiil']
+
 
 
             # 정규 표현식으로 쌍따옴표 안의 작은따옴표를 대시로 변경
@@ -374,16 +397,28 @@ def main():
 
             sqlSelectMasterTable = " SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable
             sqlSelectMasterTable += " WHERE docid = %s "
-            # sqlSelectMasterTable += " AND state = '00' "
+            sqlSelectMasterTable += " AND maeGiil = %s "
+            #maeGiil
 
-            cursorRealEstate.execute(sqlSelectMasterTable, (strUniqueKey))
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("sqlSelectMasterTable >> ")
+            listLogData.append(str(len(sqlSelectMasterTable)))
+            listLogData.append(sqlSelectMasterTable)
+            listLogData.append(strUniqueKey)
+            listLogData.append(strMasterMaeGiil)
+            logging.info(f"%s[%s](%s)[%s](%s,%s)", *listLogData)
+
+            cursorRealEstate.execute(sqlSelectMasterTable, (strUniqueKey, strMasterMaeGiil))
             intSelectedCount = cursorRealEstate.rowcount
             if intSelectedCount > 0:
-                print("DUPE =>", strUniqueKey)
+
+
+                print("DUPE =>", strUniqueKey , strMasterMaeGiil )
                 qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
                 qryUpdateAuctionSpoolMaster += " state='10' "
                 qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
                 cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
+
 
                 # 변경 사항 커밋
                 ResRealEstateConnection.commit()
@@ -391,13 +426,6 @@ def main():
 
             print("ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable => PASS ", strUniqueKey)
 
-            #
-            strJsonDataRow = str(rstSpoolData.get('json_data_row'))
-            print("strJsonDataRow0 => ", type(strJsonDataRow), strJsonDataRow)
-
-            dictDataRow = MakeDictFromString(strJsonDataRow)
-            if type(dictDataRow) != dict:
-                raise Exception('dictDataRow is not Dict')
 
             # raise Exception(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'dictDataRow is not Dict========================' + type(dictDataRow))
 
@@ -448,6 +476,10 @@ def main():
 
             intProcessLoop += 1
             data_6 = str(intProcessLoop)
+
+            dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute, seconds=dtNow.second)
+            dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
+
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
             dictSwitchData = dict()
             dictSwitchData['result'] = '10'
@@ -457,23 +489,21 @@ def main():
             dictSwitchData['data_4'] = data_4
             dictSwitchData['data_5'] = data_5
             dictSwitchData['data_6'] = data_6
+            dictSwitchData['working_time'] = dtWorkingTime
             LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
             time.sleep(0.005)
         print("for rstSiDoList in rstSiDoLists: END")
 
 
-
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+        dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute, seconds=dtNow.second)
+        dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
+
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        dictSwitchData['data_1'] = data_1
-        dictSwitchData['data_2'] = data_2
-        dictSwitchData['data_3'] = data_3
-        dictSwitchData['data_4'] = data_4
-        dictSwitchData['data_5'] = data_5
-        dictSwitchData['data_6'] = data_6
         dictSwitchData['today_work'] = '1'
+        dictSwitchData['working_time'] = dtWorkingTime
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     except Exception as e:

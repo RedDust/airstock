@@ -57,7 +57,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '020000'
+        strProcessType = '021000'
         strSidoCode = '00'
         strPageNo = '0'
         strSidoName = '00'
@@ -74,8 +74,7 @@ def main():
         setLogger = ULF.setLogFile(dtNow, logging, LogPath)
         intWeekDay = dtNow.weekday()
 
-        logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()),
-                     "[CRONTAB START]============================================================")
+        logging.info("%s %s", SLog.Ins(Isp.getframeinfo, Isp.currentframe()),"[CRONTAB START]============================================================")
 
         # 스위치 데이터 조회 type(000200) result (10:정기점검)
         rstResult = LibNaverMobileMasterSwitchTable.SwitchResultSelectV2('000200')
@@ -112,6 +111,7 @@ def main():
 
         if strResult == '40':
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '경매 서비스 점검 ' + str(strResult))  # 예외를 발생시킴
+
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -249,11 +249,17 @@ def main():
                     srnSaNo = str(dictDltSrchResults['srnSaNo']).strip()
                     strSidoName = str(dictDltSrchResults['hjguSido']).strip()
                     strSiguName = str(dictDltSrchResults['hjguSigu']).strip()
+                    strMaeGiil = str(dictDltSrchResults['maeGiil']).strip()
+                    strMaegyuljGiil = str(dictDltSrchResults['maegyuljGiil']).strip()
+                    strBoCd = str(dictDltSrchResults['boCd']).strip()
                     strJsonDataRow = str(dictDltSrchResults).strip()
                     json_string = json.dumps(strJsonDataRow)
 
                     sqlInsertCourtAuctionSpool = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
                     sqlInsertCourtAuctionSpool += " unique_key= %s,  "
+                    sqlInsertCourtAuctionSpool += " boCd= %s,  "
+                    sqlInsertCourtAuctionSpool += " maeGiil= %s,  "
+                    sqlInsertCourtAuctionSpool += " maegyuljGiil= %s,  "
                     sqlInsertCourtAuctionSpool += " srn_sano= %s,  "
                     sqlInsertCourtAuctionSpool += " sido_code= %s , "
                     sqlInsertCourtAuctionSpool += " sido_name= %s , "
@@ -264,13 +270,15 @@ def main():
                     #              "[sqlInsertCourtAuctionSpool: (" + str(len(sqlInsertCourtAuctionSpool)) + ")" + str(
                     #     sqlInsertCourtAuctionSpool))
 
-                    cursorRealEstate.execute(sqlInsertCourtAuctionSpool,[strDocCD,srnSaNo, strUniqueValue2Enc,strSidoName,strAuctionSeq,strSiguName,json_string])
+                    cursorRealEstate.execute(sqlInsertCourtAuctionSpool,[strDocCD,strBoCd,strMaeGiil,strMaegyuljGiil,srnSaNo, strUniqueValue2Enc,strSidoName,strAuctionSeq,strSiguName,json_string])
                     ResRealEstateConnection.commit()
 
                     nConversionSequence = cursorRealEstate.lastrowid
 
                 print("While True: END pageNo (", pageNo, "), strSidoName (", strSidoName, ")" )
                 pageNo += 1
+                dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute,seconds=dtNow.second)
+                dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
 
                 # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
                 dictSwitchData = dict()
@@ -279,6 +287,7 @@ def main():
                 dictSwitchData['data_2'] = strAddressSiguSequence
                 dictSwitchData['data_3'] = strSidoName
                 dictSwitchData['data_4'] = strPageNo
+                dictSwitchData['working_time'] = dtWorkingTime
                 LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
                 time.sleep(random.randrange(10, 15))
@@ -289,10 +298,6 @@ def main():
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
         dictSwitchData['result'] = '00'
-        dictSwitchData['data_1'] = strSidoCode
-        dictSwitchData['data_2'] = strAddressSiguSequence
-        dictSwitchData['data_3'] = strSidoName
-        dictSwitchData['data_4'] = strPageNo
         dictSwitchData['data_5'] = nConversionSequence
         dictSwitchData['data_6'] = strSidoName
         dictSwitchData['today_work'] = '1'

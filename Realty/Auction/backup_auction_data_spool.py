@@ -58,7 +58,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '021100'
+        strProcessType = '021110'
 
         data_1 = '00'
         data_2 = '00'
@@ -135,7 +135,7 @@ def main():
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
         qrySelectSeoulTradeMaster += " WHERE state='10' "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 100000 "
+        qrySelectSeoulTradeMaster += " LIMIT 10 "
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         rstSpoolDatas = cursorRealEstate.fetchall()
 
@@ -176,6 +176,7 @@ def main():
                 strTargetNowYearTable = ConstRealEstateTable_AUC.CourtAuctionSpoolBackupTable
 
             # BAKCUP TABLE 지정
+            print("179 strSelectedCount => ", strSelectedCount, strTargetNowYearTable)
 
             # BACKUP TABLE
             sqlSelectBackUpTable = " SELECT * FROM "+strTargetNowYearTable
@@ -183,6 +184,15 @@ def main():
             cursorRealEstate.execute(sqlSelectBackUpTable, (strAddressSiguSequence))
             intSelectedCount = cursorRealEstate.rowcount
             if intSelectedCount > 0:
+
+                qryUpdateAuctionSpoolMaster = "DELETE FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + "  "
+                qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
+
+                print("qryUpdateAuctionSpoolMaster => ", strSelectedCount, qryUpdateAuctionSpoolMaster , strAddressSiguSequence)
+
+                cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
+                ResRealEstateConnection.commit()
+
                 continue
 
             sqlSelectMasterTable = " INSERT INTO  " +strTargetNowYearTable
@@ -201,6 +211,10 @@ def main():
 
             intProcessLoop += 1
             data_6 = str(intProcessLoop)
+
+            dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute, seconds=dtNow.second)
+            dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
+
             # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
             dictSwitchData = dict()
             dictSwitchData['result'] = '10'
@@ -210,12 +224,14 @@ def main():
             dictSwitchData['data_4'] = data_4
             dictSwitchData['data_5'] = data_5
             dictSwitchData['data_6'] = data_6
+            dictSwitchData['working_time'] = dtWorkingTime
             LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
             time.sleep(0.005)
         print("for rstSiDoList in rstSiDoLists: END")
 
-
+        dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute, seconds=dtNow.second)
+        dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
 
         # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
         dictSwitchData = dict()
@@ -227,6 +243,7 @@ def main():
         dictSwitchData['data_5'] = data_5
         dictSwitchData['data_6'] = data_6
         dictSwitchData['today_work'] = '1'
+        dictSwitchData['working_time'] = dtWorkingTime
         LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
     except Exception as e:
