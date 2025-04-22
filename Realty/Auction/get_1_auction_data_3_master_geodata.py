@@ -60,7 +60,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '021200'
+        strProcessType = '021120'
 
         data_1 = '00'
         data_2 = '00'
