@@ -59,7 +59,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '020002'
+        strProcessType = '023000'
         strSidoCode = '00'
         strPageNo = '0'
         targetRow = '00'
@@ -259,11 +259,19 @@ def main():
                     srnSaNo = str(dictDltSrchResults['srnSaNo']).strip()
                     strSidoName = str(dictDltSrchResults['hjguSido']).strip()
                     strSiguName = str(dictDltSrchResults['hjguSigu']).strip()
+                    strMaeGiil = str(dictDltSrchResults['maeGiil']).strip()
+                    strMaegyuljGiil = str(dictDltSrchResults['maegyuljGiil']).strip()
+                    strBoCd = str(dictDltSrchResults['boCd']).strip()
+
+
                     strJsonDataRow = str(dictDltSrchResults).strip()
                     json_string = json.dumps(strJsonDataRow)
 
                     sqlInsertCourtAuctionSpool = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionSpoolCompleteTable + " SET "
                     sqlInsertCourtAuctionSpool += " unique_key= %s,  "
+                    sqlInsertCourtAuctionSpool += " boCd= %s,  "
+                    sqlInsertCourtAuctionSpool += " maeGiil= %s,  "
+                    sqlInsertCourtAuctionSpool += " maegyuljGiil= %s,  "
                     sqlInsertCourtAuctionSpool += " srn_sano= %s,  "
                     sqlInsertCourtAuctionSpool += " sido_code= %s , "
                     sqlInsertCourtAuctionSpool += " sido_name= %s , "
@@ -275,7 +283,7 @@ def main():
                     #     sqlInsertCourtAuctionSpool))
 
                     cursorRealEstate.execute(sqlInsertCourtAuctionSpool,
-                                             [strDocCD, srnSaNo, strUniqueValue2Enc, strSidoName, strAuctionSeq,
+                                             [strDocCD, strBoCd,strMaeGiil,strMaegyuljGiil,srnSaNo, strUniqueValue2Enc, strSidoName, strAuctionSeq,
                                               strSiguName, json_string])
                     ResRealEstateConnection.commit()
                     nConversionSequence = cursorRealEstate.lastrowid
