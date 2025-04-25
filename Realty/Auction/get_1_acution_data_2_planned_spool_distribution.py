@@ -50,7 +50,7 @@ from shapely.geometry import Point
 def replace_single_quotes_in_quotes_0(text):
     # 정규식 패턴: "로 시작하고 '를 포함하는 부분을 찾음
 
-    print("replace_single_quotes_in_quotes_0 =====================================> ")
+    # print("replace_single_quotes_in_quotes_0 =====================================> ")
 
     text = text.replace('\\"', '|')
     # print("replace_single_quotes_in_quotes_0 text1 =========================================> ", type(text))
@@ -68,8 +68,8 @@ def replace_single_quotes_in_quotes_0(text):
     # print("replace_single_quotes_in_quotes_0 text3 => ", text)
 
     text = text.replace("'", "\"")
-    print("replace_single_quotes_in_quotes_0 text4 =========================================> ", type(text))
-    print("replace_single_quotes_in_quotes_0 text4 => ", text)
+    # print("replace_single_quotes_in_quotes_0 text4 =========================================> ", type(text))
+    # print("replace_single_quotes_in_quotes_0 text4 => ", text)
 
     return text
 
@@ -99,8 +99,8 @@ def replace_single_quotes_in_quotes_1(text):
     # print("replace_single_quotes_in_quotes_1 text4 => ", text)
 
     text = text.replace("'", "\"")
-    print("replace_single_quotes_in_quotes_1 text5 =========================================> ", type(text))
-    print("replace_single_quotes_in_quotes_1 text5 => ", text)
+    # print("replace_single_quotes_in_quotes_1 text5 =========================================> ", type(text))
+    # print("replace_single_quotes_in_quotes_1 text5 => ", text)
 
     return text
 
@@ -125,8 +125,8 @@ def replace_single_quotes_in_quotes_2(text):
     # print("replace_single_quotes_in_quotes_2 text3 => ", text)
 
     text = text.replace("'", "\"")
-    print("replace_single_quotes_in_quotes_2 text4 =========================================> ", type(text))
-    print("replace_single_quotes_in_quotes_2 text4 => ", text)
+    # print("replace_single_quotes_in_quotes_2 text4 =========================================> ", type(text))
+    # print("replace_single_quotes_in_quotes_2 text4 => ", text)
 
     return text
 
@@ -174,8 +174,11 @@ def MakeDictFromString(strJsonDataRow):
 
         try:
 
-            print("try ==========================================> ")
-            print("try => ", type(strJsonDataRow), strJsonDataRow)
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("try ==========================================> ")
+            listLogData.append(str(intDicttryCoount))
+            logging.info(f"%s [%s](%s)", *listLogData)
+
 
             listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
             listLogData.append("strJsonDataRow >> ")
@@ -190,44 +193,40 @@ def MakeDictFromString(strJsonDataRow):
 
         except json.JSONDecodeError as e:
 
-            print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), f"json.JSONDecodeError 발생: {e}")
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("json.JSONDecodeError 발생 >> ")
+            listLogData.append(str(e))
+            logging.info(f"%s [%s]%s", *listLogData)
 
             err_msg = traceback.format_exc()
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[=============[Error Exception]")
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[e : (" + str(e) + ")")
             logging.info(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + "[err_msg : (" + str(err_msg) + ")")
 
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("intDicttryCoount >> ")
+            listLogData.append(str(intDicttryCoount))
+            logging.info(f"%s [%s](%s)", *listLogData)
+
             if intDicttryCoount == 0:
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================",
-                      intDicttryCoount)
                 strJsonDataRow = replace_single_quotes_in_quotes_0(strJsonDataRowOrigin)
-
             elif intDicttryCoount == 1:
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================",
-                      intDicttryCoount)
                 strJsonDataRow = replace_single_quotes_in_quotes_1(strJsonDataRowOrigin)
-
             elif intDicttryCoount == 2:
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================" , intDicttryCoount )
                 strJsonDataRow = replace_single_quotes_in_quotes_2(strJsonDataRowOrigin)
-
-
             elif intDicttryCoount == 3:
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "=================================",
-                      intDicttryCoount)
                 strJsonDataRow = replace_single_quotes_in_quotes_3(strJsonDataRowOrigin)
 
-
-
             else:
-                print("json.JSONDecodeError  ELSE =========================> ")
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "strJsonDataRowOrigin => ", type(strJsonDataRowOrigin), strJsonDataRowOrigin)
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "strJsonDataRow => ", type(strJsonDataRow),
-                      strJsonDataRow)
-                print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "intDicttryCoount => ", type(intDicttryCoount), intDicttryCoount)
+                listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+                listLogData.append("strJsonDataRowOrigin ELSE >> ")
+                listLogData.append(str(strJsonDataRowOrigin))
+                logging.info(f"%s [%s](%s)", *listLogData)
+                listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+                listLogData.append("strJsonDataRow ELSE >> ")
+                listLogData.append(str(strJsonDataRow))
+                logging.info(f"%s [%s](%s)", *listLogData)
                 quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '오류' + str(strJsonDataRowOrigin))  # 예외를 발생시킴
-
-
 
         except Exception as e:
             print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), f"Exception 발생: {e}")
@@ -242,21 +241,29 @@ def MakeDictFromString(strJsonDataRow):
             #     print("Exception strJsonDataRow => ", type(strJsonDataRow), strJsonDataRowOrigin)
             #     quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '오류' + str(strJsonDataRowOrigin))  # 예외를 발생시킴
 
-            print(SLog.Ins(Isp.getframeinfo, Isp.currentframe()), "Exception strJsonDataRow => ", type(strJsonDataRow), strJsonDataRowOrigin)
-            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '오류' + str(strJsonDataRowOrigin))  # 예외를 발생시킴
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("Exception strJsonDataRow => ")
+            listLogData.append(str(strJsonDataRow))
+            logging.info(f"%s [%s](%s)", *listLogData)
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '오류' + str(strJsonDataRow))  # 예외를 발생시킴
+
 
         else:
-            print("else ==========================================> ")
-            print("dictDataRow => ", type(dictDataRow), dictDataRow)
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("Exception else => ")
+            listLogData.append(str(dictDataRow))
+            logging.info(f"%s [%s](%s)", *listLogData)
+
             if type(dictDataRow) != dict:
                 quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + ' 오류2 ' + str(strJsonDataRow))  # 예외를 발생시킴
 
         finally:
-
-            print("finally ==========================================> ")
+            listLogData = [SLog.Ins(Isp.getframeinfo, Isp.currentframe())]
+            listLogData.append("finally intDicttryCoount => ")
+            listLogData.append(str(intDicttryCoount))
+            logging.info(f"%s [%s](%s)", *listLogData)
 
         intDicttryCoount += 1
-        print("intDicttryCoount => ", intDicttryCoount)
 
     return dictDataRow
 
@@ -276,7 +283,7 @@ def main():
         # 매각결과
         # strCourtAuctionUrl = "https://www.courtauction.go.kr/RetrieveRealEstMgakGyulgwaMulList.laf"
 
-        strProcessType = '021100'
+        strProcessType = '022100'
 
         data_1 = '00'
         data_2 = '00'
@@ -313,8 +320,7 @@ def main():
                 strResult))  # 예외를 발생시킴
 
         if strResult == '20':
-            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'It is currently in operation. => ' + str(
-                strResult))  # 예외를 발생시킴
+            data_1 = strAddressSiguSequence = str(rstResult.get('data_1'))
 
         if strResult == '40':
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '경매 서비스 점검 ' + str(strResult))  # 예외를 발생시킴
@@ -342,18 +348,11 @@ def main():
         # quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()))  # 예외를 발생시킴
         # #
 
-        # qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
-        # qrySelectSeoulTradeMaster += " WHERE state='00' "
-        # qrySelectSeoulTradeMaster += " AND seq >= %s "
-        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 50000 "
-        # cursorRealEstate.execute(qrySelectSeoulTradeMaster,(strAddressSiguSequence))
-        #
 
-
-        qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
+        qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionPlannedSpoolTable
         qrySelectSeoulTradeMaster += " WHERE state='00' "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
+        # qrySelectSeoulTradeMaster += " LIMIT 10000 "
         # qrySelectSeoulTradeMaster += " LIMIT 500000 "
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         rstSpoolDatas = cursorRealEstate.fetchall()
@@ -372,8 +371,6 @@ def main():
             data_4 = strSidoName = str(rstSpoolData.get('sido_name'))
             data_5 = strSiguName = str(rstSpoolData.get('sigu_name'))
             strJsonDataRow = str(rstSpoolData.get('json_data_row'))
-            print("379 strJsonDataRow0 => ", type(strJsonDataRow), strJsonDataRow)
-
             #
             # strJsonDataRow = strJsonDataRow.replace("\"", "")
             # strJsonDataRow = strJsonDataRow.replace("\'", "\"")
@@ -381,9 +378,6 @@ def main():
             # print("380 strJsonDataRow => ["+strJsonDataRow+"]")
 
             dictDataRow = MakeDictFromString(strJsonDataRow)
-
-            print("380 dictDataRow => [", dictDataRow,"]")
-
             if type(dictDataRow) != dict:
                 raise Exception('dictDataRow is not Dict')
 
@@ -396,7 +390,7 @@ def main():
             # print("new_text=>" , new_text)
             # 결과 출력
 
-            sqlSelectMasterTable = " SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable
+            sqlSelectMasterTable = " SELECT * FROM " +ConstRealEstateTable_AUC.CourtAuctionPlannedTable
             sqlSelectMasterTable += " WHERE docid = %s "
             sqlSelectMasterTable += " AND maeGiil = %s "
             #maeGiil
@@ -413,9 +407,8 @@ def main():
             intSelectedCount = cursorRealEstate.rowcount
             if intSelectedCount > 0:
 
-
                 print("DUPE =>", strUniqueKey , strMasterMaeGiil )
-                qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
+                qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionPlannedSpoolTable + " SET "
                 qryUpdateAuctionSpoolMaster += " state='10' "
                 qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
                 cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
@@ -449,7 +442,7 @@ def main():
 
 
 
-            table_name = ConstRealEstateTable_AUC.CourtAuctionProgressingMasterTable
+            table_name = ConstRealEstateTable_AUC.CourtAuctionPlannedTable
 
             # print("columns=>")
             # print(columns)
@@ -467,7 +460,7 @@ def main():
             # 쿼리 실행
             cursorRealEstate.execute(query, values_list)
 
-            qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable + " SET "
+            qryUpdateAuctionSpoolMaster = "UPDATE " + ConstRealEstateTable_AUC.CourtAuctionPlannedSpoolTable + " SET "
             qryUpdateAuctionSpoolMaster += " state='10' "
             qryUpdateAuctionSpoolMaster += " WHERE seq = %s  "
             cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))

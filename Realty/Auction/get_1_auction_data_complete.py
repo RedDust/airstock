@@ -267,7 +267,7 @@ def main():
                     strJsonDataRow = str(dictDltSrchResults).strip()
                     json_string = json.dumps(strJsonDataRow)
 
-                    sqlInsertCourtAuctionSpool = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionSpoolCompleteTable + " SET "
+                    sqlInsertCourtAuctionSpool = " INSERT INTO " + ConstRealEstateTable_AUC.CourtAuctionCompleteSpoolTable + " SET "
                     sqlInsertCourtAuctionSpool += " unique_key= %s,  "
                     sqlInsertCourtAuctionSpool += " boCd= %s,  "
                     sqlInsertCourtAuctionSpool += " maeGiil= %s,  "

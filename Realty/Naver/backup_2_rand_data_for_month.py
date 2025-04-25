@@ -75,7 +75,7 @@ def main():
 
         # RotatingFileHandler
         timeFileHandler = logging.handlers.TimedRotatingFileHandler(
-            filename='D:/PythonProjects/airstock/Shell/logs/'+strProcessType+ '_naver_backup_' + logFileName,
+            filename='D:/PythonProjects/airstock/Logs/'+strProcessType+ '_naver_backup_' + logFileName,
             when='midnight',
             interval=1,
             encoding='utf-8'

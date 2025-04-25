@@ -339,39 +339,12 @@ def main():
             if strSwitchType == '021000':
                 # [022000] 법원 경매 부동산 물건 수집(매각)
                 from Realty.Auction import get_1_acution_data
-                th1 = multiprocessing.Process(name="Sub Process", target=get_1_acution_data.main, daemon=False)
+                th1 = multiprocessing.Process(name="021000 Process", target=get_1_acution_data.main, daemon=False)
 
                 logging.info("[" + SLog.Ins(Isp.getframeinfo,
                                             Isp.currentframe()) + "]---------------------------------" + str(
                     intLoop) + " => " + str(th1))
 
-
-                # th1.daemon = True
-                th1.start()
-                listProcess.append(th1)
-
-            if strSwitchType == '022000':
-                # [022000] 법원 경매 부동산 물건 수집(예정)
-                from Realty.Auction import get_1_auction_data_planned
-                th1 = multiprocessing.Process(name="Sub Process", target=get_1_auction_data_planned.main, daemon=False)
-
-                logging.info("[" + SLog.Ins(Isp.getframeinfo,
-                                            Isp.currentframe()) + "]---------------------------------" + str(
-                    intLoop) + " => " + str(th1))
-
-
-                # th1.daemon = True
-                th1.start()
-                listProcess.append(th1)
-
-            if strSwitchType == '023000':
-                # [023000] 법원경매 물건수집 - (결과)
-                from Realty.Auction import get_1_auction_data_complete
-                th1 = multiprocessing.Process(name="Sub Process", target=get_1_auction_data_complete.main, daemon=False)
-
-                logging.info("[" + SLog.Ins(Isp.getframeinfo,
-                                            Isp.currentframe()) + "]---------------------------------" + str(
-                    intLoop) + " => " + str(th1))
 
                 # th1.daemon = True
                 th1.start()
@@ -380,7 +353,7 @@ def main():
             if strSwitchType == '021100':
                 # [021100] 법원 경매 부동산 물건 수집(매각) SPOOL 처리
                 from Realty.Auction import get_1_acution_data_2_spool_distribution
-                th1 = multiprocessing.Process(name="Sub Process", target=get_1_acution_data_2_spool_distribution.main, daemon=False)
+                th1 = multiprocessing.Process(name="021100 Process", target=get_1_acution_data_2_spool_distribution.main, daemon=False)
 
                 logging.info("[" + SLog.Ins(Isp.getframeinfo,
                                             Isp.currentframe()) + "]---------------------------------" + str(
@@ -389,6 +362,24 @@ def main():
                 # th1.daemon = True
                 th1.start()
                 listProcess.append(th1)
+
+
+            if strSwitchType == '021110':
+                # [021110] 법원 경매 부동산 물건 수집(매각) SPOOL 백업
+                from Realty.Auction import backup_auction_data_spool
+                th1 = multiprocessing.Process(name="021110 Process", target=backup_auction_data_spool.main, daemon=False)
+
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+
+
+
 
             if strSwitchType == '021120':
                 # [021120] 법원 경매 부동산 물건 수집(매각) GEO 데이터 UPDATE
@@ -405,11 +396,65 @@ def main():
 
 
 
+            if strSwitchType == '022000':
+                # [022000] 법원 경매 부동산 물건 수집(예정)
+                from Realty.Auction import get_1_auction_data_planned
+                th1 = multiprocessing.Process(name="022000 Process", target=get_1_auction_data_planned.main, daemon=False)
 
-            if strSwitchType == '021110':
-                # [021110] 법원 경매 부동산 물건 수집(매각) SPOOL 백업
-                from Realty.Auction import backup_auction_data_spool
-                th1 = multiprocessing.Process(name="Sub Process", target=backup_auction_data_spool.main, daemon=False)
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+
+            if strSwitchType == '022100':
+                # [022100] 법원 경매 부동산 물건 수집(예정) SPOOL 처리
+                from Realty.Auction import get_1_acution_data_2_planned_spool_distribution
+                th1 = multiprocessing.Process(name="022100 Process", target=get_1_acution_data_2_planned_spool_distribution.main, daemon=False)
+
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+
+            if strSwitchType == '022110':
+                # [022110] 법원 경매 부동산 물건 수집(예정) SPOOL 백업
+                from Realty.Auction import backup_auction_data_planned_spool
+                th1 = multiprocessing.Process(name="022110 Process", target=backup_auction_data_planned_spool.main, daemon=False)
+
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+            if strSwitchType == '022120':
+                # [022120] 법원 경매 부동산 물건 수집(예정) GEO 데이터 UPDATE
+                from Realty.Auction import get_1_auction_data_3_planned_geodata
+                th1 = multiprocessing.Process(name="022120 Process", target=get_1_auction_data_3_planned_geodata.main, daemon=False)
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+            if strSwitchType == '023000':
+                # [023000] 법원경매 물건수집 - (결과)
+                from Realty.Auction import get_1_auction_data_complete
+                th1 = multiprocessing.Process(name="023000 Process", target=get_1_auction_data_complete.main, daemon=False)
 
                 logging.info("[" + SLog.Ins(Isp.getframeinfo,
                                             Isp.currentframe()) + "]---------------------------------" + str(
@@ -420,8 +465,44 @@ def main():
                 listProcess.append(th1)
 
 
+            if strSwitchType == '023100':
+                # [022100] 법원 경매 부동산 물건 수집(예정) SPOOL 처리
+                from Realty.Auction import get_1_acution_data_2_complete_spool_distribution
+                th1 = multiprocessing.Process(name="023100 Process", target=get_1_acution_data_2_complete_spool_distribution.main, daemon=False)
+
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
 
 
+            if strSwitchType == '023110':
+                # [023110] 법원 경매 부동산 물건 수집(결과) SPOOL 백업
+                from Realty.Auction import backup_auction_data_complete_spool
+                th1 = multiprocessing.Process(name="023110 Process", target=backup_auction_data_complete_spool.main, daemon=False)
+
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
+
+
+            if strSwitchType == '023120':
+                # [023120] 법원 경매 부동산 물건 수집(결과) GEO 데이터 UPDATE
+                from Realty.Auction import get_1_auction_data_3_complete_geodata
+                th1 = multiprocessing.Process(name="023120 Process", target=get_1_auction_data_3_complete_geodata.main, daemon=False)
+                logging.info("[" + SLog.Ins(Isp.getframeinfo,
+                                            Isp.currentframe()) + "]---------------------------------" + str(
+                    intLoop) + " => " + str(th1))
+                # th1.daemon = True
+                th1.start()
+                listProcess.append(th1)
 
 
 
