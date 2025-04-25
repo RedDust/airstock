@@ -96,8 +96,9 @@ def main():
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'It is currently in operation. => ' + str(
                 strResult))  # 예외를 발생시킴
 
-        # if strResult == '20':
-        #     data_1 = strAddressSiguSequence = str(rstResult.get('data_1'))
+        if strResult == '20':
+            quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + 'It is currently in operation. => ' + str(
+                strResult))  # 예외를 발생시킴
 
         if strResult == '40':
             quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()) + '경매 서비스 점검 ' + str(strResult))  # 예외를 발생시킴
