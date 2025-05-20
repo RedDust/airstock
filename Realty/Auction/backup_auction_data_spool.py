@@ -123,19 +123,11 @@ def main():
         # quit(SLog.Ins(Isp.getframeinfo, Isp.currentframe()))  # 예외를 발생시킴
         # #
 
-        # qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
-        # qrySelectSeoulTradeMaster += " WHERE state='00' "
-        # qrySelectSeoulTradeMaster += " AND seq >= %s "
-        # qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        # qrySelectSeoulTradeMaster += " LIMIT 50000 "
-        # cursorRealEstate.execute(qrySelectSeoulTradeMaster,(strAddressSiguSequence))
-        #
-
 
         qrySelectSeoulTradeMaster = "SELECT * FROM " + ConstRealEstateTable_AUC.CourtAuctionSpoolTable
         qrySelectSeoulTradeMaster += " WHERE state='10' "
         qrySelectSeoulTradeMaster += " ORDER BY seq ASC "
-        qrySelectSeoulTradeMaster += " LIMIT 10 "
+        # qrySelectSeoulTradeMaster += " LIMIT 10 "
         cursorRealEstate.execute(qrySelectSeoulTradeMaster)
         rstSpoolDatas = cursorRealEstate.fetchall()
 
@@ -192,6 +184,22 @@ def main():
 
                 cursorRealEstate.execute(qryUpdateAuctionSpoolMaster, (strAddressSiguSequence))
                 ResRealEstateConnection.commit()
+
+                dtTimeDifference = DateTime.now() - TimeDelta(hours=dtNow.hour, minutes=dtNow.minute,
+                                                              seconds=dtNow.second)
+                dtWorkingTime = str(dtTimeDifference.strftime('%H:%M:%S'))
+
+                # 스위치 데이터 업데이트 (10:처리중, 00:시작전, 20:오류 , 30:시작준비 - start_time 기록)
+                dictSwitchData = dict()
+                dictSwitchData['result'] = '10'
+                dictSwitchData['data_1'] = data_1
+                dictSwitchData['data_2'] = data_2
+                dictSwitchData['data_3'] = data_3
+                dictSwitchData['data_4'] = data_4
+                dictSwitchData['data_5'] = data_5
+                dictSwitchData['data_6'] = data_6
+                dictSwitchData['working_time'] = dtWorkingTime
+                LibNaverMobileMasterSwitchTable.SwitchResultUpdateV2(strProcessType, False, dictSwitchData)
 
                 continue
 
